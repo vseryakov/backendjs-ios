@@ -567,13 +567,13 @@ static UIActivityIndicatorView *_activity;
 
 @end;
 
+#ifdef BKUI_FONT
+
 // Replacing default system font
 @implementation UIFont (CustomSystemFont)
 
 +(void)load
 {
-    if (![BKui get].systemFont) return;
-    
     SEL original = @selector(systemFontOfSize:);
     SEL modified = @selector(regularFontWithSize:);
     SEL originalBold = @selector(boldSystemFontOfSize:);
@@ -590,12 +590,13 @@ static UIActivityIndicatorView *_activity;
 
 +(UIFont *)regularFontWithSize:(CGFloat)size
 {
-    return [UIFont fontWithName:[BKui get].systemFont size:size];
+    return [UIFont fontWithName:BKUI_FONT size:size];
 }
 
 +(UIFont *)boldFontWithSize:(CGFloat)size
 {
-    return [UIFont fontWithName:[BKui get].systemFont size:size];
+    return [UIFont fontWithName:BKUI_FONT size:size];
 }
-
 @end;
+
+#endif

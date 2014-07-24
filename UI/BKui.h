@@ -13,9 +13,6 @@
 // Map of View Controllers to be uses by ShowViewController method
 @property (strong, nonatomic) NSMutableDictionary *controllers;
 
-// Default font to use insteaf of the system font
-@property (strong, nonatomic) NSString *systemFont;
-
 // Return a ViewController by name, this method is suspposed to be overriden for custom controllers
 - (UIViewController*)getViewController:(NSString*)name;
 

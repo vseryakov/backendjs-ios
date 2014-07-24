@@ -1,0 +1,11 @@
+.DS_Store
+*.swp
+*.*~
+*xcshareddata*
+*xcuserdata*
+*.pbxuser
+*.xccheckout
+*.moved-aside
+DerivedData
+*.hmap
+*.ipa
