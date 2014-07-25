@@ -64,9 +64,11 @@
 
 - (void)finish:(NSURLRequest*)request error:(NSError*)error
 {
-    if (self.completionHandler) self.completionHandler(request, error);
-    self.completionHandler = nil;
-    [self hide];
+    [self hideActivity];
+    [self dismissViewControllerAnimated:YES completion:^{
+        if (self.completionHandler) self.completionHandler(request, error);
+        self.completionHandler = nil;
+    }];
 }
 
 - (void)cancel

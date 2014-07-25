@@ -22,11 +22,14 @@
 @property (nonatomic, strong) NSArray* launchURLs;
 
 @property (nonatomic, strong) NSString* dataName;
-@property (nonatomic, strong) NSString* tokenName;
+@property (nonatomic, strong) NSString* accessTokenName;
+@property (nonatomic, strong) NSString* refreshTokenName;
 @property (nonatomic, strong) NSString* expiresName;
+@property (nonatomic, strong) NSString* errorName;
 
 @property (nonatomic, strong) NSMutableDictionary* account;
 @property (nonatomic, strong) NSString* accessToken;
+@property (nonatomic, strong) NSString* refreshToken;
 
 @property (nonatomic) NSInteger oauthExpires;
 @property (nonatomic, strong) NSString* oauthCode;
@@ -40,6 +43,8 @@
 - (void)login:(ErrorBlock)finished;
 - (BOOL)launch;
 - (void)saveAccount;
+- (void)enableCookies;
+- (void)clearCookies;
 
 - (NSMutableURLRequest*)getRequest:(NSString*)method path:(NSString*)path params:(NSDictionary*)params;
 - (NSMutableURLRequest *)getRequestOAuth1:(NSString *)method path:(NSString *)path params:(NSDictionary *)parameters;
@@ -51,8 +56,9 @@
 
 - (BOOL)parseRedirectURL:(NSURLRequest*)request;
 
-- (NSString*)getAccessURL:(NSString*)path;
-- (NSString*)getNextURL:(id)result;
+- (NSString*)getDataURL:(NSString*)path;
+- (NSMutableDictionary*)getDataQuery:(NSString*)path params:(NSDictionary*)params;
+- (NSString*)getDataNextURL:(id)result;
 
 - (void)getData:(NSString*)path params:(NSDictionary*)params success:(SuccessBlock)success failure:(FailureBlock)failure;
 - (void)postData:(NSString*)path params:(NSDictionary*)params success:(SuccessBlock)success failure:(FailureBlock)failure;

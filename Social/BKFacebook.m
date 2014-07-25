@@ -46,6 +46,7 @@
           success:^(id result) {
               NSDictionary *user = [result isKindOfClass:[NSDictionary class]] ? result : @{};
               for (id key in user) self.account[key] = user[key];
+              self.account[@"alias"] = user[@"name"];
               self.account[@"icon"] = [BKjs toDictionaryString:[BKjs toDictionary:user name:@"picture"] name:@"data" field:@"url"];
               if (success) success(self.account);
           } failure:failure];

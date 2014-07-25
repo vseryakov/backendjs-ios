@@ -11,8 +11,7 @@
 - (id)init:(NSString*)name clientId:(NSString*)clientId
 {
     self = [super init:name clientId:clientId];
-    self.tokenName = @"oauth2_access_token";
-    self.expiresName = @"expires_in";
+    self.accessTokenName = @"oauth2_access_token";
     self.scope = @"r_ basicprofile r_emailaddress r_fullprofile r_network r_contactinfo w_messages";
     self.baseURL = @"https://www.linkedin.com";
     self.launchURLs = @[ @{ @"url": @"linkedin://profile/%@", @"param": @"id" },

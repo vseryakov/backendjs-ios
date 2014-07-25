@@ -22,7 +22,6 @@
 #import <SystemConfiguration/SystemConfiguration.h>
 #import <MobileCoreServices/MobileCoreServices.h>
 #import <Availability.h>
-#import "SSKeychain.h"
 #import "AFNetworking.h"
 #import "UIImageView+AFNetworking.h"
 
@@ -101,6 +100,12 @@ typedef void (^ControllerBlock)(UIViewController *controller, NSDictionary *item
 
 // Generic properties
 + (NSMutableDictionary*)params;
+
+#pragma mark Keychain methods
+
++ (NSString *)passwordForService:(NSString *)service account:(NSString *)account error:(NSError **)error;
++ (BOOL)setPassword:(NSString *)password forService:(NSString *)service account:(NSString *)account error:(NSError **)error;
++ (BOOL)deletePasswordForService:(NSString *)service account:(NSString *)account error:(NSError **)error;
 
 #pragma mark HTTP requests
 
@@ -206,6 +211,9 @@ typedef void (^ControllerBlock)(UIViewController *controller, NSDictionary *item
 
 // Merge params into the item, only non existent propertis are merged, the item properties are preserved
 + (NSMutableDictionary*)mergeParams:(NSDictionary*)item params:(NSDictionary*)params;
+
+// Run a block with a delay
++ (void)scheduleBlock:(double)seconds block:(SuccessBlock)block params:(id)params;
 
 #pragma mark String conversions
 

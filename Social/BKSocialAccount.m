@@ -19,7 +19,7 @@
 - (void)getAccount:(NSDictionary*)params success:(SuccessBlock)success failure:(FailureBlock)failure { if (failure) failure(-1, @"not implmented"); };
 - (void)getAlbums:(NSDictionary*)params success:(SuccessBlock)success failure:(FailureBlock)failure { if (failure) failure(-1, @"not implmented"); };
 - (void)getPhotos:(NSString*)name params:(NSDictionary*)params success:(SuccessBlock)success failure:(FailureBlock)failure { if (failure) failure(-1, @"not implmented"); };
-- (NSString*)getNextURL:(id)result { return nil; }
+- (NSString*)getDataNextURL:(id)result { return nil; }
 
 - (NSMutableURLRequest*)getAuthorizeRequest:(NSDictionary*)params { return nil; }
 - (NSMutableURLRequest*)getAuthenticateRequest:(NSDictionary*)params { return nil; }
@@ -30,11 +30,14 @@
 {
     self = [super init];
     self.name = name;
-    self.type = @"facebook";
+    self.type = @"web";
     self.clientId = clientId;
-    self.accessToken = [SSKeychain passwordForService:self.clientId account:self.name];
+    self.accessToken = [BKjs passwordForService:self.clientId account:self.name error:nil];
     self.redirectURL = [NSString stringWithFormat:@"http://%@/oauth/%@", BKjs.appDomain, self.clientId];
-    self.tokenName = @"access_token";
+    self.accessTokenName = @"access_token";
+    self.refreshTokenName = @"refresh_token";
+    self.expiresName = @"expires_in";
+    self.errorName = @"error";
     self.dataName = @"data";
     self.oauthSignature = @"HMAC-SHA1";
     self.account = [@{} mutableCopy];
@@ -71,24 +74,41 @@
     BKjs.account[aname] = [self.account str:@"username"];
 }
 
-- (NSString*)getAccessURL:(NSString*)path
-{
-    return [NSString stringWithFormat:@"%@%@%@&%@=%@", self.baseURL, path, [path rangeOfString:@"?"].location == NSNotFound ? @"?" : @"", self.tokenName, self.accessToken];
-}
-
 // Parse access token from the url or the data,
-// Facebook OAuth 2.0 uses the url fragment in the redirect url: fb12345://authorize#access_token=...&...
 - (BOOL)parseRedirectURL:(NSURLRequest *)request
 {
+    // By default client-side OAuth 2.0 uses the url fragment in the redirect url
     NSMutableDictionary *query = [BKjs parseQueryString:[[request URL] fragment]];
-    self.accessToken = self.tokenName ? [query[self.tokenName] copy] : nil;
-    if (![BKjs isEmpty:self.accessToken]) {
-        [SSKeychain setPassword:self.accessToken forService:self.clientId account:self.name];
+    NSString *token = query[self.accessTokenName];
+    NSString *error = query[self.errorName];
+    
+    if ([BKjs isEmpty:token]) {
+        // Try the query string in case when access token is in the parameters
+        query = [BKjs parseQueryString:[[request URL] query]];
+        token = query[self.accessTokenName];
+        if (!error) error = query[self.errorName];
+    }
+    if (![BKjs isEmpty:token]) {
+        self.accessToken = [token copy];
+        [BKjs setPassword:self.accessToken forService:self.clientId account:self.name error:nil];
     } else {
         self.accessToken = nil;
     }
-    [self.loginView finish:request error:nil];
+    [self.loginView finish:request error:error ? [NSError errorWithDomain:self.name code:0 userInfo:@{ NSLocalizedDescriptionKey: error }] : nil];
     return NO;
+}
+
+- (NSString*)getDataURL:(NSString*)path
+{
+    return [NSString stringWithFormat:@"%@%@", self.baseURL, path];
+}
+
+- (NSMutableDictionary*)getDataQuery:(NSString*)path params:(NSDictionary*)params
+{
+    NSMutableDictionary *query = [@{} mutableCopy];
+    for (id key in params) query[key] = params[key];
+    if (self.accessToken) query[self.accessTokenName] = self.accessToken;
+    return query;
 }
 
 - (void)getData:(NSString*)path params:(NSDictionary*)params success:(SuccessBlock)success failure:(FailureBlock)failure
@@ -99,7 +119,7 @@
                 Logger(@"%@: %@", self.name, error);
                 if (failure) failure(error ? error.code : -1, error.description);
             } else {
-                [self getResult:path params:params success:success failure:failure];
+                [self getResult:[self getDataURL:path] params:[self getDataQuery:path params:params] success:success failure:failure];
             }
         }];
     };
@@ -109,7 +129,7 @@
         return;
     }
     
-    [self getResult:[self getAccessURL:path] params:params success:success failure:^(NSInteger code, NSString *reason) {
+    [self getResult:[self getDataURL:path] params:[self getDataQuery:path params:params] success:success failure:^(NSInteger code, NSString *reason) {
         // Token expired, try to login and send again
         relogin();
     }];
@@ -117,10 +137,7 @@
 
 - (void)postData:(NSString*)path params:(NSDictionary*)params success:(SuccessBlock)success failure:(FailureBlock)failure
 {
-    NSMutableDictionary *query = [@{} mutableCopy];
-    for (id key in params) query[key] = params[key];
-    if (self.accessToken) query[self.tokenName] = self.accessToken;
-    [BKjs sendRequest:[NSString stringWithFormat:@"%@%@", self.baseURL, path] method:@"POST" params:query headers:nil body:nil success:success failure:failure];
+    [BKjs sendRequest:[self getDataURL:path] method:@"POST" params:[self getDataQuery:path params:params] headers:nil body:nil success:success failure:failure];
 }
 
 - (void)getResult:(NSString*)path params:(NSDictionary*)params success:(SuccessBlock)success failure:(FailureBlock)failure
@@ -143,7 +160,7 @@
     
     // Perform pagination and collect all items
     for (id item in [BKjs toArray:result name:self.dataName]) [items addObject:item];
-    NSString *url = [self getNextURL:result];
+    NSString *url = [self getDataNextURL:result];
     if (url && url.length) {
         [BKjs sendRequest:url method:@"GET" params:nil headers:nil body:nil success:^(id result) {
             [self processResult:result items:items success:success failure:failure];
@@ -173,8 +190,13 @@
 {
     self.account = [@{} mutableCopy];
     self.accessToken = nil;
-    [SSKeychain deletePasswordForService:self.clientId account:self.name];
+    [BKjs deletePasswordForService:self.clientId account:self.name error:nil];
     [self clearCookies];
+}
+
+- (void)enableCookies
+{
+    [[NSHTTPCookieStorage sharedHTTPCookieStorage] setCookieAcceptPolicy:NSHTTPCookieAcceptPolicyOnlyFromMainDocumentDomain];
 }
 
 - (void)clearCookies
@@ -191,6 +213,7 @@
     
     self.accessToken = nil;
     if (!self.loginView) self.loginView = [BKWebViewController initWithDelegate:self completionHandler:nil];
+    [self enableCookies];
     [self.loginView start:request completionHandler:completionHandler];
 }
 
@@ -221,7 +244,10 @@
     NSString* url = error.userInfo[@"NSURLErrorFailingURLErrorKey"];
     if (![url hasPrefix:self.redirectURL]) {
         Logger(@"%@: %@", [webView.request URL], error);
-        [self.loginView finish:webView.request error:error];
+        // Schedule block due to the webview being slow closing
+        [BKjs scheduleBlock:0.5 block:^(id obj) {
+            [self.loginView finish:webView.request error:error];
+        } params:nil];
     }
 }
 
@@ -244,7 +270,8 @@
         self.oauthCode = query[@"code"];
         request = [self getAccessTokenRequest:nil];
         [BKjs sendRequest:request success:^(NSDictionary *json) {
-            self.accessToken = [BKjs toString:json name:@"access_token"];
+            self.accessToken = [BKjs toString:json name:self.accessTokenName];
+            self.refreshToken = [BKjs toString:json name:self.refreshTokenName];
             if (self.expiresName) self.oauthExpires = [query num:self.expiresName];
             finished(nil);
         } failure:^(NSURLRequest *request, NSHTTPURLResponse *response, NSError *error, id JSON) {

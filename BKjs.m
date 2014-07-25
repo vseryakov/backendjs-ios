@@ -7,6 +7,7 @@
 
 #import "BKjs.h"
 #import <sys/sysctl.h>
+#import <Security/Security.h>
 
 static BKjs *_bkjs;
 static CLLocationManager *_locationManager;
@@ -86,16 +87,8 @@ static NSString *SysCtlByName(char *typeSpecifier)
 
 + (void)setCredentials:(NSString *)login secret:(NSString*)secret
 {
-    if (!login) {
-        [SSKeychain deletePasswordForService:@"login" account:BKjs.appName];
-    } else {
-        [SSKeychain setPassword:login forService:@"login" account:BKjs.appName];
-    }
-    if (!secret) {
-        [SSKeychain deletePasswordForService:@"secret" account:BKjs.appName];
-    } else {
-        [SSKeychain setPassword:secret forService:@"secret" account:BKjs.appName];
-    }
+    [self setPassword:login forService:@"login" account:BKjs.appName error:nil];
+    [self setPassword:secret forService:@"secret" account:BKjs.appName error:nil];
 }
 
 + (long long)now
@@ -259,7 +252,7 @@ static NSString *SysCtlByName(char *typeSpecifier)
 + (void)scheduleBlock:(double)seconds block:(SuccessBlock)block params:(id)params
 {
     if (!block) return;
-    [NSTimer scheduledTimerWithTimeInterval:seconds target:[BKui get] selector:@selector(onBlockTimer:) userInfo:@{ @"block": [block copy],  @"params": params } repeats:NO];
+    [NSTimer scheduledTimerWithTimeInterval:seconds target:[BKjs get] selector:@selector(onBlockTimer:) userInfo:@{ @"block": [block copy],  @"params": params ? params : @{} } repeats:NO];
 }
 
 + (void)initDefaultsFromSettings
@@ -502,8 +495,8 @@ static NSString *SysCtlByName(char *typeSpecifier)
         query = [[pairs sortedArrayUsingComparator:^(NSString *a, NSString *b) { return [a compare:b]; }] componentsJoinedByString:@"&"];
     }
     NSURL *url = [NSURL URLWithString:req relativeToURL:[BKjs get].baseURL];
-    NSString *login = [SSKeychain passwordForService:@"login" account:BKjs.appName];
-    NSString *secret = [SSKeychain passwordForService:@"secret" account:BKjs.appName];
+    NSString *login = [self passwordForService:@"login" account:BKjs.appName error:nil];
+    NSString *secret = [self passwordForService:@"secret" account:BKjs.appName error:nil];
     
     NSString *str = [NSString stringWithFormat:@"%@\n%@\n%@\n%@\n%@\n%@\n%@\n",method,url.host,url.path,query,expire,[contentType lowercaseString],checksum];
     NSString *sig = [BKjs toHmacSHA1:[str dataUsingEncoding:NSUTF8StringEncoding] secret:secret];
@@ -903,6 +896,92 @@ static NSString *SysCtlByName(char *typeSpecifier)
            params:params
           success:success
           failure:failure];
+}
+
+#pragma mark Keychain methods
+
++ (NSString*)keychainErrorString:(OSStatus)status
+{
+    switch (status) {
+		case errSecSuccess: return nil;
+		case errSecBadReq: return @"Bad parameter or invalid state for operation";
+		case errSecUnimplemented: return @"Function or operation not implemented";
+		case errSecParam: return @"One or more parameters passed to the function were not valid";
+		case errSecAllocate: return @"Failed to allocate memory";
+		case errSecNotAvailable: return @"No trust results are available";
+		case errSecDuplicateItem: return @"The item already exists";
+		case errSecItemNotFound: return @"The item cannot be found";
+		case errSecInteractionNotAllowed: return @"Interaction with the Security Server is not allowed";
+		case errSecDecode: return @"Unable to decode the provided data";
+		case errSecAuthFailed: return @"Authorization/Authentication failed";
+        case errSecUserCanceled: return @"User canceled the operation";
+        case errSecIO: return @"I/O error";
+		default: return @"Uknown error";
+	}
+}
+
++ (NSMutableDictionary *)keychainQueryForService:(NSString *)service account:(NSString *)account
+{
+    NSMutableDictionary *query = [@{ (__bridge id)kSecClass: (__bridge id)kSecClassGenericPassword,
+                                     (__bridge id)kSecAttrAccount: account,
+                                     (__bridge id)kSecAttrService: service } mutableCopy];
+    return query;
+}
+
++ (NSString *)passwordForService:(NSString *)service account:(NSString *)account error:(NSError **)error
+{
+    OSStatus status = errSecBadReq;
+    NSString *result = nil;
+    if (service && service.length > 0 && account && account.length > 0) {
+        CFTypeRef passwd = NULL;
+        NSMutableDictionary *query = [self keychainQueryForService:service account:account];
+        [query setObject:(__bridge id)kCFBooleanTrue forKey:(__bridge id)kSecReturnData];
+        [query setObject:(__bridge id)kSecMatchLimitOne forKey:(__bridge id)kSecMatchLimit];
+
+        status = SecItemCopyMatching((__bridge CFDictionaryRef)query, (CFTypeRef *)&passwd);
+        if (status != errSecSuccess) {
+            Logger(@"ERROR: %@: %@: %d: %@", service, account, (int)status, [self keychainErrorString:status]);
+            if (error != NULL) *error = [NSError errorWithDomain:@"Keychain" code:status userInfo:@{ @"message": [self keychainErrorString:status]}];
+            return nil;
+        }
+        NSData *data = (__bridge_transfer NSData *)passwd;
+        result = [[NSString alloc] initWithData:data encoding:NSUTF8StringEncoding];
+    }
+    return result;
+}
+
+
++ (BOOL)deletePasswordForService:(NSString *)service account:(NSString *)account error:(NSError **)error
+{
+    OSStatus status = errSecBadReq;
+    if (service && service.length > 0 && account && account.length > 0) {
+        NSMutableDictionary *query = [self keychainQueryForService:service account:account];
+        status = SecItemDelete((__bridge CFDictionaryRef)query);
+    }
+    if (status != errSecSuccess && error != NULL) {
+        Logger(@"ERROR: %@: %@: %d: %@", service, account, (int)status, [self keychainErrorString:status]);
+        if (error != NULL) *error = [NSError errorWithDomain:@"Keychain" code:status userInfo:@{ @"message": [self keychainErrorString:status]}];
+    }
+    return status == errSecSuccess;
+}
+
++ (BOOL)setPassword:(NSString *)password forService:(NSString *)service account:(NSString *)account error:(NSError **)error
+{
+    OSStatus status = errSecBadReq;
+    if (service && service.length > 0 && account && account.length > 0) {
+        [self deletePasswordForService:service account:account error:nil];
+        if (password && password.length > 0) {
+            NSMutableDictionary *query = [self keychainQueryForService:service account:account];
+            NSData *passwd = [password dataUsingEncoding:NSUTF8StringEncoding];
+            [query setObject:passwd forKey:(__bridge id)kSecValueData];
+            status = SecItemAdd((__bridge CFDictionaryRef)query, NULL);
+        }
+    }
+    if (status != errSecSuccess && error != NULL) {
+        Logger(@"ERROR: %@: %@: %d: %@", service, account, (int)status, [self keychainErrorString:status]);
+        if (error != NULL) *error = [NSError errorWithDomain:@"Keychain" code:status userInfo:@{ @"message": [self keychainErrorString:status]}];
+    }
+    return status == errSecSuccess;
 }
 
 @end
