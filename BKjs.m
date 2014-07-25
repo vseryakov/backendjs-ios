@@ -694,7 +694,7 @@ static NSString *SysCtlByName(char *typeSpecifier)
         return;
     }
     query[@"icon"] = [BKjs toBase64:jpeg];
-    Logger(@"putAccountIcon: %gx%g: size=%d, %@", image.size.width, image.size.height, jpeg.length, params);
+    Logger(@"putAccountIcon: %gx%g: size=%d, %@", image.size.width, image.size.height, (int)jpeg.length, params);
     
     [BKjs sendJSON:@"/account/put/icon"
            method:@"POST"
@@ -956,7 +956,7 @@ static NSString *SysCtlByName(char *typeSpecifier)
 
         status = SecItemCopyMatching((__bridge CFDictionaryRef)query, (CFTypeRef *)&passwd);
         if (status != errSecSuccess) {
-            Logger(@"ERROR: %@: %@: %d: %@", service, account, (int)status, [self keychainErrorString:status]);
+            if (status != errSecItemNotFound) Logger(@"ERROR: %@: %@: %d: %@", service, account, (int)status, [self keychainErrorString:status]);
             if (error != NULL) *error = [NSError errorWithDomain:@"Keychain" code:status userInfo:@{ @"message": [self keychainErrorString:status]}];
             return nil;
         }

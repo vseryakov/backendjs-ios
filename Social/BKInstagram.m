@@ -41,7 +41,7 @@
         NSDictionary *user = [BKjs toDictionary:result name:@"data"];
         for (id key in user) self.account[key] = user[key];
         self.account[@"icon"] = user[@"profile_picture"];
-        self.account[@"name"] = user[@"full_name"];
+        self.account[@"alias"] = user[@"full_name"];
         if (success) success(self.account);
     } failure:failure];
 }
@@ -60,7 +60,7 @@
     [self getData:@"/users/self/feed" params:params success:^(id result) {
         NSMutableArray *list = [@[] mutableCopy];
         for (NSDictionary *item in result[@"data"]) {
-            [list addObject:@{ @"type": @"instagram",
+            [list addObject:@{ @"type": self.name,
                                @"icon": item[@"images"][@"thumbnail"][@"url"],
                                @"image": item[@"images"][@"low_resolution"][@"url"],
                                @"photo": item[@"images"][@"standard_resolution"][@"url"] }];

@@ -360,7 +360,7 @@
     if ([self.itemsAll isKindOfClass:[NSArray class]] && ![self.itemsAll isEqual:self.items]) {
         self.items = [self filterItems:self.itemsAll];
     }
-    Logger(@"items: %d", self.items.count);
+    Logger(@"items: %d", (int)self.items.count);
     
     if (self.tableRefresh.isRefreshing) [self.tableRefresh endRefreshing];
     [self.tableView reloadData];
@@ -878,7 +878,7 @@
 
 - (BOOL)textView:(UITextView *)textView shouldInteractWithURL:(NSURL *)URL inRange:(NSRange)characterRange
 {
-    SuccessBlock block = objc_getAssociatedObject(textView, @"actionBlock");
+    SuccessBlock block = objc_getAssociatedObject(textView, @"urlBlock");
     if (block) {
         block(URL.absoluteString);
         return NO;

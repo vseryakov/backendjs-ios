@@ -59,7 +59,7 @@
               NSMutableArray *list = [@[] mutableCopy];
               for (NSDictionary *album in [BKjs toArray:result[@"albums"] name:@"data"]) {
                   for (NSDictionary *icon in [BKjs toArray:album[@"photos"] name:@"data"]) {
-                      [list addObject:@{ @"type": @"facebook",
+                      [list addObject:@{ @"type": self.name,
                                          @"id": [album str:@"id"],
                                          @"name": [album str:@"name"],
                                          @"icon": [icon str:@"picture"],
@@ -75,7 +75,7 @@
     [self getData:[NSString stringWithFormat:@"/%@/photos",name] params:params success:^(id result) {
         NSMutableArray *list = [@[] mutableCopy];
         for (NSDictionary *item in result[@"data"]) {
-            [list addObject:@{ @"type": @"facebook",
+            [list addObject:@{ @"type": self.name,
                                @"icon": [item str:@"picture"],
                                @"image": [item str:@"source"] }];
         }
@@ -83,13 +83,13 @@
     } failure:failure];
 }
 
-- (void)getFriends:(NSDictionary*)params success:(SuccessBlock)success failure:(FailureBlock)failure
+- (void)getContacts:(NSDictionary*)params success:(SuccessBlock)success failure:(FailureBlock)failure
 {
     [self getData:@"/me/friends" params:params success:^(id result) {
         NSMutableArray *list = [@[] mutableCopy];
         for (NSDictionary *item in result[@"data"]) {
             NSMutableDictionary *rec = [item mutableCopy];
-            rec[@"type"] = @"facebook";
+            rec[@"type"] = self.name;
             rec[@"icon"] = [NSString stringWithFormat:@"https://graph.facebook.com/%@/picture?type=small", rec[@"id"]];
             [list addObject:rec];
         }
@@ -102,7 +102,7 @@
     [self getData:[NSString stringWithFormat:@"/me/mutualfriends/%@",name] params:params success:^(id result) {
         NSMutableArray *list = [@[] mutableCopy];
         for (NSMutableDictionary *item in result[@"data"]) {
-            item[@"type"] = @"facebook";
+            item[@"type"] = self.name;
             item[@"icon"] = [BKjs toDictionaryString:[BKjs toDictionary:item name:@"picture"] name:@"data" field:@"url"];
             [list addObject:item];
         }

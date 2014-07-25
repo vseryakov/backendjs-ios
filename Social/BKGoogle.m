@@ -59,20 +59,19 @@
           success:^(id result) {
               NSDictionary *user = [result isKindOfClass:[NSDictionary class]] ? result : @{};
               for (id key in user) self.account[key] = user[key];
-              self.account[@"alias"] = user[@"nickname"] ? user[@"nickname"] : user[@"displayName"];
+              self.account[@"alias"] = [user str:@[@"nickname", @"displayName"] dflt:nil];
               self.account[@"icon"] = [BKjs toDictionaryString:user name:@"image" field:@"url"];
               if (success) success(self.account);
           } failure:failure];
 }
 
-- (void)getFriends:(NSDictionary*)params success:(SuccessBlock)success failure:(FailureBlock)failure
+- (void)getContacts:(NSDictionary*)params success:(SuccessBlock)success failure:(FailureBlock)failure
 {
-    [self getData:@"/me/friends" params:params success:^(id result) {
+    [self getData:@"/m8/feeds/contacts/default/full" params:[BKjs mergeParams:@{ @"alt": @"json", @"max-results": @(10000) } params:params] success:^(id result) {
         NSMutableArray *list = [@[] mutableCopy];
         for (NSDictionary *item in result[@"data"]) {
             NSMutableDictionary *rec = [item mutableCopy];
-            rec[@"type"] = @"facebook";
-            rec[@"icon"] = [NSString stringWithFormat:@"https://graph.facebook.com/%@/picture?type=small", rec[@"id"]];
+            rec[@"type"] = self.name;
             [list addObject:rec];
         }
         if (success) success(list);

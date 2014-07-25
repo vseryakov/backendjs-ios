@@ -39,6 +39,7 @@
 + (UIColor*)makeColor:(NSString *)color;
 + (UIColor *)makeColor:(UIColor*)color h:(double)h s:(double)s b:(double)b a:(double)a;
 + (UILabel*)makeLabel:(CGRect)frame text:(NSString*)text color:(UIColor*)color font:(UIFont*)font;
++ (UITextView*)makeTextView:(CGRect)frame text:(NSString*)text color:(UIColor*)color font:(UIFont*)font;
 + (UIActionSheet*)makeAction:(NSString *)title actions:(NSArray*)actions confirmHandler:(ActionBlock)confirmHandler;
 + (UIImageView*)makeImageAvatar:(UIView*)view frame:(CGRect)frame eclipse:(UIImage*)eclipse;
 + (UIImageView*)makeImageWithBadge:(CGRect)frame icon:(NSString*)icon color:(UIColor*)color value:(int)value;

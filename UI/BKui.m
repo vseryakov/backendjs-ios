@@ -206,6 +206,16 @@ static UIActivityIndicatorView *_activity;
     return label;
 }
 
++ (UITextView*)makeTextView:(CGRect)frame text:(NSString*)text color:(UIColor*)color font:(UIFont*)font
+{
+    UITextView* label = [[UITextView alloc] initWithFrame:frame];
+    label.text = [BKjs toString:text];
+    label.editable = NO;
+    if (color) label.textColor = color;
+    if (font) label.font = font;
+    return label;
+}
+
 + (void)setLabelLink:(UILabel*)label text:(NSString*)text link:(NSString*)link handler:(GenericBlock)handler
 {
     NSMutableAttributedString* str = [[NSMutableAttributedString alloc] initWithString:text];
@@ -216,8 +226,14 @@ static UIActivityIndicatorView *_activity;
     UIButton* btn = [UIButton buttonWithType:UIButtonTypeCustom];
     [btn setFrame:label.frame];
     [btn addTarget:[self get] action:@selector(onLabelLink:) forControlEvents:UIControlEventTouchUpInside];
-    if (handler) objc_setAssociatedObject(btn, @"actionBlock", handler, OBJC_ASSOCIATION_RETAIN);
+    if (handler) objc_setAssociatedObject(btn, @"labelBlock", handler, OBJC_ASSOCIATION_RETAIN);
     [label addSubview:btn];
+}
+
+- (void)onLabelLink:(id)sender
+{
+    GenericBlock block = objc_getAssociatedObject(sender, @"labelBlock");
+    if (block) block();
 }
 
 + (void)setTextLinks:(UITextView*)label text:(NSString*)text links:(NSArray*)links handler:(SuccessBlock)handler
@@ -228,13 +244,7 @@ static UIActivityIndicatorView *_activity;
         [str addAttribute:NSUnderlineStyleAttributeName value:@(NSUnderlineStyleSingle) range:[str.string rangeOfString:link]];
     }
     [label setAttributedText:str];
-    if (handler) objc_setAssociatedObject(label, @"actionBlock", handler, OBJC_ASSOCIATION_RETAIN);
-}
-
-- (void)onLabelLink:(id)sender
-{
-    GenericBlock block = objc_getAssociatedObject(sender, @"actionBlock");
-    if (block) block();
+    if (handler) objc_setAssociatedObject(label, @"urlBlock", handler, OBJC_ASSOCIATION_RETAIN);
 }
 
 + (UIImageView*)makeImageAvatar:(UIView*)view frame:(CGRect)frame eclipse:(UIImage*)eclipse

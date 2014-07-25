@@ -33,7 +33,7 @@
     [self.view addSubview:self.webview];
     
     self.close = [UIButton buttonWithType:UIButtonTypeCustom];
-    self.close.frame = CGRectMake(5, 18, 32, 32);
+    self.close.frame = CGRectMake(5, 22, 32, 32);
     [self.close setImage:[UIImage imageNamed:@"black_close"] forState:UIControlStateNormal];
     [self.close addTarget:self action:@selector(cancel) forControlEvents:UIControlEventTouchUpInside];
     self.close.autoresizingMask = UIViewAutoresizingFlexibleRightMargin | UIViewAutoresizingFlexibleBottomMargin;

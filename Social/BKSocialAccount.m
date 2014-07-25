@@ -16,10 +16,11 @@
 
 @implementation BKSocialAccount
 
-- (void)getAccount:(NSDictionary*)params success:(SuccessBlock)success failure:(FailureBlock)failure { if (failure) failure(-1, @"not implmented"); };
-- (void)getAlbums:(NSDictionary*)params success:(SuccessBlock)success failure:(FailureBlock)failure { if (failure) failure(-1, @"not implmented"); };
-- (void)getPhotos:(NSString*)name params:(NSDictionary*)params success:(SuccessBlock)success failure:(FailureBlock)failure { if (failure) failure(-1, @"not implmented"); };
 - (NSString*)getDataNextURL:(id)result { return nil; }
+- (void)getAccount:(NSDictionary*)params success:(SuccessBlock)success failure:(FailureBlock)failure { if (failure) failure(-1, @"not implemented"); }
+- (void)getAlbums:(NSDictionary*)params success:(SuccessBlock)success failure:(FailureBlock)failure { if (failure) failure(-1, @"not implemented"); }
+- (void)getPhotos:(NSString*)name params:(NSDictionary*)params success:(SuccessBlock)success failure:(FailureBlock)failure { if (failure) failure(-1, @"not implemented"); }
+- (void)getContacts:(NSDictionary*)params success:(SuccessBlock)success failure:(FailureBlock)failure { if (failure) failure(-1, @"not implemented"); }
 
 - (NSMutableURLRequest*)getAuthorizeRequest:(NSDictionary*)params { return nil; }
 - (NSMutableURLRequest*)getAuthenticateRequest:(NSDictionary*)params { return nil; }
@@ -174,6 +175,8 @@
     if (success) success(rc);
 }
 
+#pragma mark Web Authentication
+
 - (void)login:(ErrorBlock)finished
 {
     if ([self.type isEqual:@"oauth1"]) {
@@ -217,6 +220,8 @@
     [self enableCookies];
     [self.loginView start:request completionHandler:completionHandler];
 }
+
+#pragma mark UIWebViewDelegate
 
 - (BOOL)webView:(UIWebView *)webView shouldStartLoadWithRequest:(NSURLRequest *)request navigationType:(UIWebViewNavigationType)navigationType
 {

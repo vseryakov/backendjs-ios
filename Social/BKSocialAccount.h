@@ -68,4 +68,6 @@
 - (void)getAccount:(NSDictionary*)params success:(SuccessBlock)success failure:(FailureBlock)failure;
 - (void)getAlbums:(NSDictionary*)params success:(SuccessBlock)success failure:(FailureBlock)failure;
 - (void)getPhotos:(NSString*)name params:(NSDictionary*)params success:(SuccessBlock)success failure:(FailureBlock)failure;
+- (void)getContacts:(NSDictionary*)params success:(SuccessBlock)success failure:(FailureBlock)failure;
+
 @end;
