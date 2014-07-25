@@ -35,7 +35,7 @@
                                 @"display": @"touch" }];
 }
 
-- (NSString*)getNextURL:(id)result
+- (NSString*)getDataNextURL:(id)result
 {
     return [BKjs toDictionaryString:result name:@"paging" field:@"next"];
 }

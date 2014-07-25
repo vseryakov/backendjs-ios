@@ -51,7 +51,7 @@
 + (void)setImageBorder:(UIView*)view color:(UIColor*)color radius:(float)radius border:(int)border;
 + (void)addImageWithBorderAndShadow:(UIView*)view image:(UIImageView*)image color:(UIColor*)color radius:(float)radius;
 + (void)setRoundCorner:(UIView*)view corner:(UIRectCorner)corner radius:(float)radius;
-+ (void)setViewShadow:(UIView*)view color:(UIColor*)color offset:(float)offset opacity:(float)opacity;
++ (void)setViewShadow:(UIView*)view color:(UIColor*)color offset:(CGSize)offset opacity:(float)opacity;
 
 + (void)addImageAtCorner:(UIView*)view image:(UIImageView*)image corner:(UIRectCorner)corner;
 

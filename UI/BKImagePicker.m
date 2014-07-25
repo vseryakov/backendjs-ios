@@ -61,21 +61,22 @@
 {
     [self.items removeAllObjects];
     for (id account in self.params[@"accounts"]) {
-        [self showActivity];
-        [self getAlbums:account success:^{ [self hideActivity]; }];
+        if (![account respondsToSelector:@selector(isOpen)] || ![account isOpen]) continue;
+        [self getAlbums:account];
     }
 }
 
-- (void)getAlbums:(id)obj success:(GenericBlock)success
+- (void)getAlbums:(id)obj
 {
+    [self showActivity];
     if ([obj isKindOfClass:[BKSocialAccount class]]) {
         BKSocialAccount *account = obj;
         [account getAlbums:nil success:^(id alist) {
+            [self hideActivity];
             for (id item in alist) [self.items addObject:item];
             [self reloadTable];
-            success();
         } failure:^(NSInteger code, NSString *reason) {
-            success();
+            [self hideActivity];
         }];
     }
 }

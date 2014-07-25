@@ -163,7 +163,7 @@
     self.toolbarView.backgroundColor = self.view.backgroundColor;
     [self.view addSubview:self.toolbarView];
     
-    [BKui setViewShadow:self.toolbarView color:nil offset:0.5 opacity:0.5];
+    [BKui setViewShadow:self.toolbarView color:nil offset:CGSizeMake(0, 0.5) opacity:0.5];
     
     self.toolbarBack = [BKui makeCustomButton];
     [self setToolbarBackButton:self.toolbarBackTitle image:[UIImage imageNamed:self.toolbarBackIcon]];
@@ -219,7 +219,7 @@
     self.menubarView.userInteractionEnabled = YES;
     self.menubarView.backgroundColor = self.view.backgroundColor;
     [self.view addSubview:self.menubarView];
-    [BKui setViewShadow:self.menubarView color:nil offset:0.5 opacity:0.5];
+    [BKui setViewShadow:self.menubarView color:nil offset:CGSizeMake(0, 0.5) opacity:0.5];
 
     int i = 0, w = self.view.width / items.count;
     

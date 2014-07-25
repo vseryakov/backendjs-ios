@@ -252,11 +252,11 @@ static UIActivityIndicatorView *_activity;
     return img;
 }
 
-+ (void)setViewShadow:(UIView*)view color:(UIColor*)color offset:(float)offset opacity:(float)opacity
++ (void)setViewShadow:(UIView*)view color:(UIColor*)color offset:(CGSize)offset opacity:(float)opacity
 {
     view.layer.masksToBounds = NO;
     view.layer.shadowColor = color ? color.CGColor : [UIColor blackColor].CGColor;
-    view.layer.shadowOffset = CGSizeMake(0.0f, offset);
+    view.layer.shadowOffset = offset;
     view.layer.shadowOpacity = opacity < 0 ? 0.5 : opacity;
     view.layer.shadowPath = [UIBezierPath bezierPathWithRect:view.bounds].CGPath;
 }

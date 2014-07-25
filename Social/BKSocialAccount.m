@@ -42,6 +42,7 @@
     self.oauthSignature = @"HMAC-SHA1";
     self.account = [@{} mutableCopy];
     self.oauthState = [BKjs getUUID];
+    self.headers = [@{} mutableCopy];
     return self;
 }
 
@@ -137,13 +138,13 @@
 
 - (void)postData:(NSString*)path params:(NSDictionary*)params success:(SuccessBlock)success failure:(FailureBlock)failure
 {
-    [BKjs sendRequest:[self getDataURL:path] method:@"POST" params:[self getDataQuery:path params:params] headers:nil body:nil success:success failure:failure];
+    [BKjs sendRequest:[self getDataURL:path] method:@"POST" params:[self getDataQuery:path params:params] headers:self.headers body:nil success:success failure:failure];
 }
 
 - (void)getResult:(NSString*)path params:(NSDictionary*)params success:(SuccessBlock)success failure:(FailureBlock)failure
 {
     NSMutableArray *items = [@[] mutableCopy];
-    [BKjs sendRequest:path method:@"GET" params:params headers:nil body:nil success:^(id result) {
+    [BKjs sendRequest:path method:@"GET" params:params headers:self.headers body:nil success:^(id result) {
         [self processResult:result items:items success:success failure:^(NSInteger code, NSString *reason) {
             if (failure) failure(code, reason);
         }];
@@ -162,7 +163,7 @@
     for (id item in [BKjs toArray:result name:self.dataName]) [items addObject:item];
     NSString *url = [self getDataNextURL:result];
     if (url && url.length) {
-        [BKjs sendRequest:url method:@"GET" params:nil headers:nil body:nil success:^(id result) {
+        [BKjs sendRequest:url method:@"GET" params:nil headers:self.headers body:nil success:^(id result) {
             [self processResult:result items:items success:success failure:failure];
         } failure:failure];
         return;

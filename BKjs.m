@@ -381,6 +381,22 @@ static NSString *SysCtlByName(char *typeSpecifier)
     return [BKjs toString:[BKjs toDictionary:obj name:name] name:field];
 }
 
++ (NSString*)toString:(id)obj names:(NSArray*)names dflt:(NSString*)dflt
+{
+    for (NSString *key in names) {
+        if (obj[key]) return [obj str:key];
+    }
+    return dflt;
+}
+
++ (double)toNumber:(id)obj names:(NSArray*)names dflt:(double)dflt
+{
+    for (NSString *key in names) {
+        if (obj[key]) return [obj num:key];
+    }
+    return dflt;
+}
+
 #pragma mark Query parser
 
 + (NSMutableDictionary *)parseQueryString:(NSString *)query
@@ -1007,6 +1023,16 @@ static NSString *SysCtlByName(char *typeSpecifier)
 - (NSString*)str:(NSString*)name
 {
     return [BKjs toString:self[name]];
+}
+
+- (NSString*)str:(NSArray*)names dflt:(NSString*)dflt
+{
+    return [BKjs toString:self names:names dflt:dflt];
+}
+
+- (double)num:(NSArray*)names dflt:(double)dflt
+{
+    return [BKjs toNumber:self names:names dflt:dflt];
 }
 
 - (double)num:(NSString*)name

@@ -26,6 +26,7 @@
 @property (nonatomic, strong) NSString* refreshTokenName;
 @property (nonatomic, strong) NSString* expiresName;
 @property (nonatomic, strong) NSString* errorName;
+@property (nonatomic, strong) NSMutableDictionary* headers;
 
 @property (nonatomic, strong) NSMutableDictionary* account;
 @property (nonatomic, strong) NSString* accessToken;

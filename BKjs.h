@@ -182,6 +182,8 @@ typedef void (^ControllerBlock)(UIViewController *controller, NSDictionary *item
 + (NSString*)toDictionaryString:(id)obj name:(NSString*)name field:(NSString*)field;
 + (BOOL)isEmpty:(id)obj name:(NSString*)name;
 + (BOOL)isEmpty:(id)obj;
++ (NSString*)toString:(id)obj names:(NSArray*)names dflt:(NSString*)dflt;
++ (double)toNumber:(id)obj names:(NSArray*)names dflt:(double)dflt;
 
 #pragma mark Generic utilities
 
@@ -235,5 +237,7 @@ typedef void (^ControllerBlock)(UIViewController *controller, NSDictionary *item
 - (double)num:(NSString*)name;
 - (long long)llong:(NSString*)name;
 - (BOOL)bool:(NSString*)name;
+- (NSString*)str:(NSArray*)names dflt:(NSString*)dflt;
+- (double)num:(NSArray*)names dflt:(double)dflt;
 @end
 
