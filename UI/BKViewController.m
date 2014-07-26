@@ -11,6 +11,7 @@
 @interface ImagePicker: NSObject <UIImagePickerControllerDelegate,UINavigationControllerDelegate>
 @property (strong, nonatomic) BKViewController *view;
 @property (strong, nonatomic) UIImagePickerController *picker;
+@property (strong, nonatomic) NSDictionary *params;
 - (id)initWithView:(BKViewController*)view;
 @end;
 
@@ -156,11 +157,13 @@
     self.emptyTextView.y = self.emptyView.height/2 - self.emptyTextView.height/2;
 }
 
+#pragma mark Toolbar
+
 - (void)addToolbar:(NSString*)title
 {
     self.toolbarView = [[UIView alloc] initWithFrame:CGRectMake(0, 0, self.view.width, 64)];
     self.toolbarView.userInteractionEnabled = YES;
-    self.toolbarView.backgroundColor = self.view.backgroundColor;
+    self.toolbarView.backgroundColor = [BKui makeColor:self.view.backgroundColor h:1 s:1 b:0.95 a:1];
     [self.view addSubview:self.toolbarView];
     
     [BKui setViewShadow:self.toolbarView color:nil offset:CGSizeMake(0, 0.5) opacity:0.5];
@@ -217,14 +220,14 @@
     self.menubarItems = [@[] mutableCopy];
     self.menubarView = [[UIView alloc] initWithFrame:CGRectMake(0, 0, self.view.width, 64)];
     self.menubarView.userInteractionEnabled = YES;
-    self.menubarView.backgroundColor = self.view.backgroundColor;
+    self.menubarView.backgroundColor = [BKui makeColor:self.view.backgroundColor h:1 s:1 b:0.95 a:1];
     [self.view addSubview:self.menubarView];
     [BKui setViewShadow:self.menubarView color:nil offset:CGSizeMake(0, 0.5) opacity:0.5];
 
     int i = 0, w = self.view.width / items.count;
     
     for (NSDictionary *obj in items) {
-        NSString *name = obj[@"name"];
+        NSString *name = [obj str:@[@"name", @"icon"] dflt:nil];
         if (!name) continue;
         
         NSMutableDictionary *item = [obj mutableCopy];
@@ -245,23 +248,49 @@
         if (item[@"icon"]) {
             UIImage *image = [UIImage imageNamed:item[@"icon"]];
             [button setImage:image forState:UIControlStateNormal];
-            if (item[@"icon-active"]) [button setImage:[UIImage imageNamed:item[@"icon-active"]] forState:UIControlStateHighlighted];
             if (item[@"icon-disabled"]) [button setImage:[UIImage imageNamed:item[@"icon-disabled"]] forState:UIControlStateDisabled];
-        } else {
+            if (item[@"icon-highlighted"]) {
+                [button setImage:[UIImage imageNamed:item[@"icon-highlighted"]] forState:UIControlStateHighlighted];
+            } else
+            if (item[@"icon-highlighted-alpha"]) {
+                UIGraphicsBeginImageContext(image.size);
+                [image drawInRect:CGRectMake(0, 0, image.size.width, image.size.height) blendMode:kCGBlendModeNormal alpha:[item num:@"icon-highlighted-alpha"]];
+                image = UIGraphicsGetImageFromCurrentImageContext();
+                [button setImage:image forState:UIControlStateHighlighted];
+            }
+            if (item[@"icon-selected"]) {
+                [button setImage:[UIImage imageNamed:item[@"icon-selected"]] forState:UIControlStateSelected];
+            } else {
+                [button setImage:[button imageForState:UIControlStateHighlighted] forState:UIControlStateSelected];
+            }
+        }
+        if (item[@"name"]) {
             [button setTitle:item[@"name"] forState:UIControlStateNormal];
-            if (item[@"name-active"]) [button setTitle:item[@"name-active"] forState:UIControlStateHighlighted];
+            if (item[@"name-highlighted"]) [button setTitle:item[@"name-highlighted"] forState:UIControlStateHighlighted];
             if (item[@"name-disabled"]) [button setTitle:item[@"name-disabled"] forState:UIControlStateDisabled];
             if (item[@"color"]) [button setTitleColor:item[@"color"] forState:UIControlStateNormal];
-            if (item[@"color-active"]) [button setTitleColor:item[@"color-active"] forState:UIControlStateHighlighted];
+            if (item[@"color-highlighted"]) [button setTitleColor:item[@"color-highlighted"] forState:UIControlStateHighlighted];
+            if (item[@"color-selected"])
+                [button setTitleColor:item[@"color-selected"] forState:UIControlStateSelected];
+            else {
+                [button setTitleColor:[button titleColorForState:UIControlStateHighlighted] forState:UIControlStateSelected];
+            }
             if (item[@"color-disabled"]) [button setTitleColor:item[@"color-disabled"] forState:UIControlStateDisabled];
             if (item[@"font"]) [button.titleLabel setFont:item[@"font"]];
+            
+            // Align icon and title vertically in the button, vertical defines top/bottom padding
+            if (item[@"vertical"] && item[@"icon"]) {
+                CGFloat h = (button.imageView.height + button.titleLabel.height + [item num:@"vertical"]);
+                button.imageEdgeInsets = UIEdgeInsetsMake(- (h - button.imageView.height), 0.0f, 0.0f, - button.titleLabel.width);
+                button.titleEdgeInsets = UIEdgeInsetsMake(0.0f, - button.imageView.width, - (h - button.titleLabel.height), 0.0f);
+            }
         }
         [self.menubarView addSubview:button];
         
         // Configure the menubar
         if (params) {
             if ([name isEqual:params[@"current"]]) {
-                button.tag = 999;
+                button.selected = YES;
             }
             for (NSString *d in params[@"menubar-disabled"]) {
                 if ([name isEqual:d]) button.enabled = NO;
@@ -283,10 +312,6 @@
 
 - (void)updateMenubar
 {
-    for (NSString *name in self.menubarButtons) {
-        UIButton *button = self.menubarButtons[name];
-        button.highlighted = button.tag == 999 ? YES :NO;
-    }
 }
 
 - (IBAction)onMenubar:(id)sender
@@ -297,7 +322,7 @@
             // Find additional parameters for given action
             NSDictionary *action = @{};
             for (NSDictionary *item in self.menubarItems) {
-                if ([name isEqual:item[@"name"]]) {
+                if ([name isEqual:item[@"name"]] || [name isEqual:item[@"icon"]]) {
                     action = item;
                     break;
                 }
@@ -453,6 +478,16 @@
     for (int i = 0; i < self.items.count; i++) [paths addObject:[NSIndexPath indexPathForRow:i+self.tableRows inSection:0]];
     [self.tableView insertRowsAtIndexPaths:paths withRowAnimation:UITableViewRowAnimationFade];
     [self.tableView endUpdates];
+}
+
+- (void)hideKeyboard
+{
+    if (![self.view endEditing:YES]) {
+        if (!self.tableView) return;
+        UITableViewCell *cell = [self.tableView cellForRowAtIndexPath:[self.tableView indexPathForSelectedRow]];
+        if (!cell) return;
+        [cell endEditing:YES];
+    }
 }
 
 #pragma mark Activity
@@ -711,17 +746,19 @@
 
 #pragma mark Pickers
 
-- (void)showImagePickerFromCamera:(id)sender
+- (void)showImagePickerFromCamera:(id)sender params:(NSDictionary*)params
 {
     if (![UIImagePickerController isSourceTypeAvailable:UIImagePickerControllerSourceTypeCamera]) return;
     _picker = [[ImagePicker alloc] initWithView:self];
+    _picker.params = params;
     _picker.picker.sourceType = UIImagePickerControllerSourceTypeCamera;
     [self presentViewController:_picker.picker animated:YES completion:NULL];
 }
 
-- (void)showImagePickerFromLibrary:(id)sender
+- (void)showImagePickerFromLibrary:(id)sender params:(NSDictionary*)params
 {
     _picker = [[ImagePicker alloc] initWithView:self];
+    _picker.params = params;
     _picker.picker.sourceType = UIImagePickerControllerSourceTypePhotoLibrary;
     [self presentViewController:_picker.picker animated:YES completion:NULL];
 }
@@ -733,13 +770,13 @@
     aparams[@"_block"] = ^(NSDictionary *item) {
         // Keep reference when calling a callback so the image will not be freed
         UIImage *img = item[@"_image"];
-        [self onImagePicker:img];
+        [self onImagePicker:img params:params];
     };
     BKImagePickerController *picker = [[BKImagePickerController alloc] init];
     [BKui showViewController:self controller:picker name:@"Albums" mode:@"push" params:params];
 }
 
-- (void)onImagePicker:(UIImage*)image
+- (void)onImagePicker:(UIImage*)image params:(NSDictionary*)params
 {
 }
 
@@ -906,6 +943,11 @@
 
 #pragma mark - Table view data source
 
+- (UITableViewCellStyle)getTableCellStyle:(NSIndexPath*)indexPath
+{
+    return UITableViewCellStyleDefault;
+}
+
 - (void)selectTableRow:(int)index animated:(BOOL)animated
 {
     NSIndexPath *path = [NSIndexPath indexPathForRow:index inSection:0];
@@ -949,7 +991,7 @@
 - (UITableViewCell *)tableView:(UITableView *)tableView cellForRowAtIndexPath:(NSIndexPath *)indexPath
 {
     UITableViewCell *cell = self.tableCell ? [tableView dequeueReusableCellWithIdentifier:self.tableCell] : nil;
-    if (cell == nil) cell = [[UITableViewCell alloc] initWithStyle:UITableViewCellStyleDefault reuseIdentifier:self.tableCell];
+    if (cell == nil) cell = [[UITableViewCell alloc] initWithStyle:[self getTableCellStyle:indexPath] reuseIdentifier:self.tableCell];
     
     double height = [self tableView:tableView heightForRowAtIndexPath:indexPath];
     cell.frame = CGRectMake(0, 0, MIN(tableView.width, cell.width), height);
@@ -990,7 +1032,7 @@
 
 - (void)imagePickerController:(UIImagePickerController *)picker didFinishPickingMediaWithInfo:(NSDictionary *)info
 {
-    [self.view onImagePicker:info[UIImagePickerControllerOriginalImage]];
+    [self.view onImagePicker:info[UIImagePickerControllerOriginalImage] params:self.params];
     [picker dismissViewControllerAnimated:NO completion:NULL];
 }
 

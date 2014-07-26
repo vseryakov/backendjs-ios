@@ -132,6 +132,7 @@
 - (void)reloadTable;
 - (void)restoreTablePosition;
 - (void)saveTablePosition:(NSNumber*)pos;
+- (void)hideKeyboard;
 
 - (void)queueTableSearch;
 - (void)onTableSearch:(id)sender;
@@ -157,6 +158,7 @@
 - (void)selectTableRow:(int)index animated:(BOOL)animated;
 - (void)onTableCell:(UITableViewCell*)cell indexPath:(NSIndexPath*)indexPath;
 - (void)onTableSelect:(NSIndexPath *)indexPath selected:(BOOL)selected;
+- (UITableViewCellStyle)getTableCellStyle:(NSIndexPath*)indexPath;
 
 #pragma mark TabBar
 
@@ -164,10 +166,10 @@
 
 #pragma mark Image Pickers
 
-- (void)onImagePicker:(UIImage*)image;
+- (void)onImagePicker:(UIImage*)image params:(NSDictionary*)params;
 - (void)showImagePickerFromAlbums:(NSDictionary*)params;
-- (void)showImagePickerFromCamera:(id)sender;
-- (void)showImagePickerFromLibrary:(id)sender;
+- (void)showImagePickerFromCamera:(id)sender params:(NSDictionary*)params;
+- (void)showImagePickerFromLibrary:(id)sender params:(NSDictionary*)params;
 
 @end
 

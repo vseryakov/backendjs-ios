@@ -275,7 +275,7 @@ static UIActivityIndicatorView *_activity;
 {
     view.layer.masksToBounds = YES;
     view.layer.cornerRadius = radius;
-    view.layer.borderColor = color ? color.CGColor : [UIColor whiteColor].CGColor;
+    view.layer.borderColor = color ? color.CGColor : [UIColor lightGrayColor].CGColor;
     view.layer.borderWidth = 1;
 }
 
