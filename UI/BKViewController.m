@@ -252,11 +252,8 @@
             if (item[@"icon-highlighted"]) {
                 [button setImage:[UIImage imageNamed:item[@"icon-highlighted"]] forState:UIControlStateHighlighted];
             } else
-            if (item[@"icon-highlighted-alpha"]) {
-                UIGraphicsBeginImageContext(image.size);
-                [image drawInRect:CGRectMake(0, 0, image.size.width, image.size.height) blendMode:kCGBlendModeNormal alpha:[item num:@"icon-highlighted-alpha"]];
-                image = UIGraphicsGetImageFromCurrentImageContext();
-                [button setImage:image forState:UIControlStateHighlighted];
+            if (item[@"icon-highlighted-tint"]) {
+                [button setImage:[BKui makeImageWithTint:image color:[button tintColor]] forState:UIControlStateHighlighted];
             }
             if (item[@"icon-selected"]) {
                 [button setImage:[UIImage imageNamed:item[@"icon-selected"]] forState:UIControlStateSelected];
