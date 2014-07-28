@@ -766,15 +766,26 @@ static NSString *SysCtlByName(char *typeSpecifier)
 
 #pragma mark Connection API
     
-+ (void)getReference:(NSDictionary*)params success:(ArrayBlock)success failure:(FailureBlock)failure
++ (void)getReference:(NSDictionary*)params success:(SuccessBlock)success failure:(FailureBlock)failure
 {
     [BKjs sendQuery:@"/reference/get"
            method:@"POST"
            params:params
           success:^(NSDictionary *json) {
-              if (success) success([BKjs toArray:json name:@"data"]);
+              if (success) success(json);
           }
           failure:failure];
+}
+
++ (void)selectReference:(NSDictionary*)params success:(ArrayBlock)success failure:(FailureBlock)failure
+{
+    [BKjs sendQuery:@"/reference/get"
+             method:@"POST"
+             params:params
+            success:^(NSDictionary *json) {
+                if (success) success([BKjs toArray:json name:@"data"]);
+            }
+            failure:failure];
 }
 
 + (void)addConnection:(NSDictionary*)params success:(SuccessBlock)success failure:(FailureBlock)failure
@@ -786,15 +797,26 @@ static NSString *SysCtlByName(char *typeSpecifier)
           failure:failure];
 }
 
-+ (void)getConnection:(NSDictionary*)params success:(ArrayBlock)success failure:(FailureBlock)failure
++ (void)getConnection:(NSDictionary*)params success:(SuccessBlock)success failure:(FailureBlock)failure
 {
     [BKjs sendQuery:@"/connection/get"
            method:@"POST"
            params:params
           success:^(NSDictionary *json) {
-              if (success) success([BKjs toArray:json name:@"data"]);
+              if (success) success(json);
           }
           failure:failure];
+}
+
++ (void)selectConnection:(NSDictionary*)params success:(ArrayBlock)success failure:(FailureBlock)failure
+{
+    [BKjs sendQuery:@"/connection/select"
+             method:@"POST"
+             params:params
+            success:^(NSDictionary *json) {
+                if (success) success([BKjs toArray:json name:@"data"]);
+            }
+            failure:failure];
 }
 
 + (void)updateConnection:(NSDictionary*)params success:(GenericBlock)success failure:(FailureBlock)failure
@@ -804,6 +826,15 @@ static NSString *SysCtlByName(char *typeSpecifier)
            params:params
           success:success
           failure:failure];
+}
+
++ (void)incrConnection:(NSDictionary*)params success:(GenericBlock)success failure:(FailureBlock)failure
+{
+    [BKjs sendQuery:@"/connection/incr"
+             method:@"POST"
+             params:params
+            success:success
+            failure:failure];
 }
 
 #pragma mark - Message API

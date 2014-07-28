@@ -74,7 +74,7 @@ typedef void (^ControllerBlock)(UIViewController *controller, NSDictionary *item
 // Set credentials for API calls, takes effect immediately
 + (void)setCredentials:(NSString*)name secret:(NSString*)secret;
 
-+ (id)appDelegate;
++ (id<UIApplicationDelegate>)appDelegate;
 + (NSUserDefaults*)defaults;
 + (NSString*)documentsDirectory;
 + (NSString*)appName;
@@ -156,10 +156,13 @@ typedef void (^ControllerBlock)(UIViewController *controller, NSDictionary *item
 
 #pragma mark Connection API
 
-+ (void)getReference:(NSDictionary*)params success:(ArrayBlock)success failure:(FailureBlock)failure;
-+ (void)getConnection:(NSDictionary*)params success:(ArrayBlock)success failure:(FailureBlock)failure;
++ (void)selectConnection:(NSDictionary*)params success:(ArrayBlock)success failure:(FailureBlock)failure;
++ (void)selectReference:(NSDictionary*)params success:(ArrayBlock)success failure:(FailureBlock)failure;
++ (void)getConnection:(NSDictionary*)params success:(SuccessBlock)success failure:(FailureBlock)failure;
++ (void)getReference:(NSDictionary*)params success:(SuccessBlock)success failure:(FailureBlock)failure;
 + (void)addConnection:(NSDictionary*)params success:(SuccessBlock)success failure:(FailureBlock)failure;
 + (void)updateConnection:(NSDictionary*)params success:(GenericBlock)success failure:(FailureBlock)failure;
++ (void)incrConnection:(NSDictionary*)params success:(GenericBlock)success failure:(FailureBlock)failure;
 
 #pragma mark Message API
 
