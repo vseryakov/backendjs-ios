@@ -198,8 +198,6 @@ typedef void (^ControllerBlock)(UIViewController *controller, NSDictionary *item
 
 // Regexp matching, YES if matched
 + (BOOL)matchString:(NSString *)pattern string:(NSString*)string;
-// Return captured string by index
-+ (NSString *)captureString:(NSString *)pattern string:(NSString*)string index:(int)index;
 
 // Return new unique UUID 
 + (NSString*)getUUID;

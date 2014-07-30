@@ -182,25 +182,6 @@ static NSString *SysCtlByName(char *typeSpecifier)
     return [regex numberOfMatchesInString:string options:0 range:NSMakeRange(0, string.length)] > 0;
 }
 
-+ (NSString *)captureString:(NSString *)pattern string:(NSString*)string index:(int)index
-{
-    if (!pattern || !string) return nil;
-    NSError *error = nil;
-    NSRegularExpression *regex = [NSRegularExpression regularExpressionWithPattern:pattern options:NSRegularExpressionCaseInsensitive error:&error];
-    if (regex == nil) {
-        Logger(@"captureString: %@: %@", pattern, error);
-        return nil;
-    }
-    NSArray *matches = [regex matchesInString:string options:NSMatchingReportCompletion range:NSMakeRange(0, string.length)];
-    for (NSTextCheckingResult *result in matches) {
-        if (index < result.numberOfRanges) {
-            NSString *str = [string substringWithRange:[result rangeAtIndex:index]];
-            return str;
-        }
-    }
-    return nil;
-}
-
 + (NSString*)getUUID
 {
     CFUUIDRef uuid = CFUUIDCreate(NULL);
