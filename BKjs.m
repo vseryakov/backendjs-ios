@@ -886,6 +886,49 @@ static NSString *SysCtlByName(char *typeSpecifier)
           failure:failure];
 }
 
++ (void)archiveMessage:(NSDictionary*)params success:(ArrayBlock)success failure:(FailureBlock)failure
+{
+    [self sendQuery:@"/message/archive"
+             method:@"POST"
+             params:params
+            success:success
+            failure:failure];
+}
+
++ (void)delMessage:(NSDictionary*)params success:(ArrayBlock)success failure:(FailureBlock)failure
+{
+    [self sendQuery:@"/message/del"
+             method:@"POST"
+             params:params
+            success:success
+            failure:failure];
+}
+
++ (void)delArchivedMessage:(NSDictionary*)params success:(ArrayBlock)success failure:(FailureBlock)failure
+{
+    [self sendQuery:@"/message/del/archive"
+             method:@"POST"
+             params:params
+            success:success
+            failure:failure];
+}
+
++ (void)delSentMessage:(NSDictionary*)params success:(ArrayBlock)success failure:(FailureBlock)failure
+{
+    [self sendQuery:@"/message/del/sent"
+             method:@"POST"
+             params:params
+            success:success
+            failure:failure];
+}
+
++ (void)getMessageIcon:(NSDictionary*)params success:(ImageSuccessBlock)success failure:(FailureBlock)failure
+{
+    [self getIcon:@"/message/image"
+             params:params
+            success:success
+            failure:failure];
+}
 
 #pragma mark - Location API
 

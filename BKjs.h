@@ -171,6 +171,11 @@ typedef void (^ControllerBlock)(UIViewController *controller, NSDictionary *item
 + (void)getNewMessages:(NSDictionary*)params success:(ArrayBlock)success failure:(FailureBlock)failure;
 + (void)getConversation:(NSDictionary*)params success:(ArrayBlock)success failure:(FailureBlock)failure;
 + (void)addMessage:(NSDictionary*)params success:(SuccessBlock)success failure:(FailureBlock)failure;
++ (void)archiveMessage:(NSDictionary*)params success:(ArrayBlock)success failure:(FailureBlock)failure;
++ (void)delMessage:(NSDictionary*)params success:(ArrayBlock)success failure:(FailureBlock)failure;
++ (void)delArchivedMessage:(NSDictionary*)params success:(ArrayBlock)success failure:(FailureBlock)failure;
++ (void)delSentMessage:(NSDictionary*)params success:(ArrayBlock)success failure:(FailureBlock)failure;
++ (void)getMessageIcon:(NSDictionary*)params success:(ImageSuccessBlock)success failure:(FailureBlock)failure;
 
 #pragma mark Dictionary properties
 

@@ -153,6 +153,10 @@
 - (void)showDrawer:(UIViewController*)owner;
 - (void)hideDrawer;
 
+#pragma marj Animations
+
+- (BKTransitionAnimation*)getAnimation:(BOOL)present;
+
 #pragma mark Table Cels
 
 - (void)selectTableRow:(int)index animated:(BOOL)animated;
@@ -170,6 +174,10 @@
 - (void)showImagePickerFromAlbums:(NSDictionary*)params;
 - (void)showImagePickerFromCamera:(id)sender params:(NSDictionary*)params;
 - (void)showImagePickerFromLibrary:(id)sender params:(NSDictionary*)params;
+
+#pragma mark Gestures
+
+- (BOOL)onGesture:(UIGestureRecognizer *)recognizer touch:(UITouch *)touch;
 
 @end
 

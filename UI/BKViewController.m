@@ -147,6 +147,7 @@
     self.emptyTextView.text = text;
     [self.emptyTextView sizeToFit];
     self.emptyTextView.y = self.emptyView.height/2 - self.emptyTextView.height/2;
+    self.emptyTextView.centerX = self.view.centerX;
 }
 
 - (void)addEmptyView:(NSString*)text links:(NSArray*)links handler:(SuccessBlock)handler
@@ -155,6 +156,7 @@
     [BKui setTextLinks:self.emptyTextView text:text links:links handler:handler];
     [self.emptyTextView sizeToFit];
     self.emptyTextView.y = self.emptyView.height/2 - self.emptyTextView.height/2;
+    self.emptyTextView.centerX = self.view.centerX;
 }
 
 #pragma mark Toolbar
@@ -837,12 +839,17 @@
 
 # pragma mark - UIGestureRecognizerDelegate methods
 
-- (BOOL)gestureRecognizer:(UIGestureRecognizer *)recognizer shouldReceiveTouch:(UITouch *)touch
+- (BOOL)onGesture:(UIGestureRecognizer *)recognizer touch:(UITouch *)touch
 {
     if (recognizer == self.panGesture) {
         if ([touch.view isKindOfClass:[BKRangeSlider class]] || [touch.view isKindOfClass:[UISlider class]]) return NO;
     }
     return YES;
+}
+
+- (BOOL)gestureRecognizer:(UIGestureRecognizer *)recognizer shouldReceiveTouch:(UITouch *)touch
+{
+    return [self onGesture:recognizer touch:touch];
 }
 
 - (BOOL)gestureRecognizerShouldBegin:(UIGestureRecognizer *)recognizer
@@ -1034,7 +1041,6 @@
 }
 
 @end
-
 
 @implementation UIView (Frame)
 
