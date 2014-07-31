@@ -45,7 +45,7 @@
                                
 }
 
-- (void)getAccount:(NSDictionary*)params params:(SuccessBlock)success failure:(FailureBlock)failure
+- (void)getAccount:(NSDictionary*)params success:(SuccessBlock)success failure:(FailureBlock)failure
 {
     [self getData:@"/people~" params:params success:^(id user) {
         NSMutableDictionary *account = [user mutableCopy];

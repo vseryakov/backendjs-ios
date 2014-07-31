@@ -33,4 +33,16 @@
     return [self getRequestOAuth1:@"GET" path:@"https://api.twitter.com/oauth/request_token" params:params];
 }
 
+- (void)getAccount:(NSDictionary*)params success:(SuccessBlock)success failure:(FailureBlock)failure
+{
+    [self getData:@"/1/account/verify_credentials.json" params:params success:^(id user) {
+        NSMutableDictionary *account = [user mutableCopy];
+        self.account = account;
+        self.account[@"alias"] = [account str:@"name"];
+        self.account[@"icon"] = [account str:@"profile_image_url"];
+        if (success) success(account);
+        
+    } failure:failure];
+}
+
 @end

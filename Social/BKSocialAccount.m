@@ -7,6 +7,8 @@
 
 #import "BKSocialAccount.h"
 
+static NSMutableDictionary *_accounts;
+
 @interface BKSocialAccount () <UIWebViewDelegate>
 @property (nonatomic, strong) BKWebViewController *loginView;
 
@@ -16,23 +18,35 @@
 
 @implementation BKSocialAccount
 
++ (NSMutableDictionary*)accounts
+{
+    if (!_accounts) _accounts = [@{} mutableCopy];
+    return _accounts;
+}
+
 - (NSString*)getDataNextURL:(id)result { return nil; }
 - (void)getAccount:(NSDictionary*)params success:(SuccessBlock)success failure:(FailureBlock)failure { if (failure) failure(-1, @"not implemented"); }
 - (void)getAlbums:(NSDictionary*)params success:(SuccessBlock)success failure:(FailureBlock)failure { if (failure) failure(-1, @"not implemented"); }
 - (void)getPhotos:(NSString*)name params:(NSDictionary*)params success:(SuccessBlock)success failure:(FailureBlock)failure { if (failure) failure(-1, @"not implemented"); }
 - (void)getContacts:(NSDictionary*)params success:(SuccessBlock)success failure:(FailureBlock)failure { if (failure) failure(-1, @"not implemented"); }
+- (void)postMessage:(NSDictionary*)params success:(SuccessBlock)success failure:(FailureBlock)failure { if (failure) failure(-1, @"not implemented"); };
 
 - (NSMutableURLRequest*)getAuthorizeRequest:(NSDictionary*)params { return nil; }
 - (NSMutableURLRequest*)getAuthenticateRequest:(NSDictionary*)params { return nil; }
 - (NSMutableURLRequest*)getAccessTokenRequest:(NSDictionary*)params { return nil; }
 - (NSMutableURLRequest*)getRequestTokenRequest:(NSDictionary*)params { return nil; }
 
+- (id)init:(NSString*)name
+{
+    return [self init:name clientId:nil];
+}
+
 - (id)init:(NSString*)name clientId:(NSString*)clientId
 {
     self = [super init];
     self.name = name;
     self.type = @"web";
-    self.clientId = clientId;
+    self.clientId = clientId ? clientId : [[NSBundle mainBundle] objectForInfoDictionaryKey:[NSString stringWithFormat:@"%@AppID", self.name]];
     self.accessToken = [BKjs passwordForService:self.clientId account:self.name error:nil];
     self.redirectURL = [NSString stringWithFormat:@"http://%@/oauth/%@", BKjs.appDomain, self.clientId];
     self.accessTokenName = @"access_token";
@@ -44,6 +58,7 @@
     self.account = [@{} mutableCopy];
     self.oauthState = [BKjs getUUID];
     self.headers = [@{} mutableCopy];
+    [[BKSocialAccount accounts] setObject:self forKey:self.name];
     return self;
 }
 

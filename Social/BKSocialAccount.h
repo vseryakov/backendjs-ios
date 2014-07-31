@@ -37,6 +37,9 @@
 @property (nonatomic, strong) NSString* oauthState;
 @property (nonatomic, strong) NSMutableDictionary *oauthToken;
 
++ (NSMutableDictionary*)accounts;
+
+- (id)init:(NSString*)name;
 - (id)init:(NSString*)name clientId:(NSString*)clientId;
 
 - (BOOL)isOpen;
@@ -69,5 +72,6 @@
 - (void)getAlbums:(NSDictionary*)params success:(SuccessBlock)success failure:(FailureBlock)failure;
 - (void)getPhotos:(NSString*)name params:(NSDictionary*)params success:(SuccessBlock)success failure:(FailureBlock)failure;
 - (void)getContacts:(NSDictionary*)params success:(SuccessBlock)success failure:(FailureBlock)failure;
+- (void)postMessage:(NSDictionary*)params success:(SuccessBlock)success failure:(FailureBlock)failure;
 
 @end;

@@ -110,4 +110,9 @@
     } failure:failure];
 }
 
+- (void)postMessage:(NSDictionary*)params success:(SuccessBlock)success failure:(FailureBlock)failure
+{
+    [self postData:@"/me/feed" params:params success:success failure:failure];
+}
+     
 @end

@@ -55,7 +55,7 @@
 
 - (void)getAccount:(NSDictionary*)params success:(SuccessBlock)success failure:(FailureBlock)failure
 {
-    [self getData:@"/plus/v1/people/me" params:[BKjs mergeParams:params params:@{ @"fields": @"picture.type(large),id,email,name,birthday,gender" }]
+    [self getData:@"/plus/v1/people/me" params:[BKjs mergeParams:params params:@{ @"alt": @"json" }]
           success:^(id result) {
               NSDictionary *user = [result isKindOfClass:[NSDictionary class]] ? result : @{};
               for (id key in user) self.account[key] = user[key];
