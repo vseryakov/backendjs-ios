@@ -110,6 +110,7 @@
 
 - (void)addMenubar:(NSArray*)items params:(NSDictionary*)params;
 - (void)setMenubarButton:(NSString*)name enabled:(BOOL)enabled;
+- (void)updateMenubar;
 
 #pragma mark Toolbar
 

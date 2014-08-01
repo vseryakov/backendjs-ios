@@ -298,7 +298,7 @@
         _menubarButtons[name] = button;
         i++;
     }
-   
+    [self updateMenubar];
     self.navigationController.navigationBarHidden = YES;
 }
 
