@@ -73,8 +73,8 @@
 @property (strong, nonatomic) NSString* searchText;
 
 // To show when no results in the table
-@property (strong, nonatomic) UIView *emptyView;
-@property (strong, nonatomic) UITextView *emptyTextView;
+@property (strong, nonatomic) UIView *infoView;
+@property (strong, nonatomic) UITextView *infoTextView;
 
 // Top menubar view
 @property (strong, nonatomic) NSMutableArray *menubarItems;
@@ -138,8 +138,8 @@
 - (void)queueTableSearch;
 - (void)onTableSearch:(id)sender;
 
-- (void)addEmptyView:(NSString*)text;
-- (void)addEmptyView:(NSString*)text links:(NSArray*)links handler:(SuccessBlock)handler;
+- (void)addInfoView:(NSString*)text;
+- (void)addInfoView:(NSString*)text links:(NSArray*)links handler:(SuccessBlock)handler;
 
 #pragma mark Items
 

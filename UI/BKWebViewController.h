@@ -14,6 +14,7 @@ typedef void (^WebViewCompletionBlock)(NSURLRequest *req, NSError *err);
 @property (nonatomic, strong) WebViewCompletionBlock completionHandler;
 
 + (BKWebViewController*)initWithDelegate:(id<UIWebViewDelegate>)delegate completionHandler:(WebViewCompletionBlock)completionHandler;
++ (BKWebViewController*)showURL:(NSString*)url completionHandler:(WebViewCompletionBlock)completionHandler;
 - (void)start:(id)request completionHandler:(WebViewCompletionBlock)completionHandler;
 - (void)start:(id)request;
 - (void)show;

@@ -28,7 +28,8 @@
 
 + (void)showAlert:(NSString *)title text:(NSString *)text delegate:(id)delegate cancelButtonText:(NSString*)cancel otherButtonTitles:(NSArray*)otherButtonTitles tag:(int)tag;
 + (void)showAlert:(NSString*)title text:(NSString*)text confirmHandler:(AlertBlock)confirmHandler;
-+ (void)showConfirm:(NSString*)title text:(NSString*)text ok:(NSString*)ok confirmHandler:(AlertBlock)confirmHandler;
++ (void)showConfirm:(NSString*)title text:(NSString*)text ok:(NSString*)ok cancel:(NSString*)cancel confirmHandler:(AlertBlock)confirmHandler;
++ (void)showConfirm:(NSString*)title text:(NSString*)text buttons:(NSArray*)buttons confirmHandler:(AlertBlock)confirmHandler;
 + (void)showViewController:(UIViewController*)owner name:(NSString*)name params:(NSDictionary*)params;
 + (void)showViewController:(UIViewController*)owner controller:(UIViewController*)controller name:(NSString*)name mode:(NSString*)mode params:(NSDictionary*)params;
 
@@ -48,7 +49,7 @@
 + (UIButton*)makeCustomButton;
 
 + (void)setTextLinks:(UITextView*)label text:(NSString*)text links:(NSArray*)links handler:(SuccessBlock)handler;
-+ (void)setLabelLink:(UILabel*)label text:(NSString*)text link:(NSString*)link handler:(GenericBlock)handler;
++ (void)setLabelLink:(UILabel*)label text:(NSString*)text link:(NSString*)link handler:(SuccessBlock)handler;
 + (void)setLabelAttributes:(UILabel*)label color:(UIColor*)color font:(UIFont*)font range:(NSRange)range;
 + (void)setViewBorder:(UIView*)view color:(UIColor*)color radius:(float)radius;
 + (void)setImageBorder:(UIView*)view color:(UIColor*)color radius:(float)radius border:(int)border;

@@ -11,7 +11,7 @@
 static BKui *_BKui;
 static UIActivityIndicatorView *_activity;
 
-@interface BKui () <UIActionSheetDelegate,UIAlertViewDelegate>
+@interface BKui () <UIActionSheetDelegate,UIAlertViewDelegate,UITextViewDelegate>
 @end
 
 @implementation BKui
@@ -142,9 +142,17 @@ static UIActivityIndicatorView *_activity;
     [alertView show];
 }
 
-+ (void)showConfirm:(NSString*)title text:(NSString*)text ok:(NSString*)ok confirmHandler:(AlertBlock)confirmHandler
++ (void)showConfirm:(NSString*)title text:(NSString*)text buttons:(NSArray*)buttons confirmHandler:(AlertBlock)confirmHandler
 {
-    UIAlertView *alertView = [[UIAlertView alloc] initWithTitle:title message:text delegate:[self get] cancelButtonTitle:@"Cancel" otherButtonTitles:ok,nil];
+    UIAlertView *alertView = [[UIAlertView alloc] initWithTitle:title message:text delegate:[self get] cancelButtonTitle:nil otherButtonTitles:nil];
+    for (NSString *key in buttons) [alertView addButtonWithTitle:key];
+    if (confirmHandler) objc_setAssociatedObject(alertView, @"alertBlock", confirmHandler, OBJC_ASSOCIATION_RETAIN);
+    [alertView show];
+}
+
++ (void)showConfirm:(NSString*)title text:(NSString*)text ok:(NSString*)ok cancel:(NSString*)cancel confirmHandler:(AlertBlock)confirmHandler
+{
+    UIAlertView *alertView = [[UIAlertView alloc] initWithTitle:title message:text delegate:[self get] cancelButtonTitle:cancel ? cancel : @"Cancel" otherButtonTitles:ok ? ok : @"OK",nil];
     if (confirmHandler) objc_setAssociatedObject(alertView, @"alertBlock", confirmHandler, OBJC_ASSOCIATION_RETAIN);
     [alertView show];
 }
@@ -216,24 +224,33 @@ static UIActivityIndicatorView *_activity;
     return label;
 }
 
-+ (void)setLabelLink:(UILabel*)label text:(NSString*)text link:(NSString*)link handler:(GenericBlock)handler
++ (void)setLabelLink:(UILabel*)label text:(NSString*)text link:(NSString*)link handler:(SuccessBlock)handler
 {
+    if (!text || !text.length || !link || !link.length) return;
     NSMutableAttributedString* str = [[NSMutableAttributedString alloc] initWithString:text];
     [str addAttribute:NSLinkAttributeName value:link range:[str.string rangeOfString:link]];
     [str addAttribute:NSUnderlineStyleAttributeName value:@(NSUnderlineStyleSingle) range:[str.string rangeOfString:link]];
     [label setAttributedText:str];
+    label.userInteractionEnabled = YES;
     
     UIButton* btn = [UIButton buttonWithType:UIButtonTypeCustom];
     [btn setFrame:label.frame];
     [btn addTarget:[self get] action:@selector(onLabelLink:) forControlEvents:UIControlEventTouchUpInside];
+    objc_setAssociatedObject(btn, @"labelLink", link, OBJC_ASSOCIATION_RETAIN);
     if (handler) objc_setAssociatedObject(btn, @"labelBlock", handler, OBJC_ASSOCIATION_RETAIN);
     [label addSubview:btn];
 }
 
 - (void)onLabelLink:(id)sender
 {
-    GenericBlock block = objc_getAssociatedObject(sender, @"labelBlock");
-    if (block) block();
+    NSString *link = objc_getAssociatedObject(sender, @"labelLink");
+    SuccessBlock block = objc_getAssociatedObject(sender, @"labelBlock");
+    Debug(@"%@", link);
+    if (block) {
+        block(link);
+    } else {
+        if (link) [BKWebViewController showURL:link completionHandler:nil];
+    }
 }
 
 + (void)setTextLinks:(UITextView*)label text:(NSString*)text links:(NSArray*)links handler:(SuccessBlock)handler
@@ -245,6 +262,7 @@ static UIActivityIndicatorView *_activity;
     }
     [label setAttributedText:str];
     if (handler) objc_setAssociatedObject(label, @"urlBlock", handler, OBJC_ASSOCIATION_RETAIN);
+    if (!label.delegate) label.delegate = [self get];
 }
 
 + (UIImageView*)makeImageAvatar:(UIView*)view frame:(CGRect)frame eclipse:(UIImage*)eclipse
@@ -572,6 +590,18 @@ static UIActivityIndicatorView *_activity;
 {
     SuccessBlock block = [animation valueForKey:@"stopBlock"];
     if (block) block(animation);
+}
+
+#pragma mark UITextViewDelegate
+
+- (BOOL)textView:(UITextView *)textView shouldInteractWithURL:(NSURL *)URL inRange:(NSRange)characterRange
+{
+    SuccessBlock block = objc_getAssociatedObject(textView, @"urlBlock");
+    if (block) {
+        block(URL.absoluteString);
+        return NO;
+    }
+    return YES;
 }
 
 #pragma mark - UIActionSheet methods

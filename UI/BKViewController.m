@@ -106,7 +106,6 @@
         self.tableView.contentOffset = CGPointMake(0, self.tableView.tableHeaderView.height);
     }
     self.activityView.center = self.view.center;
-    [self.emptyView removeFromSuperview];
     [self getItems];
 }
 
@@ -129,34 +128,39 @@
     [[NSNotificationCenter defaultCenter] removeObserver:self name:nil object:nil];
 }
 
-- (void)addEmptyView:(NSString*)text
+- (void)addInfoView:(NSString*)text
 {
-    self.emptyView = [[UIView alloc] initWithFrame:CGRectMake(0, 64, self.view.width, self.view.height - 64)];
-    self.emptyView.backgroundColor = self.view.backgroundColor;
+    if (!self.infoView) {
+        self.infoView = [[UIView alloc] initWithFrame:CGRectMake(0, 64, self.view.width, self.view.height - 64)];
+        self.infoView.backgroundColor = self.view.backgroundColor;
+        self.infoView.hidden = YES;
+        [self.view addSubview:self.infoView];
     
-    self.emptyTextView = [[UITextView alloc] initWithFrame:self.emptyView.bounds];
-    [self.emptyView addSubview:self.emptyTextView];
-    self.emptyTextView.textColor = [UIColor grayColor];
-    self.emptyTextView.userInteractionEnabled = YES;
-    self.emptyTextView.selectable = YES;
-    self.emptyTextView.editable = NO;
-    self.emptyTextView.delegate = self;
-    self.emptyTextView.textContainerInset = UIEdgeInsetsMake(20, 10, 20, 10);
-    self.emptyTextView.textAlignment = NSTextAlignmentCenter;
-    if (!text) return;
-    self.emptyTextView.text = text;
-    [self.emptyTextView sizeToFit];
-    self.emptyTextView.y = self.emptyView.height/2 - self.emptyTextView.height/2;
-    self.emptyTextView.centerX = self.view.centerX;
+        self.infoTextView = [[UITextView alloc] initWithFrame:self.infoView.bounds];
+        [self.infoView addSubview:self.infoTextView];
+        self.infoTextView.textColor = [UIColor grayColor];
+        self.infoTextView.userInteractionEnabled = YES;
+        self.infoTextView.selectable = YES;
+        self.infoTextView.editable = NO;
+        self.infoTextView.delegate = self;
+        self.infoTextView.textContainerInset = UIEdgeInsetsMake(20, 10, 20, 10);
+        self.infoTextView.textAlignment = NSTextAlignmentCenter;
+    }
+    if (text) {
+        self.infoTextView.text = text;
+        [self.infoTextView sizeToFit];
+        self.infoTextView.y = self.infoView.height/2 - self.infoTextView.height/2;
+        self.infoTextView.centerX = self.view.centerX;
+    }
 }
 
-- (void)addEmptyView:(NSString*)text links:(NSArray*)links handler:(SuccessBlock)handler
+- (void)addInfoView:(NSString*)text links:(NSArray*)links handler:(SuccessBlock)handler
 {
-    [self addEmptyView:nil];
-    [BKui setTextLinks:self.emptyTextView text:text links:links handler:handler];
-    [self.emptyTextView sizeToFit];
-    self.emptyTextView.y = self.emptyView.height/2 - self.emptyTextView.height/2;
-    self.emptyTextView.centerX = self.view.centerX;
+    [self addInfoView:nil];
+    [BKui setTextLinks:self.infoTextView text:text links:links handler:handler];
+    [self.infoTextView sizeToFit];
+    self.infoTextView.y = self.infoView.height/2 - self.infoTextView.height/2;
+    self.infoTextView.centerX = self.view.centerX;
 }
 
 #pragma mark Toolbar
@@ -384,9 +388,10 @@
     if ([self.itemsAll isKindOfClass:[NSArray class]] && ![self.itemsAll isEqual:self.items]) {
         self.items = [self filterItems:self.itemsAll];
     }
-    Logger(@"items: %d", (int)self.items.count);
+    Logger(@"%@: items: %d", self.name, (int)self.items.count + (int)self.tableRows);
     
     if (self.tableRefresh.isRefreshing) [self.tableRefresh endRefreshing];
+    if (self.infoView) self.infoView.hidden = self.tableRows + self.items.count > 0 ? YES : NO;
     [self.tableView reloadData];
 }
 

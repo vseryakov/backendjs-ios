@@ -18,6 +18,14 @@
     return view;
 }
 
++ (BKWebViewController*)showURL:(NSString*)url completionHandler:(WebViewCompletionBlock)completionHandler
+{
+    BKWebViewController *web = [BKWebViewController initWithDelegate:nil completionHandler:completionHandler];
+    [web start:[NSURLRequest requestWithURL:[NSURL URLWithString:url]]];
+    [web show];
+    return web;
+}
+
 -(id)init
 {
     self = [super init];

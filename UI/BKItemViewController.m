@@ -33,17 +33,15 @@
     self.header.numberOfLines = 0;
     [self.scroll addSubview:self.header];
     
-    SuccessBlock urlBlock = ^(id url) {
-        BKWebViewController *web = [BKWebViewController initWithDelegate:nil completionHandler:nil];
-        [web start:[NSURLRequest requestWithURL:[NSURL URLWithString:url]] completionHandler:nil];
-        [web show];
-    };
+    SuccessBlock urlBlock = ^(id url) { [BKWebViewController showURL:url completionHandler:nil]; };
     
     self.msg = [BKui makeTextView:CGRectMake(0, 0, 0, 0) text:@"" color:[UIColor blackColor] font:[UIFont systemFontOfSize:15]];
     self.msg.hidden = YES;
     self.msg.dataDetectorTypes = UIDataDetectorTypeLink;
     self.msg.delegate = self;
     self.msg.scrollEnabled = NO;
+    self.msg.textContainer.lineFragmentPadding = 0;
+    self.msg.contentInset = UIEdgeInsetsZero;
     objc_setAssociatedObject(self.msg, @"urlBlock", urlBlock, OBJC_ASSOCIATION_RETAIN);
     [self.scroll addSubview:self.msg];
     
@@ -53,7 +51,7 @@
     [BKui setImageBorder:self.icon color:nil radius:8 border:0];
     [self.scroll addSubview:self.icon];
     
-    self.title = [BKui makeLabel:CGRectMake(0, 0, 0, 0) text:@"" color:[UIColor blackColor] font:[UIFont boldSystemFontOfSize:16]];
+    self.title = [BKui makeLabel:CGRectMake(0, 0, 0, 0) text:@"" color:[UIColor blackColor] font:[UIFont boldSystemFontOfSize:17]];
     self.title.hidden = YES;
     self.title.numberOfLines = 0;
     self.title.lineBreakMode = NSLineBreakByWordWrapping;
@@ -64,6 +62,8 @@
     self.text.dataDetectorTypes = UIDataDetectorTypeLink;
     self.text.delegate = self;
     self.text.scrollEnabled = NO;
+    self.text.textContainer.lineFragmentPadding = 0;
+    self.text.contentInset = UIEdgeInsetsZero;
     objc_setAssociatedObject(self.text, @"urlBlock", urlBlock, OBJC_ASSOCIATION_RETAIN);
     [self.scroll addSubview:self.text];
     if (params) [self update:params];
