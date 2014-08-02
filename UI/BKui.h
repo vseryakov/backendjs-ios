@@ -57,6 +57,9 @@
 + (void)setRoundCorner:(UIView*)view corner:(UIRectCorner)corner radius:(float)radius;
 + (void)setViewShadow:(UIView*)view color:(UIColor*)color offset:(CGSize)offset opacity:(float)opacity;
 
++ (void)setPlaceholder:(UITextView*)view text:(NSString*)text;
++ (void)checkPlaceholder:(UITextView*)view;
+
 + (void)addImageAtCorner:(UIView*)view image:(UIImageView*)image corner:(UIRectCorner)corner;
 
 + (void)shakeView:(UIView*)view;

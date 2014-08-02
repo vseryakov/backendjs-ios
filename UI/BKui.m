@@ -297,6 +297,27 @@ static UIActivityIndicatorView *_activity;
     view.layer.borderWidth = 1;
 }
 
++ (void)setPlaceholder:(UITextView*)view text:(NSString*)text
+{
+    UILabel *label = [[UILabel alloc] initWithFrame:CGRectMake(5, 5, view.bounds.size.width, 0)];
+    label.numberOfLines = 0;
+    label.backgroundColor = [UIColor clearColor];
+    label.textColor = [UIColor lightGrayColor];
+    label.text = text;
+    label.hidden = YES;
+    label.tag = 19991;
+    [view addSubview:label];
+    [label sizeToFit];
+    if (!view.text.length) label.hidden = NO;
+}
+
++ (void)checkPlaceholder:(UITextView*)view
+{
+    UILabel *label = (UILabel*)[view viewWithTag:19991];
+    if(!label) return;
+    label.hidden = view.text.length > 0;
+}
+
 + (void)setLabelAttributes:(UILabel*)label color:(UIColor*)color font:(UIFont*)font range:(NSRange)range
 {
     NSMutableAttributedString *attr = label.attributedText ?

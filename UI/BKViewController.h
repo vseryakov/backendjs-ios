@@ -7,6 +7,7 @@
 
 #import "BKAnimation.h"
 #import "BKRangeSlider.h"
+#import "BKMenubarView.h"
 
 // Common view controller
 @interface BKViewController: UIViewController
@@ -77,9 +78,7 @@
 @property (strong, nonatomic) UITextView *infoTextView;
 
 // Top menubar view
-@property (strong, nonatomic) NSMutableArray *menubarItems;
-@property (strong, nonatomic) IBOutlet UIView *menubarView;
-@property (strong, nonatomic) NSMutableDictionary *menubarButtons;
+@property (strong, nonatomic) BKMenubarView *menubarView;
 
 // View specific activity indicator
 @property (strong, nonatomic) IBOutlet UIActivityIndicatorView *activityView;
@@ -109,7 +108,6 @@
 #pragma mark Menubar
 
 - (void)addMenubar:(NSArray*)items params:(NSDictionary*)params;
-- (void)setMenubarButton:(NSString*)name enabled:(BOOL)enabled;
 - (void)updateMenubar;
 
 #pragma mark Toolbar
