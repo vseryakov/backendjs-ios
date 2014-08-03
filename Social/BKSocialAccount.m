@@ -29,7 +29,7 @@ static NSMutableDictionary *_accounts;
 - (void)getAlbums:(NSDictionary*)params success:(SuccessBlock)success failure:(FailureBlock)failure { if (failure) failure(-1, @"not implemented"); }
 - (void)getPhotos:(NSString*)name params:(NSDictionary*)params success:(SuccessBlock)success failure:(FailureBlock)failure { if (failure) failure(-1, @"not implemented"); }
 - (void)getContacts:(NSDictionary*)params success:(SuccessBlock)success failure:(FailureBlock)failure { if (failure) failure(-1, @"not implemented"); }
-- (void)postMessage:(NSDictionary*)params success:(SuccessBlock)success failure:(FailureBlock)failure { if (failure) failure(-1, @"not implemented"); };
+- (void)postMessage:(NSString*)msg image:(UIImage*)image params:(NSDictionary*)params success:(SuccessBlock)success failure:(FailureBlock)failure { if (failure) failure(-1, @"not implemented"); };
 
 - (NSMutableURLRequest*)getAuthorizeRequest:(NSDictionary*)params { return nil; }
 - (NSMutableURLRequest*)getAuthenticateRequest:(NSDictionary*)params { return nil; }

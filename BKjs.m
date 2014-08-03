@@ -519,6 +519,30 @@ static NSString *SysCtlByName(char *typeSpecifier)
     [BKjs sendRequest:path method:method params:nil headers:headers body:body success:success failure:failure];
 }
 
++ (void)uploadImage:(NSString*)path name:(NSString*)name image:(UIImage*)image params:(NSDictionary*)params success:(SuccessBlock)success failure:(FailureBlock)failure
+{
+    NSData *jpeg = image ? UIImageJPEGRepresentation(image, 1.0) : nil;
+    if (!jpeg) {
+        if (failure) failure(-1, @"invalid image");
+        return;
+    }
+    [self uploadData:path name:name data:jpeg mime:@"image/jpeg" params:params success:success failure:failure];
+}
+
++ (void)uploadData:(NSString*)path name:(NSString*)name data:(NSData*)data mime:(NSString*)mime params:(NSDictionary*)params success:(SuccessBlock)success failure:(FailureBlock)failure
+{
+    NSMutableURLRequest *request = [[self get]
+                                    multipartFormRequestWithMethod:@"POST"
+                                    path:path
+                                    parameters:params
+                                    constructingBodyWithBlock:^(id <AFMultipartFormData>formData) {
+                                        if (data) [formData appendPartWithFileData:data name:name fileName:name mimeType:mime];
+                                    }];
+    [BKjs sendRequest:request success:success failure:^(NSURLRequest *request, NSHTTPURLResponse *response, NSError *error, id json) {
+        if (failure) failure(response.statusCode, error.description);
+    }];
+}
+
 + (void)sendRequest:(NSString*)path method:(NSString*)method params:(NSDictionary*)params headers:(NSDictionary*)headers body:(NSData*)body success:(SuccessBlock)success failure:(FailureBlock)failure
 {
     if (!method) method = @"GET";

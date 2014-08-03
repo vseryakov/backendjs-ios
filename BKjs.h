@@ -114,6 +114,11 @@ typedef void (^ControllerBlock)(UIViewController *controller, NSDictionary *item
 + (void)sendRequest:(NSString *)path method:(NSString*)method params:(NSDictionary*)params headers:(NSDictionary*)headers body:(NSData*)body success:(SuccessBlock)success failure:(FailureBlock)failure;
 + (void)sendRequest:(NSURLRequest*)request success:(SuccessBlock)success failure:(void (^)(NSURLRequest *request, NSHTTPURLResponse *response, NSError *error, id JSON))failure;
 
+#pragma mark Multipart uploads
+
++ (void)uploadImage:(NSString*)path name:(NSString*)name image:(UIImage*)image params:(NSDictionary*)params success:(SuccessBlock)success failure:(FailureBlock)failure;
++ (void)uploadData:(NSString*)path name:(NSString*)name data:(NSData*)data mime:(NSString*)mime params:(NSDictionary*)params success:(SuccessBlock)success failure:(FailureBlock)failure;
+
 #pragma mark Image requests
 
 + (void)getImage:(NSURLRequest*)request success:(ImageSuccessBlock)success failure:(FailureBlock)failure;

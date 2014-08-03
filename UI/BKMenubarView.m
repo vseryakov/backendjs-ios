@@ -17,27 +17,42 @@
     self.items = [@[] mutableCopy];
     self.buttons = [@{} mutableCopy];
    
-    int i = 0, w = self.width / items.count;
+    // Calculate width of every button, if we have specic width given for any button we
+    // give remaining space to the rest of the buttons equally.
+    int x = 0, count = items.count, width = self.width, len[count + 1];
+    for (int i = 0; i < items.count; i++ ) {
+        NSDictionary *obj = [items objectAtIndex:i];
+        len[i] = 0;
+        if (obj[@"width"]) {
+            len[i] = [obj num:@"width"];
+            width -= len[i];
+            count--;
+        }
+    }
     
-    for (NSDictionary *obj in items) {
-        NSString *name = [obj str:@[@"name", @"icon"] dflt:nil];
-        if (!name) continue;
+    for (int i = 0; i < items.count; i++ ) {
+        if (!len[i]) len[i] = width / count;
+        if (i) x += len[i - 1];
+        
+        NSDictionary *obj = [items objectAtIndex:i];
+        NSString *name = [obj str:@[@"name",@"icon"] dflt:nil];
         
         NSMutableDictionary *item = [obj mutableCopy];
         [self.items addObject:item];
-        
+
         UIButton *button = [UIButton buttonWithType:UIButtonTypeCustom];
-        button.frame = CGRectMake(i * w, 20, w, 44);
+        button.frame = CGRectMake(x, 20, len[i], 44);
         button.exclusiveTouch = YES;
         [button addTarget:self action:@selector(onButton:) forControlEvents:UIControlEventTouchUpInside];
         button.imageView.contentMode = UIViewContentModeScaleAspectFit;
-        
+        button.contentHorizontalAlignment = UIControlContentHorizontalAlignmentCenter;
+        if (item[@"disabled"]) button.enabled = NO;
+        if (item[@"hidden"]) button.hidden = YES;
+
         if (item[@"x-inset"] || item[@"y-inset"]) {
             button.frame = CGRectInset(button.frame, [item num:@"x-inset"], [item num:@"y-inset"]);
         }
-        if (item[@"disabled"]) {
-            button.enabled = NO;
-        }
+        
         if (item[@"icon"]) {
             UIImage *image = [UIImage imageNamed:item[@"icon"]];
             [button setImage:image forState:UIControlStateNormal];
@@ -75,19 +90,21 @@
                 button.titleEdgeInsets = UIEdgeInsetsMake(0.0f, - button.imageView.width, - (h - button.titleLabel.height), 0.0f);
             }
         }
+
         [self addSubview:button];
-        
-        // Configure the menubar
+        // Apply params
         if (params) {
             if ([name isEqual:params[@"current"]]) {
                 button.selected = YES;
             }
-            for (NSString *d in params[@"menubar-disabled"]) {
+            for (NSString *d in params[@"disabled"]) {
                 if ([name isEqual:d]) button.enabled = NO;
+            }
+            for (NSString *d in params[@"hidden"]) {
+                if ([name isEqual:d]) button.hidden = NO;
             }
         }
         self.buttons[name] = button;
-        i++;
     }
     return self;
 }
@@ -105,30 +122,27 @@
         UIButton *button = self.buttons[name];
         if (sender == button) {
             // Find additional parameters for given action
-            NSDictionary *action = @{};
             for (NSDictionary *item in self.items) {
                 if ([name isEqual:item[@"name"]] || [name isEqual:item[@"icon"]]) {
-                    action = item;
+                    if (item[@"block"]) {
+                        SuccessBlock block = item[@"block"];
+                        block(item[@"params"]);
+                    } else
+                    if (item[@"selector"]) {
+                        [BKjs invoke:item[@"delegate"] ? item[@"delegate"] : [BKui rootController] name:item[@"selector"] arg:item[@"params"]];
+                    } else
+                    if (item[@"view"]) {
+                        // Replace active button with normal icon to keep tool bar state for drawers
+                        if ([BKjs matchString:@"drawer" string:item[@"view"]]) {
+                            button.highlighted = NO;
+                        }
+                        [BKui showViewController:nil name:item[@"view"] ? item[@"view"] : name params:item[@"params"]];
+                    }
                     break;
                 }
-            }
-            if (action[@"block"]) {
-                SuccessBlock block = action[@"block"];
-                block(action[@"params"]);
-            } else
-            if (action[@"selector"]) {
-                [BKjs invoke:action[@"delegate"] ? action[@"delegate"] : self name:action[@"selector"] arg:action[@"params"]];
-            } else
-            if (action[@"view"]) {
-                // Replace active button with normal icon to keep tool bar state for drawers
-                if ([BKjs matchString:@"drawer" string:action[@"view"]]) {
-                    button.highlighted = NO;
-                }
-                [BKui showViewController:nil name:action[@"view"] ? action[@"view"] : name params:action[@"params"]];
             }
             break;
         }
     }
 }
-
 @end;

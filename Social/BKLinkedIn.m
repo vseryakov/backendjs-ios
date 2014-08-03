@@ -12,7 +12,7 @@
 {
     self = [super init:name clientId:clientId];
     self.accessTokenName = @"oauth2_access_token";
-    self.scope = @"r_ basicprofile r_emailaddress r_fullprofile r_network r_contactinfo w_messages";
+    self.scope = @"r_ basicprofile r_emailaddress r_fullprofile r_network r_contactinfo w_messages rw_nus";
     self.baseURL = @"https://www.linkedin.com";
     self.launchURLs = @[ @{ @"url": @"linkedin://profile/%@", @"param": @"id" },
                          @{ @"url": @"https://www.linkedin.com/%@", @"param": @"username" } ];
@@ -53,6 +53,25 @@
         if (success) success(account);
         
     } failure:failure];
+}
+
+- (void)postMessage:(NSString*)msg image:(UIImage*)image params:(NSDictionary*)params success:(SuccessBlock)success failure:(FailureBlock)failure;
+{
+    NSMutableDictionary *query = [@{ @"message": msg ? msg : @"" } mutableCopy];
+    for (id key in params) query[key] = params[key];
+    /*<share>
+    <comment>Check out the LinkedIn Share API!</comment>
+    <content>
+    <title>LinkedIn Developers Documentation On Using the Share API</title>
+    <description>Leverage the Share API to maximize engagement on user-generated content on LinkedIn</description>
+    <submitted-url>https://developer.linkedin.com/documents/share-api</submitted-url>
+    <submitted-image-url>http://m3.licdn.com/media/p/3/000/124/1a6/089a29a.png</submitted-image-url>
+    </content>
+    <visibility>
+    <code>anyone</code>
+    </visibility>
+    </share>*/
+    [self postData:@"http://api.linkedin.com/v1/people/~/shares" params:query success:success failure:failure];
 }
 
 @end

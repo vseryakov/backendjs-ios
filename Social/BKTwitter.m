@@ -45,4 +45,15 @@
     } failure:failure];
 }
 
+- (void)postMessage:(NSString*)msg image:(UIImage*)image params:(NSDictionary*)params success:(SuccessBlock)success failure:(FailureBlock)failure;
+{
+    NSMutableDictionary *query = [@{ @"status": msg ? msg : @"" } mutableCopy];
+    for (id key in params) query[key] = params[key];
+    if (image) {
+        [BKjs uploadImage:@"/1.1/statuses/update_with_media.json" name:@"media[]" image:image params:query success:success failure:failure];
+    } else {
+        [self postData:@"/1.1/statuses/update.json" params:query success:success failure:failure];
+    }
+}
+
 @end
