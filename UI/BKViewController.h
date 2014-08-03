@@ -19,7 +19,8 @@
 @property (strong, nonatomic) NSString *navigationMode;
 
 // Who called this controller
-@property (strong, nonatomic) NSString *previousName;
+@property (strong, nonatomic) NSString *prevControllerName;
+@property (strong, nonatomic) NSString *nextControllerName;
 
 // What animation to use during transitions
 @property (strong, nonatomic) NSString *transitionType;
@@ -44,14 +45,8 @@
 // Toolbar configuration
 @property (strong, nonatomic) IBOutlet UIView *toolbarView;
 @property (strong, nonatomic) IBOutlet UIButton *toolbarBack;
-@property (strong, nonatomic) IBOutlet NSString *toolbarBackIcon;
-@property (strong, nonatomic) IBOutlet NSString *toolbarBackTitle;
 @property (strong, nonatomic) IBOutlet UILabel *toolbarTitle;
 @property (strong, nonatomic) IBOutlet UIButton *toolbarNext;
-@property (strong, nonatomic) IBOutlet NSString *toolbarNextIcon;
-@property (strong, nonatomic) IBOutlet NSString *toolbarNextTitle;
-@property (strong, nonatomic) IBOutlet NSString *toolbarNextController;
-@property (nonatomic, assign) NSInteger toolbarOffset;
 
 // Table configuration
 @property (strong, nonatomic) IBOutlet UITableView *tableView;
@@ -112,9 +107,7 @@
 
 #pragma mark Toolbar
 
-- (void)addToolbar:(NSString*)title;
-- (void)setToolbarBackButton:(NSString*)title image:(UIImage*)image;
-- (void)setToolbarNextButton:(NSString*)title image:(UIImage*)image;
+- (void)addToolbar:(NSString*)title params:(NSDictionary*)params;
 - (void)onBack:(id)sender;
 - (void)onNext:(id)sender;
 

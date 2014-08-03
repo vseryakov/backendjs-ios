@@ -10,6 +10,6 @@
 @property (strong, nonatomic) NSMutableDictionary *buttons;
 
 - (instancetype)init:(CGRect)frame items:(NSArray*)items params:(NSDictionary*)params;
-- (void)setButton:(NSString*)name enabled:(BOOL)enabled;
+- (void)updateButtonStyle:(NSString*)name params:(NSDictionary*)params;
 
 @end

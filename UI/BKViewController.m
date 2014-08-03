@@ -43,9 +43,6 @@
     self.transitionDuration = 0.5;
     self.transitionOptions = 0;
     self.barStyle = UIStatusBarStyleDefault;
-    self.toolbarOffset = 10;
-    self.toolbarBackTitle = @"Back";
-    self.toolbarNextTitle = @"Next";
     self.tableSections = 1;
     self.tableRows = 0;
     self.tableCell = nil;
@@ -163,7 +160,7 @@
 
 #pragma mark Toolbar
 
-- (void)addToolbar:(NSString*)title
+- (void)addToolbar:(NSString*)title params:(NSDictionary*)params
 {
     self.toolbarView = [[UIView alloc] initWithFrame:CGRectMake(0, 0, self.view.width, 64)];
     self.toolbarView.userInteractionEnabled = YES;
@@ -172,49 +169,28 @@
     
     [BKui setViewShadow:self.toolbarView color:nil offset:CGSizeMake(0, 0.5) opacity:0.5];
     
-    self.toolbarBack = [BKui makeCustomButton];
-    [self setToolbarBackButton:self.toolbarBackTitle image:[UIImage imageNamed:self.toolbarBackIcon]];
+    self.toolbarBack = [BKui makeCustomButton:@"Back"];
+    self.toolbarNext.contentHorizontalAlignment = UIControlContentHorizontalAlignmentLeft;
+    self.toolbarBack.centerY = self.toolbarView.height/2 + 10;
+    if (self.toolbarBack.width < self.toolbarView.height) self.toolbarBack.width = self.toolbarView.height;
+    self.toolbarNext.x = 10;
     [self.toolbarBack addTarget:self action:@selector(onBack:) forControlEvents:UIControlEventTouchUpInside];
     [self.toolbarView addSubview:self.toolbarBack];
     
     self.toolbarTitle = [[UILabel alloc] initWithFrame:CGRectMake(self.toolbarView.height, 0, self.toolbarView.width-self.toolbarView.height*2, self.toolbarView.height)];
     self.toolbarTitle.textAlignment = NSTextAlignmentCenter;
     self.toolbarTitle.text = title;
-    self.toolbarTitle.centerY = self.toolbarView.height/2 + self.toolbarOffset;
+    self.toolbarTitle.centerY = self.toolbarView.height/2 + 10;
     [self.toolbarView addSubview:self.toolbarTitle];
     
-    self.toolbarNext = [BKui makeCustomButton];
+    self.toolbarNext = [BKui makeCustomButton:@"Next"];
+    self.toolbarNext.contentHorizontalAlignment = UIControlContentHorizontalAlignmentRight;
+    self.toolbarNext.centerY = self.toolbarView.height/2 + 10;
+    if (self.toolbarNext.width < self.toolbarView.height) self.toolbarNext.width = self.toolbarView.height;
+    self.toolbarNext.right = self.toolbarView.width - 10;
     self.toolbarNext.hidden = YES;
-    [self setToolbarNextButton:self.toolbarNextTitle image:[UIImage imageNamed:self.toolbarNextIcon]];
     [self.toolbarNext addTarget:self action:@selector(onNext:) forControlEvents:UIControlEventTouchUpInside];
     [self.toolbarView addSubview:self.toolbarNext];
-}
-
-- (void)setToolbarBackButton:(NSString*)title image:(UIImage*)image
-{
-    if (self.toolbarBack) {
-        if (self.toolbarBackIcon) {
-            [self.toolbarBack setImage:image forState:UIControlStateNormal];
-        } else {
-            [self.toolbarBack setTitle:title forState:UIControlStateNormal];
-        }
-        [self.toolbarBack sizeToFit];
-        self.toolbarBack.center = CGPointMake(self.toolbarBack.width/2 + self.toolbarOffset, self.toolbarView.height/2 + self.toolbarOffset);
-        
-    }
-}
-
-- (void)setToolbarNextButton:(NSString*)title image:(UIImage*)image
-{
-    if (self.toolbarNext) {
-        if (self.toolbarNextIcon) {
-            [self.toolbarNext setImage:image forState:UIControlStateNormal];
-        } else {
-            [self.toolbarNext setTitle:title forState:UIControlStateNormal];
-        }
-        [self.toolbarNext sizeToFit];
-        self.toolbarNext.center = CGPointMake(self.toolbarView.width-self.toolbarNext.width/2 - self.toolbarOffset, self.toolbarView.height/2 + self.toolbarOffset);
-    }
 }
 
 #pragma mark Menubar
@@ -424,8 +400,8 @@
 
 - (void)onNext:(id)sender
 {
-    if (self.toolbarNextController) {
-        [BKui showViewController:self name:self.toolbarNextController params:self.params];
+    if (self.nextControllerName) {
+        [BKui showViewController:self name:self.nextControllerName params:self.params];
     }
 }
 
@@ -444,7 +420,7 @@
 
 - (void)showPrevious:(NSDictionary*)params
 {
-    Logger(@"showPrevious: %@: %@ %@", self.name, self.navigationMode, self.previousName);
+    Logger(@"showPrevious: %@: %@ %@", self.name, self.navigationMode, self.prevControllerName);
     
     if ([self.navigationMode hasPrefix:@"drawer"]) {
         [self prepareForHide:params];
@@ -465,7 +441,7 @@
     }
 
     // Replace with previous controller completely
-    [BKui showViewController:self name:self.previousName params:params];
+    [BKui showViewController:self name:self.prevControllerName params:params];
 }
 
 - (void)showDrawer:(UIViewController*)owner
@@ -541,7 +517,7 @@
 {
     self.name = name;
     self.navigationMode = mode ? mode : @"";
-    self.previousName = [owner isKindOfClass:[BKViewController class]] ? [(BKViewController*)owner name] : @"";
+    self.prevControllerName = [owner isKindOfClass:[BKViewController class]] ? [(BKViewController*)owner name] : @"";
     [self.params removeAllObjects];
     for (id key in params) self.params[key] = params[key];
     

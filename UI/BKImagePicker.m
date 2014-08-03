@@ -19,7 +19,7 @@
 {
     [super viewDidLoad];
     [self addTable];
-    [self addToolbar:@"Albums"];
+    [self addToolbar:@"Albums" params:nil];
     
     _photosItems = [@[] mutableCopy];
     

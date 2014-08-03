@@ -452,7 +452,7 @@ static UIActivityIndicatorView *_activity;
     return color;
 }
 
-+(UIButton*)makeCustomButton
++(UIButton*)makeCustomButton:(NSString*)title
 {
     UIButton *sys = [UIButton buttonWithType:UIButtonTypeSystem];
     
@@ -461,6 +461,10 @@ static UIActivityIndicatorView *_activity;
     btn.showsTouchWhenHighlighted = YES;
     btn.adjustsImageWhenHighlighted = YES;
     btn.titleLabel.font = sys.titleLabel.font;
+    if (title) {
+        [btn setTitle:title forState:UIControlStateNormal];
+        [btn sizeToFit];
+    }
     [btn setTitleColor:sys.tintColor forState:UIControlStateNormal];
     [btn setTitleColor:[self makeColor:sys.tintColor h:1 s:1 b:1.5 a:0.5] forState:UIControlStateHighlighted];
     [btn setTitleColor:[self makeColor:sys.tintColor h:1 s:1 b:1.5 a:0.5] forState:UIControlStateSelected];
@@ -493,6 +497,138 @@ static UIActivityIndicatorView *_activity;
     animation.toValue = @(rotate);
     animation.timeOffset = (rand() / (float)RAND_MAX) * 0.1;
     [view.layer addAnimation:animation forKey:@"jiggle"];
+}
+
+#pragma mark UI styles
+
++ (void)setStyle:(UIView*)view style:(NSDictionary*)style
+{
+    if (!view || !style) return;
+    if (style[@"hidden"]) view.hidden = YES;
+    if (style[@"visible"]) view.hidden = NO;
+
+    if ([view isKindOfClass:[UIButton class]]) {
+        UIButton *button = (UIButton*)view;
+        if (style[@"disabled"]) button.enabled = NO;
+        if (style[@"enabled"]) button.enabled = YES;
+        if (style[@"horizontal-alignment"]) button.contentHorizontalAlignment = [style num:@"horizontal-alignment"];
+        if (style[@"vertical-alignment"]) button.contentVerticalAlignment = [style num:@"vertical-alignment"];
+        
+        if (style[@"icon"]) {
+            UIImage *image = [UIImage imageNamed:style[@"icon"]];
+            [button setImage:image forState:UIControlStateNormal];
+            if (style[@"icon-disabled"]) {
+                [button setImage:[UIImage imageNamed:style[@"icon-disabled"]] forState:UIControlStateDisabled];
+            }
+            if (style[@"icon-highlighted"]) {
+                [button setImage:[UIImage imageNamed:style[@"icon-highlighted"]] forState:UIControlStateHighlighted];
+            }
+            if (style[@"icon-highlighted-tint"]) {
+                [button setImage:[BKui makeImageWithTint:image color:[button tintColor]] forState:UIControlStateHighlighted];
+            }
+            if (style[@"icon-selected"]) {
+                [button setImage:[UIImage imageNamed:style[@"icon-selected"]] forState:UIControlStateSelected];
+            } else {
+                [button setImage:[button imageForState:UIControlStateHighlighted] forState:UIControlStateSelected];
+            }
+        }
+        if (style[@"image"]) {
+            UIImage *image = style[@"image"];
+            [button setImage:image forState:UIControlStateNormal];
+            if (style[@"image-disabled"]) {
+                [button setImage:style[@"image-disabled"] forState:UIControlStateDisabled];
+            }
+            if (style[@"image-highlighted"]) {
+                [button setImage:style[@"image-highlighted"] forState:UIControlStateHighlighted];
+            }
+            if (style[@"image-highlighted-tint"]) {
+                [button setImage:[BKui makeImageWithTint:image color:[button tintColor]] forState:UIControlStateHighlighted];
+            }
+            if (style[@"image-selected"]) {
+                [button setImage:style[@"image-selected"] forState:UIControlStateSelected];
+            } else {
+                [button setImage:[button imageForState:UIControlStateHighlighted] forState:UIControlStateSelected];
+            }
+        }
+        if (style[@"title"]) {
+            [button setTitle:style[@"title"] forState:UIControlStateNormal];
+            if (style[@"title-highlighted"]) {
+                [button setTitle:style[@"title-highlighted"] forState:UIControlStateHighlighted];
+            }
+            if (style[@"title-disabled"]) {
+                [button setTitle:style[@"title-disabled"] forState:UIControlStateDisabled];
+            }
+            if (style[@"color"]) {
+                [button setTitleColor:style[@"color"] forState:UIControlStateNormal];
+            }
+            if (style[@"color-highlighted"]) {
+                [button setTitleColor:style[@"color-highlighted"] forState:UIControlStateHighlighted];
+            }
+            if (style[@"color-selected"])
+                [button setTitleColor:style[@"color-selected"] forState:UIControlStateSelected];
+            else {
+                [button setTitleColor:[button titleColorForState:UIControlStateHighlighted] forState:UIControlStateSelected];
+            }
+            if (style[@"color-disabled"]) {
+                [button setTitleColor:style[@"color-disabled"] forState:UIControlStateDisabled];
+            }
+            if (style[@"font"]) {
+                [button.titleLabel setFont:style[@"font"]];
+            }
+            
+            // Align icon and title vertically in the button, vertical defines top/bottom padding
+            if (style[@"vertical"] && button.imageView.image && button.titleLabel.text.length) {
+                CGFloat h = (button.imageView.height + button.titleLabel.height + [style num:@"vertical"]);
+                button.imageEdgeInsets = UIEdgeInsetsMake(- (h - button.imageView.height), 0.0f, 0.0f, - button.titleLabel.width);
+                button.titleEdgeInsets = UIEdgeInsetsMake(0.0f, - button.imageView.width, - (h - button.titleLabel.height), 0.0f);
+            }
+        }
+        if (style[@"content-insets"]) {
+            button.contentEdgeInsets = [self toEdgeInsets:style name:@"content-insets"];
+        }
+        if (style[@"image-insets"]) {
+            button.imageEdgeInsets = [self toEdgeInsets:style name:@"image-insets"];
+        }
+        if (style[@"title-insets"]) {
+            button.titleEdgeInsets = [self toEdgeInsets:style name:@"title-insets"];
+        }
+        if (style[@"fit"]) {
+            [button sizeToFit];
+        }
+    }
+    if (style[@"frame"]) {
+        view.frame = [self toCGRect:style name:@"frame"];
+    }
+    if (style[@"x"]) {
+        view.x = [style num:@"x"];
+    }
+    if (style[@"y"]) {
+        view.y = [style num:@"y"];
+    }
+    if (style[@"width"]) {
+        view.width = [style num:@"width"];
+    }
+    if (style[@"height"]) {
+        view.height = [style num:@"height"];
+    }
+    if (style[@"center-x"]) {
+        view.centerX = [style num:@"center-x"];
+    }
+    if (style[@"center-y"]) {
+        view.centerY = [style num:@"center-y"];
+    }
+}
+
++ (UIEdgeInsets)toEdgeInsets:(NSDictionary*)style name:(NSString*)name
+{
+    NSDictionary *item = [style dict:name];
+    return UIEdgeInsetsMake([item num:@"top"], [item num:@"left"], [item num:@"bottom"], [item num:@"right"]);
+}
+
++ (CGRect)toCGRect:(NSDictionary*)style name:(NSString*)name
+{
+    NSDictionary *item = [style dict:name];
+    return CGRectMake([item num:@"x"], [item num:@"y"], [item num:@"width"], [item num:@"height"]);
 }
 
 #pragma mark UIImage manipulations

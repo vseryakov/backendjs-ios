@@ -35,85 +35,43 @@
         if (i) x += len[i - 1];
         
         NSDictionary *obj = [items objectAtIndex:i];
-        NSString *name = [obj str:@[@"name",@"icon"] dflt:nil];
+        NSString *name = [obj str:@[@"title",@"icon"] dflt:nil];
         
         NSMutableDictionary *item = [obj mutableCopy];
         [self.items addObject:item];
-
+        
         UIButton *button = [UIButton buttonWithType:UIButtonTypeCustom];
         button.frame = CGRectMake(x, 20, len[i], 44);
         button.exclusiveTouch = YES;
         [button addTarget:self action:@selector(onButton:) forControlEvents:UIControlEventTouchUpInside];
         button.imageView.contentMode = UIViewContentModeScaleAspectFit;
         button.contentHorizontalAlignment = UIControlContentHorizontalAlignmentCenter;
-        if (item[@"disabled"]) button.enabled = NO;
-        if (item[@"hidden"]) button.hidden = YES;
-
-        if (item[@"x-inset"] || item[@"y-inset"]) {
-            button.frame = CGRectInset(button.frame, [item num:@"x-inset"], [item num:@"y-inset"]);
-        }
-        
-        if (item[@"icon"]) {
-            UIImage *image = [UIImage imageNamed:item[@"icon"]];
-            [button setImage:image forState:UIControlStateNormal];
-            if (item[@"icon-disabled"]) [button setImage:[UIImage imageNamed:item[@"icon-disabled"]] forState:UIControlStateDisabled];
-            if (item[@"icon-highlighted"]) {
-                [button setImage:[UIImage imageNamed:item[@"icon-highlighted"]] forState:UIControlStateHighlighted];
-            } else
-                if (item[@"icon-highlighted-tint"]) {
-                    [button setImage:[BKui makeImageWithTint:image color:[button tintColor]] forState:UIControlStateHighlighted];
-                }
-            if (item[@"icon-selected"]) {
-                [button setImage:[UIImage imageNamed:item[@"icon-selected"]] forState:UIControlStateSelected];
-            } else {
-                [button setImage:[button imageForState:UIControlStateHighlighted] forState:UIControlStateSelected];
-            }
-        }
-        if (item[@"name"]) {
-            [button setTitle:item[@"name"] forState:UIControlStateNormal];
-            if (item[@"name-highlighted"]) [button setTitle:item[@"name-highlighted"] forState:UIControlStateHighlighted];
-            if (item[@"name-disabled"]) [button setTitle:item[@"name-disabled"] forState:UIControlStateDisabled];
-            if (item[@"color"]) [button setTitleColor:item[@"color"] forState:UIControlStateNormal];
-            if (item[@"color-highlighted"]) [button setTitleColor:item[@"color-highlighted"] forState:UIControlStateHighlighted];
-            if (item[@"color-selected"])
-                [button setTitleColor:item[@"color-selected"] forState:UIControlStateSelected];
-            else {
-                [button setTitleColor:[button titleColorForState:UIControlStateHighlighted] forState:UIControlStateSelected];
-            }
-            if (item[@"color-disabled"]) [button setTitleColor:item[@"color-disabled"] forState:UIControlStateDisabled];
-            if (item[@"font"]) [button.titleLabel setFont:item[@"font"]];
-            
-            // Align icon and title vertically in the button, vertical defines top/bottom padding
-            if (item[@"vertical"] && item[@"icon"]) {
-                CGFloat h = (button.imageView.height + button.titleLabel.height + [item num:@"vertical"]);
-                button.imageEdgeInsets = UIEdgeInsetsMake(- (h - button.imageView.height), 0.0f, 0.0f, - button.titleLabel.width);
-                button.titleEdgeInsets = UIEdgeInsetsMake(0.0f, - button.imageView.width, - (h - button.titleLabel.height), 0.0f);
-            }
-        }
-
         [self addSubview:button];
-        // Apply params
-        if (params) {
-            if ([name isEqual:params[@"current"]]) {
-                button.selected = YES;
-            }
-            for (NSString *d in params[@"disabled"]) {
-                if ([name isEqual:d]) button.enabled = NO;
-            }
-            for (NSString *d in params[@"hidden"]) {
-                if ([name isEqual:d]) button.hidden = NO;
-            }
-        }
         self.buttons[name] = button;
+        [BKui setStyle:button style:item];
+        [self updateButtonStyle:name params:params];
     }
     return self;
 }
 
-- (void)setButton:(NSString*)name enabled:(BOOL)enabled
+- (BOOL)checkItem:(NSString*)name params:(NSDictionary*)params item:(NSString*)item
 {
+    if (!params) return NO;
+    if ([params[item] isKindOfClass:[NSArray class]]) return [params[item] containsObject:name];
+    return [name isEqual:params[item]];
+}
+
+- (void)updateButtonStyle:(NSString*)name params:(NSDictionary*)params
+{
+    if (!name || !params) return;
     UIButton *button = self.buttons[name];
     if (!button) return;
-    button.enabled = enabled;
+
+    if ([name isEqual:params[@"current"]]) button.selected = YES;
+    if ([self checkItem:name params:params item:@"disabled"]) button.enabled = NO;
+    if ([self checkItem:name params:params item:@"enabled"]) button.enabled = YES;
+    if ([self checkItem:name params:params item:@"hidden"]) button.hidden = YES;
+    if ([self checkItem:name params:params item:@"visible"]) button.hidden = NO;
 }
 
 - (IBAction)onButton:(id)sender
