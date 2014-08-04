@@ -461,10 +461,7 @@ static UIActivityIndicatorView *_activity;
     btn.showsTouchWhenHighlighted = YES;
     btn.adjustsImageWhenHighlighted = YES;
     btn.titleLabel.font = sys.titleLabel.font;
-    if (title) {
-        [btn setTitle:title forState:UIControlStateNormal];
-        [btn sizeToFit];
-    }
+    if (title) [btn setTitle:title forState:UIControlStateNormal];
     [btn setTitleColor:sys.tintColor forState:UIControlStateNormal];
     [btn setTitleColor:[self makeColor:sys.tintColor h:1 s:1 b:1.5 a:0.5] forState:UIControlStateHighlighted];
     [btn setTitleColor:[self makeColor:sys.tintColor h:1 s:1 b:1.5 a:0.5] forState:UIControlStateSelected];
@@ -505,44 +502,61 @@ static UIActivityIndicatorView *_activity;
 {
     if (!view || !style) return;
     
-    for (NSString *key in style) {
+    NSArray *keys = [[style allKeys] sortedArrayUsingSelector:@selector(compare:)];
+    for (NSString *k in keys) {
+        NSString *key = k;
+        NSRange loc = [key rangeOfString:@"@"];
+        if (loc.location != NSNotFound) key = [key substringFromIndex:loc.location + 1];
+        id val = style[key];
+        double num = [style num:key];
         if ([key isEqual:@"hidden"]) view.hidden = YES; else
         if ([key isEqual:@"visible"]) view.hidden = NO; else
         if ([key isEqual:@"frame"]) view.frame = [self toCGRect:style name:@"frame"]; else
-        if ([key isEqual:@"x"]) view.x = [style num:key]; else
-        if ([key isEqual:@"y"]) view.y = [style num:key]; else
-        if ([key isEqual:@"width"]) view.width = [style num:key]; else
-        if ([key isEqual:@"height"]) view.height = [style num:key]; else
-        if ([key isEqual:@"center-x"]) view.centerX = [style num:key]; else
-        if ([key isEqual:@"center-y"]) view.centerY = [style num:key];
+        if ([key isEqual:@"x"]) view.x = num; else
+        if ([key isEqual:@"y"]) view.y = num; else
+        if ([key isEqual:@"width"]) view.width = num; else
+        if ([key isEqual:@"height"]) view.height = num; else
+        if ([key isEqual:@"center-x"]) view.centerX = num; else
+        if ([key isEqual:@"center-y"]) view.centerY = num; else
+        if ([key isEqual:@"background-color"]) view.backgroundColor = val; else
+        if ([key isEqual:@"alpha"]) view.alpha = num; else
+        if ([key isEqual:@"tag"]) view.tag = num; else
+        if ([key isEqual:@"border"]) [BKui setViewBorder:view color:val[@"color"] radius:[val num:@"radius"]]; else
+        if ([key isEqual:@"shadow"]) [BKui setViewShadow:view color:val[@"color"] offset:CGSizeMake([val num:@"width"], [val num:@"height"]) opacity:[val num:@"opacity"]]; else
+        if ([key isEqual:@"background-image"]) {
+            UIImageView *bg = [[UIImageView alloc] initWithImage:val];
+            bg.frame = view.bounds;
+            [view addSubview:bg];
+            [view sendSubviewToBack:bg];
+        }
 
         if ([view isKindOfClass:[UIButton class]]) {
             UIButton *button = (UIButton*)view;
             if ([key isEqual:@"disabled"]) button.enabled = NO; else
             if ([key isEqual:@"enabled"]) button.enabled = YES; else
-            if ([key isEqual:@"horizontal-alignment"]) button.contentHorizontalAlignment = [style num:key]; else
-            if ([key isEqual:@"vertical-alignment"]) button.contentVerticalAlignment = [style num:key]; else
-            if ([key isEqual:@"icon"]) [button setImage:[UIImage imageNamed:style[key]] forState:UIControlStateNormal]; else
-            if ([key isEqual:@"icon-disabled"]) [button setImage:[UIImage imageNamed:style[key]] forState:UIControlStateDisabled]; else
-            if ([key isEqual:@"icon-highlighted"]) [button setImage:[UIImage imageNamed:style[key]] forState:UIControlStateHighlighted]; else
+            if ([key isEqual:@"horizontal-alignment"]) button.contentHorizontalAlignment = num; else
+            if ([key isEqual:@"vertical-alignment"]) button.contentVerticalAlignment = num; else
+            if ([key isEqual:@"icon"]) [button setImage:[UIImage imageNamed:val] forState:UIControlStateNormal]; else
+            if ([key isEqual:@"icon-disabled"]) [button setImage:[UIImage imageNamed:val] forState:UIControlStateDisabled]; else
+            if ([key isEqual:@"icon-highlighted"]) [button setImage:[UIImage imageNamed:val] forState:UIControlStateHighlighted]; else
             if ([key isEqual:@"icon-highlighted-tint"]) [button setImage:[BKui makeImageWithTint:[UIImage imageNamed:style[@"icon"]] color:[button tintColor]] forState:UIControlStateHighlighted]; else
-            if ([key isEqual:@"icon-selected"]) [button setImage:[UIImage imageNamed:style[key]] forState:UIControlStateSelected]; else
+            if ([key isEqual:@"icon-selected"]) [button setImage:[UIImage imageNamed:val] forState:UIControlStateSelected]; else
             if ([key isEqual:@"icon-selected-highlighted"]) [button setImage:[button imageForState:UIControlStateHighlighted] forState:UIControlStateSelected]; else
-            if ([key isEqual:@"image"]) [button setImage:style[key] forState:UIControlStateNormal]; else
-            if ([key isEqual:@"image-disabled"]) [button setImage:style[key] forState:UIControlStateDisabled]; else
-            if ([key isEqual:@"image-highlighted"]) [button setImage:style[key] forState:UIControlStateHighlighted]; else
+            if ([key isEqual:@"image"]) [button setImage:val forState:UIControlStateNormal]; else
+            if ([key isEqual:@"image-disabled"]) [button setImage:val forState:UIControlStateDisabled]; else
+            if ([key isEqual:@"image-highlighted"]) [button setImage:val forState:UIControlStateHighlighted]; else
             if ([key isEqual:@"image-highlighted-tint"]) [button setImage:[BKui makeImageWithTint:style[@"image"] color:[button tintColor]] forState:UIControlStateHighlighted]; else
-            if ([key isEqual:@"image-selected"]) [button setImage:style[key] forState:UIControlStateSelected]; else
+            if ([key isEqual:@"image-selected"]) [button setImage:val forState:UIControlStateSelected]; else
             if ([key isEqual:@"image-selected-highlighted"]) [button setImage:[button imageForState:UIControlStateHighlighted] forState:UIControlStateSelected]; else
-            if ([key isEqual:@"title"]) [button setTitle:style[key] forState:UIControlStateNormal]; else
-            if ([key isEqual:@"title-highlighted"]) [button setTitle:style[key] forState:UIControlStateHighlighted]; else
-            if ([key isEqual:@"title-disabled"]) [button setTitle:style[key] forState:UIControlStateDisabled]; else
-            if ([key isEqual:@"color"]) [button setTitleColor:style[key] forState:UIControlStateNormal]; else
-            if ([key isEqual:@"color-highlighted"]) [button setTitleColor:style[key] forState:UIControlStateHighlighted]; else
-            if ([key isEqual:@"color-selected"]) [button setTitleColor:style[key] forState:UIControlStateSelected]; else
+            if ([key isEqual:@"title"]) [button setTitle:val forState:UIControlStateNormal]; else
+            if ([key isEqual:@"title-highlighted"]) [button setTitle:val forState:UIControlStateHighlighted]; else
+            if ([key isEqual:@"title-disabled"]) [button setTitle:val forState:UIControlStateDisabled]; else
+            if ([key isEqual:@"color"]) [button setTitleColor:val forState:UIControlStateNormal]; else
+            if ([key isEqual:@"color-highlighted"]) [button setTitleColor:val forState:UIControlStateHighlighted]; else
+            if ([key isEqual:@"color-selected"]) [button setTitleColor:val forState:UIControlStateSelected]; else
             if ([key isEqual:@"color-selected-highlighted"]) [button setTitleColor:[button titleColorForState:UIControlStateHighlighted] forState:UIControlStateSelected]; else
-            if ([key isEqual:@"color-disabled"]) [button setTitleColor:style[key] forState:UIControlStateDisabled]; else
-            if ([key isEqual:@"font"]) [button.titleLabel setFont:style[key]]; else
+            if ([key isEqual:@"color-disabled"]) [button setTitleColor:val forState:UIControlStateDisabled]; else
+            if ([key isEqual:@"font"]) [button.titleLabel setFont:val]; else
             if ([key isEqual:@"content-insets"]) button.contentEdgeInsets = [self toEdgeInsets:style name:key]; else
             if ([key isEqual:@"image-insets"]) button.imageEdgeInsets = [self toEdgeInsets:style name:key]; else
             if ([key isEqual:@"title-insets"]) button.titleEdgeInsets = [self toEdgeInsets:style name:key]; else

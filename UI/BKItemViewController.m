@@ -172,6 +172,7 @@
     [BKui setViewShadow:self color:nil offset:CGSizeMake(-5, 5) opacity:0.5];
     
     self.closeButton = [BKui makeCustomButton:@"Close"];
+    [self.closeButton sizeToFit];
     [self.closeButton addTarget:self action:@selector(onClose:) forControlEvents:UIControlEventTouchUpInside];
     self.closeButton.centerY = 22;
     self.closeButton.centerX = self.width - 10 - self.closeButton.width/2;

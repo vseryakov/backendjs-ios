@@ -19,7 +19,7 @@
    
     // Calculate width of every button, if we have specic width given for any button we
     // give remaining space to the rest of the buttons equally.
-    int x = 0, count = items.count, width = self.width, len[count + 1];
+    unsigned long x = 0, count = items.count, width = self.width, len[count + 1];
     for (int i = 0; i < items.count; i++ ) {
         NSDictionary *obj = [items objectAtIndex:i];
         len[i] = 0;

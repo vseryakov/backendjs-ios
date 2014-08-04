@@ -170,14 +170,12 @@
     [BKui setViewShadow:self.toolbarView color:nil offset:CGSizeMake(0, 0.5) opacity:0.5];
     
     self.toolbarBack = [BKui makeCustomButton:@"Back"];
-    self.toolbarNext.contentHorizontalAlignment = UIControlContentHorizontalAlignmentLeft;
-    self.toolbarBack.centerY = self.toolbarView.height/2 + 10;
-    if (self.toolbarBack.width < self.toolbarView.height) self.toolbarBack.width = self.toolbarView.height;
-    self.toolbarNext.x = 10;
+    self.toolbarBack.contentHorizontalAlignment = UIControlContentHorizontalAlignmentLeft;
+    self.toolbarBack.frame = CGRectMake(10, 20, self.toolbarView.height, self.toolbarView.height - 20);
     [self.toolbarBack addTarget:self action:@selector(onBack:) forControlEvents:UIControlEventTouchUpInside];
     [self.toolbarView addSubview:self.toolbarBack];
     
-    self.toolbarTitle = [[UILabel alloc] initWithFrame:CGRectMake(self.toolbarView.height, 0, self.toolbarView.width-self.toolbarView.height*2, self.toolbarView.height)];
+    self.toolbarTitle = [[UILabel alloc] initWithFrame:CGRectMake(self.toolbarView.height, 20, self.toolbarView.width-self.toolbarView.height*2, self.toolbarView.height - 20)];
     self.toolbarTitle.textAlignment = NSTextAlignmentCenter;
     self.toolbarTitle.text = title;
     self.toolbarTitle.centerY = self.toolbarView.height/2 + 10;
@@ -185,9 +183,7 @@
     
     self.toolbarNext = [BKui makeCustomButton:@"Next"];
     self.toolbarNext.contentHorizontalAlignment = UIControlContentHorizontalAlignmentRight;
-    self.toolbarNext.centerY = self.toolbarView.height/2 + 10;
-    if (self.toolbarNext.width < self.toolbarView.height) self.toolbarNext.width = self.toolbarView.height;
-    self.toolbarNext.right = self.toolbarView.width - 10;
+    self.toolbarNext.frame = CGRectMake(self.toolbarView.width - self.toolbarView.height - 10, 20, self.toolbarView.height, self.toolbarView.height - 20);
     self.toolbarNext.hidden = YES;
     [self.toolbarNext addTarget:self action:@selector(onNext:) forControlEvents:UIControlEventTouchUpInside];
     [self.toolbarView addSubview:self.toolbarNext];
