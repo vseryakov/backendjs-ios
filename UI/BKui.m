@@ -504,118 +504,56 @@ static UIActivityIndicatorView *_activity;
 + (void)setStyle:(UIView*)view style:(NSDictionary*)style
 {
     if (!view || !style) return;
-    if (style[@"hidden"]) view.hidden = YES;
-    if (style[@"visible"]) view.hidden = NO;
+    
+    for (NSString *key in style) {
+        if ([key isEqual:@"hidden"]) view.hidden = YES; else
+        if ([key isEqual:@"visible"]) view.hidden = NO; else
+        if ([key isEqual:@"frame"]) view.frame = [self toCGRect:style name:@"frame"]; else
+        if ([key isEqual:@"x"]) view.x = [style num:key]; else
+        if ([key isEqual:@"y"]) view.y = [style num:key]; else
+        if ([key isEqual:@"width"]) view.width = [style num:key]; else
+        if ([key isEqual:@"height"]) view.height = [style num:key]; else
+        if ([key isEqual:@"center-x"]) view.centerX = [style num:key]; else
+        if ([key isEqual:@"center-y"]) view.centerY = [style num:key];
 
-    if ([view isKindOfClass:[UIButton class]]) {
-        UIButton *button = (UIButton*)view;
-        if (style[@"disabled"]) button.enabled = NO;
-        if (style[@"enabled"]) button.enabled = YES;
-        if (style[@"horizontal-alignment"]) button.contentHorizontalAlignment = [style num:@"horizontal-alignment"];
-        if (style[@"vertical-alignment"]) button.contentVerticalAlignment = [style num:@"vertical-alignment"];
-        
-        if (style[@"icon"]) {
-            UIImage *image = [UIImage imageNamed:style[@"icon"]];
-            [button setImage:image forState:UIControlStateNormal];
-            if (style[@"icon-disabled"]) {
-                [button setImage:[UIImage imageNamed:style[@"icon-disabled"]] forState:UIControlStateDisabled];
-            }
-            if (style[@"icon-highlighted"]) {
-                [button setImage:[UIImage imageNamed:style[@"icon-highlighted"]] forState:UIControlStateHighlighted];
-            }
-            if (style[@"icon-highlighted-tint"]) {
-                [button setImage:[BKui makeImageWithTint:image color:[button tintColor]] forState:UIControlStateHighlighted];
-            }
-            if (style[@"icon-selected"]) {
-                [button setImage:[UIImage imageNamed:style[@"icon-selected"]] forState:UIControlStateSelected];
-            } else {
-                [button setImage:[button imageForState:UIControlStateHighlighted] forState:UIControlStateSelected];
-            }
-        }
-        if (style[@"image"]) {
-            UIImage *image = style[@"image"];
-            [button setImage:image forState:UIControlStateNormal];
-            if (style[@"image-disabled"]) {
-                [button setImage:style[@"image-disabled"] forState:UIControlStateDisabled];
-            }
-            if (style[@"image-highlighted"]) {
-                [button setImage:style[@"image-highlighted"] forState:UIControlStateHighlighted];
-            }
-            if (style[@"image-highlighted-tint"]) {
-                [button setImage:[BKui makeImageWithTint:image color:[button tintColor]] forState:UIControlStateHighlighted];
-            }
-            if (style[@"image-selected"]) {
-                [button setImage:style[@"image-selected"] forState:UIControlStateSelected];
-            } else {
-                [button setImage:[button imageForState:UIControlStateHighlighted] forState:UIControlStateSelected];
-            }
-        }
-        if (style[@"title"]) {
-            [button setTitle:style[@"title"] forState:UIControlStateNormal];
-            if (style[@"title-highlighted"]) {
-                [button setTitle:style[@"title-highlighted"] forState:UIControlStateHighlighted];
-            }
-            if (style[@"title-disabled"]) {
-                [button setTitle:style[@"title-disabled"] forState:UIControlStateDisabled];
-            }
-            if (style[@"color"]) {
-                [button setTitleColor:style[@"color"] forState:UIControlStateNormal];
-            }
-            if (style[@"color-highlighted"]) {
-                [button setTitleColor:style[@"color-highlighted"] forState:UIControlStateHighlighted];
-            }
-            if (style[@"color-selected"])
-                [button setTitleColor:style[@"color-selected"] forState:UIControlStateSelected];
-            else {
-                [button setTitleColor:[button titleColorForState:UIControlStateHighlighted] forState:UIControlStateSelected];
-            }
-            if (style[@"color-disabled"]) {
-                [button setTitleColor:style[@"color-disabled"] forState:UIControlStateDisabled];
-            }
-            if (style[@"font"]) {
-                [button.titleLabel setFont:style[@"font"]];
-            }
-            
-            // Align icon and title vertically in the button, vertical defines top/bottom padding
-            if (style[@"vertical"] && button.imageView.image && button.titleLabel.text.length) {
-                CGFloat h = (button.imageView.height + button.titleLabel.height + [style num:@"vertical"]);
+        if ([view isKindOfClass:[UIButton class]]) {
+            UIButton *button = (UIButton*)view;
+            if ([key isEqual:@"disabled"]) button.enabled = NO; else
+            if ([key isEqual:@"enabled"]) button.enabled = YES; else
+            if ([key isEqual:@"horizontal-alignment"]) button.contentHorizontalAlignment = [style num:key]; else
+            if ([key isEqual:@"vertical-alignment"]) button.contentVerticalAlignment = [style num:key]; else
+            if ([key isEqual:@"icon"]) [button setImage:[UIImage imageNamed:style[key]] forState:UIControlStateNormal]; else
+            if ([key isEqual:@"icon-disabled"]) [button setImage:[UIImage imageNamed:style[key]] forState:UIControlStateDisabled]; else
+            if ([key isEqual:@"icon-highlighted"]) [button setImage:[UIImage imageNamed:style[key]] forState:UIControlStateHighlighted]; else
+            if ([key isEqual:@"icon-highlighted-tint"]) [button setImage:[BKui makeImageWithTint:[UIImage imageNamed:style[@"icon"]] color:[button tintColor]] forState:UIControlStateHighlighted]; else
+            if ([key isEqual:@"icon-selected"]) [button setImage:[UIImage imageNamed:style[key]] forState:UIControlStateSelected]; else
+            if ([key isEqual:@"icon-selected-highlighted"]) [button setImage:[button imageForState:UIControlStateHighlighted] forState:UIControlStateSelected]; else
+            if ([key isEqual:@"image"]) [button setImage:style[key] forState:UIControlStateNormal]; else
+            if ([key isEqual:@"image-disabled"]) [button setImage:style[key] forState:UIControlStateDisabled]; else
+            if ([key isEqual:@"image-highlighted"]) [button setImage:style[key] forState:UIControlStateHighlighted]; else
+            if ([key isEqual:@"image-highlighted-tint"]) [button setImage:[BKui makeImageWithTint:style[@"image"] color:[button tintColor]] forState:UIControlStateHighlighted]; else
+            if ([key isEqual:@"image-selected"]) [button setImage:style[key] forState:UIControlStateSelected]; else
+            if ([key isEqual:@"image-selected-highlighted"]) [button setImage:[button imageForState:UIControlStateHighlighted] forState:UIControlStateSelected]; else
+            if ([key isEqual:@"title"]) [button setTitle:style[key] forState:UIControlStateNormal]; else
+            if ([key isEqual:@"title-highlighted"]) [button setTitle:style[key] forState:UIControlStateHighlighted]; else
+            if ([key isEqual:@"title-disabled"]) [button setTitle:style[key] forState:UIControlStateDisabled]; else
+            if ([key isEqual:@"color"]) [button setTitleColor:style[key] forState:UIControlStateNormal]; else
+            if ([key isEqual:@"color-highlighted"]) [button setTitleColor:style[key] forState:UIControlStateHighlighted]; else
+            if ([key isEqual:@"color-selected"]) [button setTitleColor:style[key] forState:UIControlStateSelected]; else
+            if ([key isEqual:@"color-selected-highlighted"]) [button setTitleColor:[button titleColorForState:UIControlStateHighlighted] forState:UIControlStateSelected]; else
+            if ([key isEqual:@"color-disabled"]) [button setTitleColor:style[key] forState:UIControlStateDisabled]; else
+            if ([key isEqual:@"font"]) [button.titleLabel setFont:style[key]]; else
+            if ([key isEqual:@"content-insets"]) button.contentEdgeInsets = [self toEdgeInsets:style name:key]; else
+            if ([key isEqual:@"image-insets"]) button.imageEdgeInsets = [self toEdgeInsets:style name:key]; else
+            if ([key isEqual:@"title-insets"]) button.titleEdgeInsets = [self toEdgeInsets:style name:key]; else
+            if ([key isEqual:@"fit"]) [button sizeToFit]; else
+            if ([key isEqual:@"vertical"]) {
+                // Align icon and title vertically in the button, vertical defines top/bottom padding
+                CGFloat h = (button.imageView.height + button.titleLabel.height + [style num:key]);
                 button.imageEdgeInsets = UIEdgeInsetsMake(- (h - button.imageView.height), 0.0f, 0.0f, - button.titleLabel.width);
                 button.titleEdgeInsets = UIEdgeInsetsMake(0.0f, - button.imageView.width, - (h - button.titleLabel.height), 0.0f);
             }
         }
-        if (style[@"content-insets"]) {
-            button.contentEdgeInsets = [self toEdgeInsets:style name:@"content-insets"];
-        }
-        if (style[@"image-insets"]) {
-            button.imageEdgeInsets = [self toEdgeInsets:style name:@"image-insets"];
-        }
-        if (style[@"title-insets"]) {
-            button.titleEdgeInsets = [self toEdgeInsets:style name:@"title-insets"];
-        }
-        if (style[@"fit"]) {
-            [button sizeToFit];
-        }
-    }
-    if (style[@"frame"]) {
-        view.frame = [self toCGRect:style name:@"frame"];
-    }
-    if (style[@"x"]) {
-        view.x = [style num:@"x"];
-    }
-    if (style[@"y"]) {
-        view.y = [style num:@"y"];
-    }
-    if (style[@"width"]) {
-        view.width = [style num:@"width"];
-    }
-    if (style[@"height"]) {
-        view.height = [style num:@"height"];
-    }
-    if (style[@"center-x"]) {
-        view.centerX = [style num:@"center-x"];
-    }
-    if (style[@"center-y"]) {
-        view.centerY = [style num:@"center-y"];
     }
 }
 
