@@ -17,6 +17,7 @@
 
 - (instancetype)initWithFrame:(CGRect)frame params:(NSDictionary*)params;
 - (void)update:(NSDictionary*)params;
+- (void)clean;
 @end;
 
 @interface BKItemPopupView: BKItemView

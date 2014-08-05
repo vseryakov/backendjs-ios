@@ -29,13 +29,13 @@
     self.source.hidden = YES;
     [self.scroll addSubview:self.source];
     
-    self.header = [BKui makeLabel:CGRectMake(0, 0, 0, 0) text:@"" color:[UIColor blackColor] font:[UIFont boldSystemFontOfSize:12]];
+    self.header = [BKui makeLabel:CGRectMake(0, 0, 0, 0) text:@"" color:[UIColor blackColor] font:[UIFont boldSystemFontOfSize:13]];
     self.header.numberOfLines = 0;
     [self.scroll addSubview:self.header];
     
     SuccessBlock urlBlock = ^(id url) { [BKWebViewController showURL:url completionHandler:nil]; };
     
-    self.msg = [BKui makeTextView:CGRectMake(0, 0, 0, 0) text:@"" color:[UIColor blackColor] font:[UIFont systemFontOfSize:15]];
+    self.msg = [BKui makeTextView:CGRectMake(0, 0, 0, 0) text:@"" color:[UIColor blackColor] font:nil];
     self.msg.hidden = YES;
     self.msg.dataDetectorTypes = UIDataDetectorTypeLink;
     self.msg.delegate = self;
@@ -57,7 +57,7 @@
     self.title.lineBreakMode = NSLineBreakByWordWrapping;
     [self.scroll addSubview:self.title];
     
-    self.text = [BKui makeTextView:CGRectMake(0, 0, 0, 0) text:@"" color:[UIColor blackColor] font:[UIFont systemFontOfSize:15]];
+    self.text = [BKui makeTextView:CGRectMake(0, 0, 0, 0) text:@"" color:[UIColor blackColor] font:[UIFont systemFontOfSize:16]];
     self.text.hidden = YES;
     self.text.dataDetectorTypes = UIDataDetectorTypeLink;
     self.text.delegate = self;
@@ -68,6 +68,21 @@
     [self.scroll addSubview:self.text];
     if (params) [self update:params];
     return self;
+}
+
+- (void)clean
+{
+    for (UIView *view in self.scroll.subviews) {
+        if (view != self.avatar &&
+            view != self.source &&
+            view != self.header &&
+            view != self.msg &&
+            view != self.icon &&
+            view != self.title &&
+            view != self.text) {
+            [view removeFromSuperview];
+        }
+    }
 }
 
 - (void)update:(NSDictionary*)params
@@ -153,7 +168,7 @@
         self.text.hidden = YES;
     }
 
-    self.scroll.contentSize = CGSizeMake(self.width, y);
+    self.scroll.contentSize = CGSizeMake(self.width, y + 10);
 }
 
 @end

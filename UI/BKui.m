@@ -460,7 +460,7 @@ static UIActivityIndicatorView *_activity;
     btn.imageView.contentMode = UIViewContentModeCenter;
     btn.showsTouchWhenHighlighted = YES;
     btn.adjustsImageWhenHighlighted = YES;
-    btn.titleLabel.font = sys.titleLabel.font;
+    btn.titleLabel.font = [UIFont systemFontOfSize:17];
     if (title) [btn setTitle:title forState:UIControlStateNormal];
     [btn setTitleColor:sys.tintColor forState:UIControlStateNormal];
     [btn setTitleColor:[self makeColor:sys.tintColor h:1 s:1 b:1.5 a:0.5] forState:UIControlStateHighlighted];

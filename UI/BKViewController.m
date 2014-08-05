@@ -101,7 +101,7 @@
         self.tableView.contentOffset = CGPointMake(0, self.tableView.tableHeaderView.height);
     }
     self.activityView.center = self.view.center;
-    [self getItems];
+    if (self.tableView) [self getItems];
 }
 
 - (void)viewDidAppear:(BOOL)animated
@@ -328,7 +328,7 @@
 
 - (void)onTableSearch:(id)sender
 {
-    Debug(@"%@, %d items", self.searchText, self.items.count);
+    Debug(@"%@, %d items", self.searchText, (int)self.items.count);
     
     // Clearing the text while the spell suggestion is up may clear but never calls the delegate
     if (![self.searchText isEqual:self.tableSearch.text]) self.tableSearch.text = self.searchText;

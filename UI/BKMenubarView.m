@@ -41,7 +41,7 @@
         [self.items addObject:item];
         
         UIButton *button = [UIButton buttonWithType:UIButtonTypeCustom];
-        button.frame = CGRectMake(x, 20, len[i], 44);
+        button.frame = CGRectMake(x, self.height == 64 ? 20 : 0, len[i], 44);
         button.exclusiveTouch = YES;
         [button addTarget:self action:@selector(onButton:) forControlEvents:UIControlEventTouchUpInside];
         button.imageView.contentMode = UIViewContentModeScaleAspectFit;
