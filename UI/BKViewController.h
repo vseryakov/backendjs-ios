@@ -57,7 +57,8 @@
 @property (nonatomic, assign) BOOL tableRounded;
 @property (nonatomic, assign) BOOL tableRestore;
 
-@property (strong, nonatomic) IBOutlet UISearchBar *tableSearch;
+@property (strong, nonatomic) IBOutlet UISearchBar *tableSearchBar;
+@property (strong, nonatomic) IBOutlet UITextField *tableSearchField;
 @property (strong, nonatomic) NSArray *tableSearchNames;
 @property (nonatomic, assign) BOOL tableSearchable;
 @property (nonatomic, assign) BOOL tableSearchHidden;
@@ -145,7 +146,7 @@
 - (void)showDrawer:(UIViewController*)owner;
 - (void)hideDrawer;
 
-#pragma marj Animations
+#pragma mark Animations
 
 - (BKTransitionAnimation*)getAnimation:(BOOL)present;
 

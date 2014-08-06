@@ -452,7 +452,7 @@ static UIActivityIndicatorView *_activity;
     return color;
 }
 
-+(UIButton*)makeCustomButton:(NSString*)title
++(UIButton*)makeCustomButton:(NSString*)title image:(UIImage*)image
 {
     UIButton *sys = [UIButton buttonWithType:UIButtonTypeSystem];
     
@@ -461,6 +461,10 @@ static UIActivityIndicatorView *_activity;
     btn.showsTouchWhenHighlighted = YES;
     btn.adjustsImageWhenHighlighted = YES;
     btn.titleLabel.font = [UIFont systemFontOfSize:17];
+    if (image) {
+        [btn setImage:image forState:UIControlStateNormal];
+        [btn setImage:[BKui makeImageWithTint:image color:[btn tintColor]] forState:UIControlStateHighlighted];
+    }
     if (title) [btn setTitle:title forState:UIControlStateNormal];
     [btn setTitleColor:sys.tintColor forState:UIControlStateNormal];
     [btn setTitleColor:[self makeColor:sys.tintColor h:1 s:1 b:1.5 a:0.5] forState:UIControlStateHighlighted];
@@ -560,6 +564,7 @@ static UIActivityIndicatorView *_activity;
             if ([key isEqual:@"content-insets"]) button.contentEdgeInsets = [self toEdgeInsets:style name:key]; else
             if ([key isEqual:@"image-insets"]) button.imageEdgeInsets = [self toEdgeInsets:style name:key]; else
             if ([key isEqual:@"title-insets"]) button.titleEdgeInsets = [self toEdgeInsets:style name:key]; else
+            if ([key isEqual:@"line-break"]) button.titleLabel.lineBreakMode = [self toLineBreak:style name:key]; else
             if ([key isEqual:@"fit"]) [button sizeToFit]; else
             if ([key isEqual:@"vertical"]) {
                 // Align icon and title vertically in the button, vertical defines top/bottom padding
@@ -569,6 +574,17 @@ static UIActivityIndicatorView *_activity;
             }
         }
     }
+}
+
++ (int)toLineBreak:(NSDictionary*)style name:(NSString*)name
+{
+    NSString *str = [style str:name];
+    return [str isEqual:@"middle"] ? NSLineBreakByTruncatingMiddle :
+           [str isEqual:@"word"] ? NSLineBreakByWordWrapping :
+           [str isEqual:@"char"] ? NSLineBreakByCharWrapping :
+           [str isEqual:@"clip"] ? NSLineBreakByClipping :
+           [str isEqual:@"head"] ? NSLineBreakByTruncatingHead :
+           [str isEqual:@"middle"] ? NSLineBreakByTruncatingMiddle : NSLineBreakByTruncatingTail;
 }
 
 + (UIEdgeInsets)toEdgeInsets:(NSDictionary*)style name:(NSString*)name

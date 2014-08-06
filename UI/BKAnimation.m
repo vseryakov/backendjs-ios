@@ -72,6 +72,7 @@
                              [transitionContext completeTransition:YES];
                          }];
     } else {
+        [containerView insertSubview:toVC.view belowSubview:fromVC.view];
         [UIView animateWithDuration:self.duration
                          animations:^{
                              fromVC.view.y = containerView.height;
@@ -101,12 +102,14 @@
                              [transitionContext completeTransition:YES];
                          }];
     } else {
+        [containerView insertSubview:toVC.view belowSubview:fromVC.view];
         [UIView animateWithDuration:self.duration
                          animations:^{
                              fromVC.view.y = -containerView.height;
                          } completion:^(BOOL finished) {
                              [transitionContext completeTransition:YES];
-                             [fromVC.view removeFromSuperview]; }];
+                             [fromVC.view removeFromSuperview];
+                         }];
     }
 }
 

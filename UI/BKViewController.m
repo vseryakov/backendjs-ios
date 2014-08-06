@@ -169,7 +169,7 @@
     
     [BKui setViewShadow:self.toolbarView color:nil offset:CGSizeMake(0, 0.5) opacity:0.5];
     
-    self.toolbarBack = [BKui makeCustomButton:@"Back"];
+    self.toolbarBack = [BKui makeCustomButton:@"Back" image:nil];
     self.toolbarBack.contentHorizontalAlignment = UIControlContentHorizontalAlignmentLeft;
     self.toolbarBack.frame = CGRectMake(10, 20, self.toolbarView.height, self.toolbarView.height - 20);
     [self.toolbarBack addTarget:self action:@selector(onBack:) forControlEvents:UIControlEventTouchUpInside];
@@ -181,7 +181,7 @@
     self.toolbarTitle.centerY = self.toolbarView.height/2 + 10;
     [self.toolbarView addSubview:self.toolbarTitle];
     
-    self.toolbarNext = [BKui makeCustomButton:@"Next"];
+    self.toolbarNext = [BKui makeCustomButton:@"Next" image:nil];
     self.toolbarNext.contentHorizontalAlignment = UIControlContentHorizontalAlignmentRight;
     self.toolbarNext.frame = CGRectMake(self.toolbarView.width - self.toolbarView.height - 10, 20, self.toolbarView.height, self.toolbarView.height - 20);
     self.toolbarNext.hidden = YES;
@@ -229,11 +229,15 @@
     if (!self.tableSearchNames) {
         self.tableSearchNames = @[@"name", @"alias", @"email"];
     }
-    self.tableSearch = [[UISearchBar alloc] initWithFrame:CGRectMake(0, 0, frame.size.width, 44)];
-    self.tableSearch.placeholder = @"Search";
-    self.tableSearch.delegate = self;
+    self.tableSearchField = [[UITextField alloc] initWithFrame:CGRectMake(0, 0, frame.size.width, 32)];
+    self.tableSearchField.placeholder = @"Search";
+    self.tableSearchField.delegate = self;
+
+    self.tableSearchBar = [[UISearchBar alloc] initWithFrame:CGRectMake(0, 0, frame.size.width, 44)];
+    self.tableSearchBar.placeholder = @"Search";
+    self.tableSearchBar.delegate = self;
     if (self.tableSearchable) {
-        self.tableView.tableHeaderView = self.tableSearch;
+        self.tableView.tableHeaderView = self.tableSearchBar;
     }
     
     self.tableRefresh = [[UIRefreshControl alloc]init];
@@ -331,7 +335,8 @@
     Debug(@"%@, %d items", self.searchText, (int)self.items.count);
     
     // Clearing the text while the spell suggestion is up may clear but never calls the delegate
-    if (![self.searchText isEqual:self.tableSearch.text]) self.tableSearch.text = self.searchText;
+    if (![self.searchText isEqual:self.tableSearchBar.text]) self.tableSearchBar.text = self.searchText;
+    if (![self.searchText isEqual:self.tableSearchField.text]) self.tableSearchField.text = self.searchText;
     
     [self.tableView beginUpdates];
     NSMutableArray *paths = [@[] mutableCopy];
@@ -426,6 +431,7 @@
     
     if ([self.navigationMode isEqual:@"push"]) {
         [self prepareForHide:params];
+        self.navigationController.delegate = self;
         [self.navigationController popViewControllerAnimated:YES];
         return;
     }
@@ -748,7 +754,7 @@
 
 - (void)searchBarCancelButtonClicked:(UISearchBar *)searchBar
 {
-    if ([searchBar isEqual:self.tableSearch]) {
+    if ([searchBar isEqual:self.tableSearchBar]) {
         [searchBar resignFirstResponder];
     }
 }
@@ -757,7 +763,7 @@
 
 - (BOOL)textField:(UITextField *)textField shouldChangeCharactersInRange:(NSRange)range replacementString:(NSString *)text
 {
-    if ([textField isEqual:self.tableSearch]) {
+    if ([textField isEqual:self.tableSearchField]) {
         self.searchText = [textField.text stringByReplacingCharactersInRange:range withString:text];
         [self queueTableSearch];
     }
@@ -766,7 +772,7 @@
 
 - (BOOL)textFieldShouldClear:(UITextField *)textField
 {
-    if ([textField isEqual:self.tableSearch]) {
+    if ([textField isEqual:self.tableSearchField]) {
         self.searchText = nil;
         [self queueTableSearch];
     }
@@ -775,7 +781,7 @@
 
 - (BOOL)textFieldShouldReturn:(UITextField *)textField
 {
-    if ([textField isEqual:self.tableSearch]) {
+    if ([textField isEqual:self.tableSearchField]) {
         [textField resignFirstResponder];
     }
     return YES;
@@ -797,7 +803,7 @@
 
 -(void)scrollViewWillBeginDragging:(UIScrollView *)scrollView
 {
-    [self.tableSearch resignFirstResponder];
+    [self.tableSearchBar resignFirstResponder];
 }
 
 #pragma mark UITabBarDelegate

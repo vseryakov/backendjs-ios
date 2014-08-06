@@ -46,7 +46,7 @@
 + (UIImageView*)makeImageWithBadge:(CGRect)frame icon:(NSString*)icon color:(UIColor*)color value:(int)value;
 + (UIImage*)makeImageWithTint:(UIImage*)image color:(UIColor*)color;
 
-+ (UIButton*)makeCustomButton:(NSString*)title;
++ (UIButton*)makeCustomButton:(NSString*)title image:(UIImage*)image;
 
 + (void)setTextLinks:(UITextView*)label text:(NSString*)text links:(NSArray*)links handler:(SuccessBlock)handler;
 + (void)setLabelLink:(UILabel*)label text:(NSString*)text link:(NSString*)link handler:(SuccessBlock)handler;

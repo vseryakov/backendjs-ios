@@ -186,7 +186,7 @@
     [BKui setViewBorder:self color:[UIColor darkGrayColor] radius:8];
     [BKui setViewShadow:self color:nil offset:CGSizeMake(-5, 5) opacity:0.5];
     
-    self.closeButton = [BKui makeCustomButton:@"Close"];
+    self.closeButton = [BKui makeCustomButton:@"Close" image:nil];
     [self.closeButton sizeToFit];
     [self.closeButton addTarget:self action:@selector(onClose:) forControlEvents:UIControlEventTouchUpInside];
     self.closeButton.centerY = 22;
@@ -278,7 +278,7 @@
 - (void)viewDidLoad
 {
     [super viewDidLoad];
-    self.itemView = [[BKItemView alloc] initWithFrame:CGRectOffset(self.view.bounds, 0, 64) params:nil];
+    self.itemView = [[BKItemView alloc] initWithFrame:CGRectMake(0, 64, self.view.width, self.view.height - 64) params:nil];
     [self.view addSubview:self.itemView];
 }
 
