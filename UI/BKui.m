@@ -7,6 +7,8 @@
 
 #import "BKui.h"
 #import <sys/sysctl.h>
+#import <AddressBook/AddressBook.h>
+#import <AddressBookUI/AddressBookUI.h>
 
 static BKui *_BKui;
 static UIActivityIndicatorView *_activity;
@@ -498,6 +500,114 @@ static UIActivityIndicatorView *_activity;
     animation.toValue = @(rotate);
     animation.timeOffset = (rand() / (float)RAND_MAX) * 0.1;
     [view.layer addAnimation:animation forKey:@"jiggle"];
+}
+
++ (void)getContacts:(SuccessBlock)finish
+{
+    CFErrorRef error = nil;
+    ABAddressBookRef book = ABAddressBookCreateWithOptions(NULL, &error);
+    if (!book) {
+        finish(@[]);
+        return;
+    }
+    
+    ABAddressBookRequestAccessWithCompletion(book, ^(bool granted, CFErrorRef error) {
+        NSMutableArray *items = [@[] mutableCopy];
+        if (granted) {
+            NSArray *contacts = CFBridgingRelease(ABAddressBookCopyArrayOfAllPeople(book));
+            for (int i = 0; i < contacts.count; i++) {
+                ABRecordRef person = (__bridge ABRecordRef) [contacts objectAtIndex:i];
+                
+                NSString *str = CFBridgingRelease(ABRecordCopyCompositeName(person));
+                if (str == nil) continue;
+                
+                NSMutableDictionary *item = [@{} mutableCopy];
+                item[@"alias"] = str;
+
+                str = CFBridgingRelease(ABRecordCopyValue(person, kABPersonNicknameProperty));
+                if (str) item[@"nickname"] = str;
+                str = CFBridgingRelease(ABRecordCopyValue(person, kABPersonFirstNameProperty));
+                if (str) item[@"first_name"] = str;
+                str = CFBridgingRelease(ABRecordCopyValue(person, kABPersonLastNameProperty));
+                if (str) item[@"last_name"] = str;
+                str = CFBridgingRelease(ABRecordCopyValue(person, kABPersonJobTitleProperty));
+                if (str) item[@"job_title"] = str;
+                str = CFBridgingRelease(ABRecordCopyValue(person, kABPersonOrganizationProperty));
+                if (str) item[@"company"] = str;
+                str = CFBridgingRelease(ABRecordCopyValue(person, kABPersonNoteProperty));
+                if (str) item[@"note"] = str;
+                NSDate *date = CFBridgingRelease(ABRecordCopyValue(person, kABPersonBirthdayProperty));
+                if (str) item[@"birthday"] = @([date timeIntervalSince1970]);
+                date = CFBridgingRelease(ABRecordCopyValue(person, kABPersonModificationDateProperty));
+                if (str) item[@"mtime"] = @([date timeIntervalSince1970]);
+
+                if (ABPersonHasImageData(person)) {
+                    UIImage *icon = [UIImage imageWithData:(NSData *)CFBridgingRelease(ABPersonCopyImageDataWithFormat(person, kABPersonImageFormatThumbnail))];
+                    if (icon) item[@"icon"] = icon;
+                }
+                
+                ABMultiValueRef phones = ABRecordCopyValue(person, kABPersonPhoneProperty);
+                if (phones && ABMultiValueGetCount(phones) > 0) {
+                    item[@"phone"] = [@[] mutableCopy];
+                    for (CFIndex i = 0; i < ABMultiValueGetCount(phones); i++) {
+                        NSString *val = CFBridgingRelease(ABMultiValueCopyValueAtIndex(phones, i));
+                        if (!val) continue;
+                        NSMutableDictionary *rec = [@{ @"value": val } mutableCopy];
+                        CFStringRef label = ABMultiValueCopyLabelAtIndex(phones, i);
+                        val = CFBridgingRelease(ABAddressBookCopyLocalizedLabel(label));
+                        CFRelease(label);
+                        rec[@"name"] = val ? val : @"phone";
+                        [item[@"phone"] addObject:rec];
+                    }
+                }
+                if (phones) CFRelease(phones);
+                
+                ABMultiValueRef emails = ABRecordCopyValue(person, kABPersonEmailProperty);
+                if (emails && ABMultiValueGetCount(emails) > 0) {
+                    item[@"email"] = [@[] mutableCopy];
+                    for (CFIndex i = 0; i < ABMultiValueGetCount(phones); i++) {
+                        NSString *val = CFBridgingRelease(ABMultiValueCopyValueAtIndex(emails, i));
+                        if (!val) continue;
+                        NSMutableDictionary *rec = [@{ @"value": val } mutableCopy];
+                        CFStringRef label = ABMultiValueCopyLabelAtIndex(emails, i);
+                        val = CFBridgingRelease(ABAddressBookCopyLocalizedLabel(label));
+                        CFRelease(label);
+                        rec[@"name"] = val ? val : @"email";
+                        [item[@"email"] addObject:rec];
+                    }
+                }
+                if (emails) CFRelease(emails);
+                
+                ABMultiValueRef addrs = ABRecordCopyValue(person, kABPersonAddressProperty);
+                if (addrs && ABMultiValueGetCount(addrs) > 0) {
+                    item[@"address"] = [@[] mutableCopy];
+                    for (CFIndex i = 0; i < ABMultiValueGetCount(addrs); i++) {
+                        NSDictionary *addr = CFBridgingRelease(ABMultiValueCopyValueAtIndex(addrs, i));
+                        if (!addr) continue;
+                        NSMutableDictionary *rec = [@{} mutableCopy];
+                        CFStringRef label = ABMultiValueCopyLabelAtIndex(addrs, i);
+                        rec[@"name"] = CFBridgingRelease(ABAddressBookCopyLocalizedLabel(label));
+                        CFRelease(label);
+                        rec[@"value"] = [NSString stringWithFormat:@"%@ %@ %@ %@ %@",
+                                         [addr str:CFBridgingRelease(kABPersonAddressStreetKey)],
+                                         [addr str:CFBridgingRelease(kABPersonAddressCityKey)],
+                                         [addr str:CFBridgingRelease(kABPersonAddressStateKey)],
+                                         [addr str:CFBridgingRelease(kABPersonAddressZIPKey)],
+                                         [addr str:CFBridgingRelease(kABPersonAddressCountryKey)]];
+                        [item[@"address"] addObject:rec];
+                    }
+                }
+                if (addrs) CFRelease(addrs);
+                
+                if (!item[@"phone"] && !item[@"email"]) continue;
+                
+                [items addObject:item];
+            }
+            CFRelease(book);
+            [items sortUsingDescriptors:@[[NSSortDescriptor sortDescriptorWithKey:@"alias" ascending:YES]]];
+        }
+        finish(items);
+    });
 }
 
 #pragma mark UI styles

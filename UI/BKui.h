@@ -67,6 +67,8 @@
 
 + (void)setStyle:(UIButton*)button style:(NSDictionary*)style;
 
++ (void)getContacts:(SuccessBlock)finish;
+
 #pragma mark UIImage utilities
 
 + (UIImage*)scaleToSize:(UIImage*)image size:(CGSize)size;

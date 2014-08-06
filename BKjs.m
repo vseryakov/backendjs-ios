@@ -224,16 +224,21 @@ static NSString *SysCtlByName(char *typeSpecifier)
     }
 }
 
-- (void)onBlockTimer:(NSTimer *)timer
+- (void)onBlock:(id)userInfo
 {
-    SuccessBlock block = timer.userInfo[@"block"];
-    block(timer.userInfo[@"params"]);
+    SuccessBlock block = userInfo[@"block"];
+    if (block) block(userInfo[@"params"]);
+}
+
+- (void)onTimer:(NSTimer *)timer
+{
+    [self performSelectorOnMainThread:@selector(onBlock:) withObject:timer.userInfo waitUntilDone:NO];
 }
 
 + (void)scheduleBlock:(double)seconds block:(SuccessBlock)block params:(id)params
 {
     if (!block) return;
-    [NSTimer scheduledTimerWithTimeInterval:seconds target:[BKjs get] selector:@selector(onBlockTimer:) userInfo:@{ @"block": [block copy],  @"params": params ? params : @{} } repeats:NO];
+    [NSTimer scheduledTimerWithTimeInterval:seconds target:[BKjs get] selector:@selector(onTimer:) userInfo:@{ @"block": [block copy],  @"params": params ? params : @{} } repeats:NO];
 }
 
 + (void)initDefaultsFromSettings

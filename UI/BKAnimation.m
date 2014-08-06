@@ -77,8 +77,9 @@
                          animations:^{
                              fromVC.view.y = containerView.height;
                          } completion:^(BOOL finished) {
+                             [fromVC.view removeFromSuperview];
                              [transitionContext completeTransition:YES];
-                             [fromVC.view removeFromSuperview]; }];
+                         }];
     }
 }
 
@@ -107,8 +108,8 @@
                          animations:^{
                              fromVC.view.y = -containerView.height;
                          } completion:^(BOOL finished) {
-                             [transitionContext completeTransition:YES];
                              [fromVC.view removeFromSuperview];
+                             [transitionContext completeTransition:YES];
                          }];
     }
 }
