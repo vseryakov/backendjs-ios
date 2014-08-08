@@ -16,7 +16,7 @@
 @property (nonatomic, assign) float delay;
 @property (nonatomic, assign) UIViewAnimationOptions options;
 
-- (id)init:(BOOL)show type:(NSString*)type duration:(float)duration;
+- (id)init:(BOOL)show params:(NSDictionary*)params;
 @end
 
 @interface BKBounceAnimation: CAKeyframeAnimation

@@ -22,12 +22,8 @@
 @property (strong, nonatomic) NSString *prevControllerName;
 @property (strong, nonatomic) NSString *nextControllerName;
 
-// What animation to use during transitions
-@property (strong, nonatomic) NSString *transitionType;
-@property (nonatomic) float transitionDuration;
-@property (nonatomic) float transitionDamping;
-@property (nonatomic) float transitionVelocity;
-@property (nonatomic) UIViewAnimationOptions transitionOptions;
+// What animation to use during transitions, a dict with properties: type, duration, damping, velocity, options
+@property (strong, nonatomic) NSMutableDictionary *transition;
 
 // Return type of the status bar when active
 @property (nonatomic, assign) UIStatusBarStyle barStyle;
@@ -87,7 +83,7 @@
 // Push mode panning gesture
 @property (nonatomic, assign) CGRect panRect;
 @property (nonatomic, assign) BOOL panInPushMode;
-@property (nonatomic, strong) UIPanGestureRecognizer *panGesture;
+@property (nonatomic, strong) UIScreenEdgePanGestureRecognizer *panGesture;
 
 // Subscribe to notifications
 - (void)subscribe;

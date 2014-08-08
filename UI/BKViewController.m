@@ -19,12 +19,12 @@
                                 UIGestureRecognizerDelegate,UITableViewDelegate,UITableViewDataSource,
                                 UITextFieldDelegate,UITextViewDelegate,UISearchBarDelegate,
                                 UIActionSheetDelegate>
+@property (nonatomic, strong) UIPercentDrivenInteractiveTransition *interactionController;
 @end
 
 @implementation BKViewController {
     int _activityCount;
     CGPoint _center;
-    UIView *_contentView;
     CGRect _drawerFrame;
     BOOL _panStarted;
     NSTimer *_timer;
@@ -38,10 +38,7 @@
     self.params = [@{} mutableCopy];
     self.itemsAll = nil;
     self.items = [@[] mutableCopy];
-    self.transitionVelocity = 1;
-    self.transitionDamping = 1;
-    self.transitionDuration = 0.5;
-    self.transitionOptions = 0;
+    self.transition = [@{} mutableCopy];
     self.barStyle = UIStatusBarStyleDefault;
     self.tableSections = 1;
     self.tableRows = 0;
@@ -486,7 +483,7 @@
     }
     
     // Support swipe in addition to touch
-    if (self.drawerPanning == YES) {
+    if (self.drawerPanning == YES && !self.drawerPanGesture) {
         self.drawerPanGesture = [[UIPanGestureRecognizer alloc] initWithTarget:self action:@selector(onDrawerPan:)];
         self.drawerPanGesture.delegate = self;
         [self.view addGestureRecognizer:self.drawerPanGesture];
@@ -528,16 +525,16 @@
         owner.navigationController.delegate = self;
         
         if (self.panInPushMode) {
-            _contentView = self.view;
-            UIImageView *bg = [[UIImageView alloc] initWithFrame:owner.view.frame];
-            bg.image = [BKui captureImage:owner.view.window];
-            bg.userInteractionEnabled = YES;
-            self.view = bg;
-            [self.view addSubview:_contentView];
-            
-            self.panGesture = [[UIPanGestureRecognizer alloc] initWithTarget:self action:@selector(onPushPan:)];
+            self.transition[@"type"] = @"slideLeft";
+            self.panGesture = [[UIScreenEdgePanGestureRecognizer alloc] initWithTarget:self action:@selector(onPushPan:)];
             self.panGesture.delegate = self;
+            self.panGesture.edges = UIRectEdgeLeft;
             [self.view addGestureRecognizer:self.panGesture];
+        } else {
+            if (self.panGesture) {
+                [self.view removeGestureRecognizer:self.panGesture];
+                self.panGesture = nil;
+            }
         }
     }
     
@@ -599,20 +596,42 @@
     [self onPan:recognizer view:self.drawerView right:NO completion:^{ [self showPrevious]; }];
 }
 
-- (void)onPushPan:(UIPanGestureRecognizer *)recognizer
+- (void)onViewPan:(UIPanGestureRecognizer *)recognizer
 {
-    [self onPan:recognizer view:_contentView right:YES completion:^{
+    UIView *view;
+    [self onPan:recognizer view:view right:YES completion:^{
             [UIView animateWithDuration:0.25
                                   delay:0
                                 options:UIViewAnimationOptionCurveEaseOut|UIViewAnimationOptionBeginFromCurrentState|UIViewAnimationOptionOverrideInheritedDuration
                              animations:^{
-                                 _contentView.center = CGPointMake(self.view.frame.size.width*1.5, self.view.center.y);
+                                 view.center = CGPointMake(self.view.frame.size.width*1.5, self.view.center.y);
                              } completion:^(BOOL stop) {
                                  [self.navigationController popViewControllerAnimated:NO];
-                                 self.view = _contentView;
-                                 _contentView = nil;
+                                 self.view = view;
                              }];
     }];
+}
+
+- (void)onPushPan:(UIScreenEdgePanGestureRecognizer *)gesture
+{
+    if (gesture.state == UIGestureRecognizerStateBegan) {
+        self.interactionController = [[UIPercentDrivenInteractiveTransition alloc] init];
+        [self showPrevious];
+    } else
+    if (gesture.state == UIGestureRecognizerStateChanged) {
+        CGPoint translation = [gesture translationInView:gesture.view];
+        [self.interactionController updateInteractiveTransition:ABS(translation.x / gesture.view.width)];
+    } else
+    if (gesture.state == UIGestureRecognizerStateEnded || gesture.state == UIGestureRecognizerStateCancelled) {
+        CGPoint translation = [gesture translationInView:gesture.view];
+        CGFloat percent = ABS(translation.x / gesture.view.width);
+        if (percent < 0.5 || gesture.state == UIGestureRecognizerStateCancelled) {
+            [self.interactionController cancelInteractiveTransition];
+        } else {
+            [self.interactionController finishInteractiveTransition];
+        }
+        self.interactionController = nil;
+    }
 }
 
 #pragma mark Pickers
@@ -672,20 +691,15 @@
 
 - (BKTransitionAnimation*)getAnimation:(BOOL)present
 {
-    if (!self.transitionType) return nil;
-    BKTransitionAnimation *anim = [[BKTransitionAnimation alloc] init:present type:self.transitionType duration:self.transitionDuration];
-    anim.velocity = self.transitionVelocity;
-    anim.damping = self.transitionDamping;
-    anim.options = self.transitionOptions;
-    return anim;
+    if ([self.transition isEmpty:@"type"]) return nil;
+    return [[BKTransitionAnimation alloc] init:present params:self.transition];
 }
 
 - (id<UIViewControllerAnimatedTransitioning>)navigationController:(UINavigationController *)navigationController animationControllerForOperation:(UINavigationControllerOperation)operation fromViewController:(UIViewController *)fromVC toViewController:(UIViewController *)toVC
 {
     if (operation == UINavigationControllerOperationNone) return nil;
     BKViewController *view = operation == UINavigationControllerOperationPush ? (BKViewController*)toVC : (BKViewController*)fromVC;
-    if (view.transitionType) return [view getAnimation:operation == UINavigationControllerOperationPush];
-    return nil;
+    return [view getAnimation:operation == UINavigationControllerOperationPush];
 }
 
 - (void)navigationController:(UINavigationController *)navigationController didShowViewController:(UIViewController *)viewController animated:(BOOL)animated
@@ -693,20 +707,23 @@
     navigationController.delegate = nil;
 }
 
+- (id <UIViewControllerInteractiveTransitioning>)navigationController:(UINavigationController*)navigationController interactionControllerForAnimationController:(id <UIViewControllerAnimatedTransitioning>)animationController
+{
+    return self.interactionController;
+}
+
 # pragma mark - UIViewControllerTansitioningDelegate methods
 
 - (id<UIViewControllerAnimatedTransitioning>)animationControllerForPresentedController:(UIViewController *)presented presentingController:(UIViewController *)presenting sourceController:(UIViewController *)source
 {
     BKViewController *view = (BKViewController*)presented;
-    if (view.transitionType) return [view getAnimation:YES];
-    return nil;
+    return [view getAnimation:YES];
 }
 
 - (id<UIViewControllerAnimatedTransitioning>)animationControllerForDismissedController:(UIViewController *)dismissed
 {
     BKViewController *view = (BKViewController*)dismissed;
-    if (view.transitionType) return [view getAnimation:NO];
-    return nil;
+    return [view getAnimation:NO];
 }
 
 # pragma mark - UIGestureRecognizerDelegate methods

@@ -369,6 +369,7 @@ static NSString *SysCtlByName(char *typeSpecifier)
 
 + (NSString*)toString:(id)obj names:(NSArray*)names dflt:(NSString*)dflt
 {
+    if (!obj) return dflt;
     for (NSString *key in names) {
         if (obj[key]) return [obj str:key];
     }
@@ -377,6 +378,7 @@ static NSString *SysCtlByName(char *typeSpecifier)
 
 + (double)toNumber:(id)obj names:(NSArray*)names dflt:(double)dflt
 {
+    if (!obj) return dflt;
     for (NSString *key in names) {
         if (obj[key]) return [obj num:key];
     }

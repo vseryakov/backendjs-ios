@@ -7,16 +7,16 @@
 
 @implementation BKTransitionAnimation
 
-- (id)init:(BOOL)present type:(NSString*)type duration:(float)duration
+- (id)init:(BOOL)present params:(NSDictionary *)params
 {
     self = [super init];
     self.present = present;
-    self.type = type;
-    self.duration = duration ? duration : 0.5;
-    self.damping = 1;
-    self.velocity = 1;
-    self.delay = 0;
-    Debug(@"%d: %@: %g", self.present, self.type, self.duration);
+    self.type = params[@"type"];
+    self.duration = [params num:@[@"duration"] dflt:0.5];
+    self.damping = [params num:@[@"damping"] dflt:1];
+    self.velocity = [params num:@[@"velocity"] dflt:1];
+    self.delay = [params num:@[@"delay"] dflt:0];
+    Debug(@"%d: %@", self.present, params);
     return self;
 }
 
@@ -52,14 +52,14 @@
                     }];
 }
 
-- (void)slideUp:(id<UIViewControllerContextTransitioning>)transitionContext
+- (void)slideTransition:(id<UIViewControllerContextTransitioning>)transitionContext frame:(CGRect)frame
 {
     UIViewController *fromVC = [transitionContext viewControllerForKey:UITransitionContextFromViewControllerKey];
     UIViewController *toVC = [transitionContext viewControllerForKey:UITransitionContextToViewControllerKey];
     UIView* containerView = [transitionContext containerView];
     
     if (self.present) {
-        toVC.view.frame = CGRectMake(0, containerView.height, containerView.width, containerView.height);
+        toVC.view.frame = frame;
         [containerView addSubview:toVC.view];
         [UIView animateWithDuration:self.duration
                               delay:self.delay
@@ -67,15 +67,19 @@
               initialSpringVelocity:self.velocity
                             options:(UIViewAnimationOptions)self.options
                          animations:^{
-                             toVC.view.y = 0;
+                             toVC.view.frame = containerView.bounds;
                          } completion:^(BOOL finished) {
                              [transitionContext completeTransition:YES];
                          }];
     } else {
         [containerView insertSubview:toVC.view belowSubview:fromVC.view];
         [UIView animateWithDuration:self.duration
+                              delay:self.delay
+             usingSpringWithDamping:self.damping
+              initialSpringVelocity:self.velocity
+                            options:(UIViewAnimationOptions)self.options
                          animations:^{
-                             fromVC.view.y = containerView.height;
+                             fromVC.view.frame = frame;
                          } completion:^(BOOL finished) {
                              [fromVC.view removeFromSuperview];
                              [transitionContext completeTransition:YES];
@@ -83,35 +87,28 @@
     }
 }
 
+- (void)slideUp:(id<UIViewControllerContextTransitioning>)transitionContext
+{
+    UIView* containerView = [transitionContext containerView];
+    [self slideTransition:transitionContext frame:CGRectMake(0, containerView.height, containerView.width, containerView.height)];
+}
+
 - (void)slideDown:(id<UIViewControllerContextTransitioning>)transitionContext
 {
-    UIViewController *fromVC = [transitionContext viewControllerForKey:UITransitionContextFromViewControllerKey];
-    UIViewController *toVC = [transitionContext viewControllerForKey:UITransitionContextToViewControllerKey];
     UIView* containerView = [transitionContext containerView];
-    
-    if (self.present) {
-        toVC.view.frame = CGRectMake(0, -containerView.height, containerView.width, containerView.height);
-        [containerView addSubview:toVC.view];
-        [UIView animateWithDuration:self.duration
-                              delay:self.delay
-             usingSpringWithDamping:self.damping
-              initialSpringVelocity:self.velocity
-                            options:(UIViewAnimationOptions)self.options
-                         animations:^{
-                             toVC.view.y = 0;
-                         } completion:^(BOOL finished) {
-                             [transitionContext completeTransition:YES];
-                         }];
-    } else {
-        [containerView insertSubview:toVC.view belowSubview:fromVC.view];
-        [UIView animateWithDuration:self.duration
-                         animations:^{
-                             fromVC.view.y = -containerView.height;
-                         } completion:^(BOOL finished) {
-                             [fromVC.view removeFromSuperview];
-                             [transitionContext completeTransition:YES];
-                         }];
-    }
+    [self slideTransition:transitionContext frame:CGRectMake(0, -containerView.height, containerView.width, containerView.height)];
+}
+
+- (void)slideRight:(id<UIViewControllerContextTransitioning>)transitionContext
+{
+    UIView* containerView = [transitionContext containerView];
+    [self slideTransition:transitionContext frame:CGRectMake(-containerView.width, 0, containerView.width, containerView.height)];
+}
+
+- (void)slideLeft:(id<UIViewControllerContextTransitioning>)transitionContext
+{
+    UIView* containerView = [transitionContext containerView];
+    [self slideTransition:transitionContext frame:CGRectMake(containerView.width, 0, containerView.width, containerView.height)];
 }
 
 - (void)crossFade:(id<UIViewControllerContextTransitioning>)transitionContext
