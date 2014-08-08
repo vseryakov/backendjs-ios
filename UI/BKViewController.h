@@ -38,6 +38,10 @@
 // the full list before the search or other condition
 @property (strong, nonatomic) NSMutableArray *itemsAll;
 
+// Next token for browsing items
+@property (strong, nonatomic) NSString *itemsNext;
+
+
 // Toolbar configuration
 @property (strong, nonatomic) IBOutlet UIView *toolbarView;
 @property (strong, nonatomic) IBOutlet UIButton *toolbarBack;
@@ -83,7 +87,7 @@
 // Push mode panning gesture
 @property (nonatomic, assign) CGRect panRect;
 @property (nonatomic, assign) BOOL panInPushMode;
-@property (nonatomic, strong) UIScreenEdgePanGestureRecognizer *panGesture;
+@property (nonatomic, strong) UIGestureRecognizer *panGesture;
 
 // Subscribe to notifications
 - (void)subscribe;
@@ -135,6 +139,8 @@
 - (id)getItem:(NSIndexPath*)indexPath;
 - (void)setItem:(NSIndexPath*)indexPath data:(id)data;
 - (void)getItems;
+- (void)clearItems;
+- (void)reloadItems:(NSArray*)items;
 - (void)refreshItems;
 
 #pragma mark Drawer

@@ -11,6 +11,7 @@
 #import <AddressBookUI/AddressBookUI.h>
 
 static BKui *_BKui;
+static NSMutableDictionary *_style;
 static UIActivityIndicatorView *_activity;
 
 @interface BKui () <UIActionSheetDelegate,UIAlertViewDelegate,UITextViewDelegate>
@@ -24,6 +25,7 @@ static UIActivityIndicatorView *_activity;
     dispatch_once(&_bkOnce, ^{
         _BKui = [BKui new];
         _BKui.controllers = [@{} mutableCopy];
+        _style = [@{} mutableCopy];
         
         _activity = [[UIActivityIndicatorView alloc] initWithActivityIndicatorStyle:UIActivityIndicatorViewStyleWhite];
         _activity.hidesWhenStopped = YES;
@@ -40,6 +42,12 @@ static UIActivityIndicatorView *_activity;
 {
     
 }
+
++ (NSMutableDictionary*)style
+{
+    return _style;
+}
+
 #pragma mark Utilities
 
 + (void)set:(BKui*)obj
@@ -259,8 +267,10 @@ static UIActivityIndicatorView *_activity;
 {
     NSMutableAttributedString* str = [[NSMutableAttributedString alloc] initWithString:text];
     for (NSString *link in links) {
-        [str addAttribute:NSLinkAttributeName value:link range:[str.string rangeOfString:link]];
-        [str addAttribute:NSUnderlineStyleAttributeName value:@(NSUnderlineStyleSingle) range:[str.string rangeOfString:link]];
+        NSRange range = [str.string rangeOfString:link];
+        if (range.location == NSNotFound) continue;
+        [str addAttribute:NSLinkAttributeName value:link range:range];
+        [str addAttribute:NSUnderlineStyleAttributeName value:@(NSUnderlineStyleSingle) range:range];
     }
     [label setAttributedText:str];
     if (handler) objc_setAssociatedObject(label, @"urlBlock", handler, OBJC_ASSOCIATION_RETAIN);
@@ -394,7 +404,7 @@ static UIActivityIndicatorView *_activity;
     }
 }
 
-+ (UIImageView*)makeImageWithBadge:(CGRect)frame icon:(NSString*)icon color:(UIColor*)color value:(int)value
++ (UIImageView*)makeImageWithBadge:(CGRect)frame icon:(NSString*)icon color:(UIColor*)color value:(int)value insets:(CGPoint)insets
 {
     UIImageView *image = [[UIImageView alloc] initWithImage:[UIImage imageNamed:icon]];
     if (frame.size.width && frame.size.height) {
@@ -403,7 +413,8 @@ static UIActivityIndicatorView *_activity;
     } else {
         image.frame = CGRectMake(frame.origin.x, frame.origin.y, image.frame.size.width, image.frame.size.height);
     }
-    UILabel *label = [[UILabel alloc] initWithFrame:CGRectMake(3, 3, image.frame.size.width-6, image.frame.size.height-6)];
+    
+    UILabel *label = [[UILabel alloc] initWithFrame:CGRectInset(image.bounds, insets.x, insets.y)];
     label.baselineAdjustment = UIBaselineAdjustmentAlignCenters;
     label.textAlignment = NSTextAlignmentCenter;
     label.adjustsFontSizeToFitWidth = YES;
@@ -552,11 +563,12 @@ static UIActivityIndicatorView *_activity;
                     for (CFIndex i = 0; i < ABMultiValueGetCount(phones); i++) {
                         NSString *val = CFBridgingRelease(ABMultiValueCopyValueAtIndex(phones, i));
                         if (!val) continue;
-                        NSMutableDictionary *rec = [@{ @"value": val } mutableCopy];
+                        NSMutableDictionary *rec = [@{ @"name": @"phone", @"value": val } mutableCopy];
                         CFStringRef label = ABMultiValueCopyLabelAtIndex(phones, i);
-                        val = CFBridgingRelease(ABAddressBookCopyLocalizedLabel(label));
-                        CFRelease(label);
-                        rec[@"name"] = val ? val : @"phone";
+                        if (label) {
+                            rec[@"name"] = CFBridgingRelease(ABAddressBookCopyLocalizedLabel(label));
+                            CFRelease(label);
+                        }
                         [item[@"phone"] addObject:rec];
                     }
                 }
@@ -568,11 +580,12 @@ static UIActivityIndicatorView *_activity;
                     for (CFIndex i = 0; i < ABMultiValueGetCount(phones); i++) {
                         NSString *val = CFBridgingRelease(ABMultiValueCopyValueAtIndex(emails, i));
                         if (!val) continue;
-                        NSMutableDictionary *rec = [@{ @"value": val } mutableCopy];
+                        NSMutableDictionary *rec = [@{ @"name": @"email", @"value": val } mutableCopy];
                         CFStringRef label = ABMultiValueCopyLabelAtIndex(emails, i);
-                        val = CFBridgingRelease(ABAddressBookCopyLocalizedLabel(label));
-                        CFRelease(label);
-                        rec[@"name"] = val ? val : @"email";
+                        if (label) {
+                            rec[@"name"] = CFBridgingRelease(ABAddressBookCopyLocalizedLabel(label));
+                            CFRelease(label);
+                        }
                         [item[@"email"] addObject:rec];
                     }
                 }
@@ -584,10 +597,12 @@ static UIActivityIndicatorView *_activity;
                     for (CFIndex i = 0; i < ABMultiValueGetCount(addrs); i++) {
                         NSDictionary *addr = CFBridgingRelease(ABMultiValueCopyValueAtIndex(addrs, i));
                         if (!addr) continue;
-                        NSMutableDictionary *rec = [@{} mutableCopy];
+                        NSMutableDictionary *rec = [@{ @"name": @"address"}  mutableCopy];
                         CFStringRef label = ABMultiValueCopyLabelAtIndex(addrs, i);
-                        rec[@"name"] = CFBridgingRelease(ABAddressBookCopyLocalizedLabel(label));
-                        CFRelease(label);
+                        if (label) {
+                            rec[@"name"] = CFBridgingRelease(ABAddressBookCopyLocalizedLabel(label));
+                            CFRelease(label);
+                        }
                         rec[@"value"] = [NSString stringWithFormat:@"%@ %@ %@ %@ %@",
                                          [addr str:CFBridgingRelease(kABPersonAddressStreetKey)],
                                          [addr str:CFBridgingRelease(kABPersonAddressCityKey)],
@@ -651,6 +666,7 @@ static UIActivityIndicatorView *_activity;
             if ([key isEqual:@"horizontal-alignment"]) button.contentHorizontalAlignment = num; else
             if ([key isEqual:@"vertical-alignment"]) button.contentVerticalAlignment = num; else
             if ([key isEqual:@"icon"]) [button setImage:[UIImage imageNamed:val] forState:UIControlStateNormal]; else
+            if ([key isEqual:@"icon-tint"]) [button setImage:[BKui makeImageWithTint:[UIImage imageNamed:style[@"icon"]] color:[button tintColor]] forState:UIControlStateNormal]; else
             if ([key isEqual:@"icon-disabled"]) [button setImage:[UIImage imageNamed:val] forState:UIControlStateDisabled]; else
             if ([key isEqual:@"icon-highlighted"]) [button setImage:[UIImage imageNamed:val] forState:UIControlStateHighlighted]; else
             if ([key isEqual:@"icon-highlighted-tint"]) [button setImage:[BKui makeImageWithTint:[UIImage imageNamed:style[@"icon"]] color:[button tintColor]] forState:UIControlStateHighlighted]; else
@@ -666,6 +682,7 @@ static UIActivityIndicatorView *_activity;
             if ([key isEqual:@"title-highlighted"]) [button setTitle:val forState:UIControlStateHighlighted]; else
             if ([key isEqual:@"title-disabled"]) [button setTitle:val forState:UIControlStateDisabled]; else
             if ([key isEqual:@"color"]) [button setTitleColor:val forState:UIControlStateNormal]; else
+            if ([key isEqual:@"color-tint"]) [button setTitleColor:[button tintColor] forState:UIControlStateNormal]; else
             if ([key isEqual:@"color-highlighted"]) [button setTitleColor:val forState:UIControlStateHighlighted]; else
             if ([key isEqual:@"color-selected"]) [button setTitleColor:val forState:UIControlStateSelected]; else
             if ([key isEqual:@"color-selected-highlighted"]) [button setTitleColor:[button titleColorForState:UIControlStateHighlighted] forState:UIControlStateSelected]; else

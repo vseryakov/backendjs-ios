@@ -21,6 +21,9 @@
 + (BKui*)get;
 + (void)set:(BKui*)obj;
 
+// Styles for UI components
++ (NSMutableDictionary*)style;
+
 #pragma mark UIkit utilities
 
 + (UIViewController*)rootController;
@@ -43,7 +46,7 @@
 + (UITextView*)makeTextView:(CGRect)frame text:(NSString*)text color:(UIColor*)color font:(UIFont*)font;
 + (UIActionSheet*)makeAction:(NSString *)title actions:(NSArray*)actions confirmHandler:(ActionBlock)confirmHandler;
 + (UIImageView*)makeImageAvatar:(UIView*)view frame:(CGRect)frame eclipse:(UIImage*)eclipse;
-+ (UIImageView*)makeImageWithBadge:(CGRect)frame icon:(NSString*)icon color:(UIColor*)color value:(int)value;
++ (UIImageView*)makeImageWithBadge:(CGRect)frame icon:(NSString*)icon color:(UIColor*)color value:(int)value insets:(CGPoint)insets;
 + (UIImage*)makeImageWithTint:(UIImage*)image color:(UIColor*)color;
 
 + (UIButton*)makeCustomButton:(NSString*)title image:(UIImage*)image;
@@ -65,7 +68,7 @@
 + (void)shakeView:(UIView*)view;
 + (void)jiggleView:(UIView*)view;
 
-+ (void)setStyle:(UIButton*)button style:(NSDictionary*)style;
++ (void)setStyle:(UIView*)view style:(NSDictionary*)style;
 
 + (void)getContacts:(SuccessBlock)finish;
 

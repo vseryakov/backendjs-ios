@@ -137,6 +137,8 @@
         self.infoTextView.delegate = self;
         self.infoTextView.textContainerInset = UIEdgeInsetsMake(20, 10, 20, 10);
         self.infoTextView.textAlignment = NSTextAlignmentCenter;
+    } else {
+        self.infoView.frame = CGRectMake(0, 64, self.view.width, self.view.height - 64);
     }
     if (text) {
         self.infoTextView.text = text;
@@ -184,6 +186,7 @@
     self.toolbarNext.hidden = YES;
     [self.toolbarNext addTarget:self action:@selector(onNext:) forControlEvents:UIControlEventTouchUpInside];
     [self.toolbarView addSubview:self.toolbarNext];
+    [BKui setStyle:self.toolbarView style:BKui.style[@"toolbar"]];
 }
 
 #pragma mark Menubar
@@ -196,6 +199,7 @@
     [BKui setViewShadow:self.menubarView color:nil offset:CGSizeMake(0, 0.5) opacity:0.5];
     self.menubarView.backgroundColor = [BKui makeColor:self.view.backgroundColor h:1 s:1 b:0.95 a:1];
     [self updateMenubar];
+    [BKui setStyle:self.menubarView style:BKui.style[@"menubar"]];
 }
 
 - (void)updateMenubar
@@ -243,11 +247,12 @@
         [self.tableView addSubview:self.tableRefresh];
     }
     [self.view addSubview:self.tableView];
+    [BKui setStyle:self.tableView style:BKui.style[@"table"]];
 }
 
 - (void)reloadTable
 {
-    if ([self.itemsAll isKindOfClass:[NSArray class]] && ![self.itemsAll isEqual:self.items]) {
+    if ([self.itemsAll isKindOfClass:[NSArray class]] && self.itemsAll != self.items) {
         self.items = [self filterItems:self.itemsAll];
     }
     Logger(@"%@: items: %d", self.name, (int)self.items.count + (int)self.tableRows);
@@ -255,6 +260,20 @@
     if (self.tableRefresh.isRefreshing) [self.tableRefresh endRefreshing];
     if (self.infoView) self.infoView.hidden = self.tableRows + self.items.count > 0 ? YES : NO;
     [self.tableView reloadData];
+}
+
+- (void)reloadItems:(NSArray*)items
+{
+    self.itemsAll = [items mutableCopy];
+    [self.items removeAllObjects];
+    [self reloadTable];
+}
+
+- (void)clearItems
+{
+    self.itemsAll = nil;
+    self.itemsNext = nil;
+    [self.items removeAllObjects];
 }
 
 - (void)getItems
@@ -525,11 +544,14 @@
         owner.navigationController.delegate = self;
         
         if (self.panInPushMode) {
-            self.transition[@"type"] = @"slideLeft";
-            self.panGesture = [[UIScreenEdgePanGestureRecognizer alloc] initWithTarget:self action:@selector(onPushPan:)];
-            self.panGesture.delegate = self;
-            self.panGesture.edges = UIRectEdgeLeft;
-            [self.view addGestureRecognizer:self.panGesture];
+            const NSDictionary *edges = @{ @"slideLeft": @(UIRectEdgeLeft), @"slideRight": @(UIRectEdgeRight), @"slideUp": @(UIRectEdgeTop), @"slideDown": @(UIRectEdgeBottom) };
+            if ([self.transition isEmpty:@"type"]) self.transition[@"type"] = @"slideLeft";
+            if (edges[self.transition[@"type"]]) {
+                self.panGesture = [[UIScreenEdgePanGestureRecognizer alloc] initWithTarget:self action:@selector(onPushPan:)];
+                self.panGesture.delegate = self;
+                [(UIScreenEdgePanGestureRecognizer*)self.panGesture setEdges:[edges num:self.transition[@"type"]]];
+                [self.view addGestureRecognizer:self.panGesture];
+            }
         } else {
             if (self.panGesture) {
                 [self.view removeGestureRecognizer:self.panGesture];
