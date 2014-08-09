@@ -10,12 +10,10 @@
 
 @interface BKui: NSObject
 
-// Map of View Controllers to be uses by ShowViewController method
-@property (strong, nonatomic) NSMutableDictionary *controllers;
-
-// Return a ViewController by name, this method is suspposed to be overriden for custom controllers
+// Return a ViewController by name, this method is supposed to be overriden for custom controllers
 - (UIViewController*)getViewController:(NSString*)name;
 
+// This needs to be called before using the BKui globally
 - (void)configure;
 
 + (BKui*)get;
@@ -23,6 +21,9 @@
 
 // Styles for UI components
 + (NSMutableDictionary*)style;
+
+// Map of View Controllers to be uses by ShowViewController method
++ (NSMutableDictionary*)controllers;
 
 #pragma mark UIkit utilities
 

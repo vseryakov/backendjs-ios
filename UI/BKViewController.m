@@ -131,6 +131,7 @@
         self.infoTextView = [[UITextView alloc] initWithFrame:self.infoView.bounds];
         [self.infoView addSubview:self.infoTextView];
         self.infoTextView.textColor = [UIColor grayColor];
+        self.infoTextView.font = [UIFont systemFontOfSize:18];
         self.infoTextView.userInteractionEnabled = YES;
         self.infoTextView.selectable = YES;
         self.infoTextView.editable = NO;
@@ -138,7 +139,7 @@
         self.infoTextView.textContainerInset = UIEdgeInsetsMake(20, 10, 20, 10);
         self.infoTextView.textAlignment = NSTextAlignmentCenter;
     } else {
-        self.infoView.frame = CGRectMake(0, 64, self.view.width, self.view.height - 64);
+        self.infoTextView.frame = self.infoView.bounds;
     }
     if (text) {
         self.infoTextView.text = text;

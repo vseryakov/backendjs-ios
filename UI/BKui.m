@@ -12,6 +12,7 @@
 
 static BKui *_BKui;
 static NSMutableDictionary *_style;
+static NSMutableDictionary *_controllers;
 static UIActivityIndicatorView *_activity;
 
 @interface BKui () <UIActionSheetDelegate,UIAlertViewDelegate,UITextViewDelegate>
@@ -24,7 +25,7 @@ static UIActivityIndicatorView *_activity;
     static dispatch_once_t _bkOnce;
     dispatch_once(&_bkOnce, ^{
         _BKui = [BKui new];
-        _BKui.controllers = [@{} mutableCopy];
+        _controllers = [@{} mutableCopy];
         _style = [@{} mutableCopy];
         
         _activity = [[UIActivityIndicatorView alloc] initWithActivityIndicatorStyle:UIActivityIndicatorViewStyleWhite];
@@ -46,6 +47,11 @@ static UIActivityIndicatorView *_activity;
 + (NSMutableDictionary*)style
 {
     return _style;
+}
+
++ (NSMutableDictionary*)controllers
+{
+    return _controllers;
 }
 
 #pragma mark Utilities
@@ -96,7 +102,7 @@ static UIActivityIndicatorView *_activity;
         title = q[0];
         mode = q[1];
     }
-    UIViewController *controller = [self get].controllers[title];
+    UIViewController *controller = self.controllers[title];
     if (!controller) controller = [[self get] getViewController:title];
     if (!controller) {
         if ([[NSBundle mainBundle].infoDictionary objectForKey:@"UIMainStoryboardFile"]) {
@@ -266,6 +272,7 @@ static UIActivityIndicatorView *_activity;
 + (void)setTextLinks:(UITextView*)label text:(NSString*)text links:(NSArray*)links handler:(SuccessBlock)handler
 {
     NSMutableAttributedString* str = [[NSMutableAttributedString alloc] initWithString:text];
+    [str addAttribute:NSFontAttributeName value:label.font range:NSMakeRange(0, str.length)];
     for (NSString *link in links) {
         NSRange range = [str.string rangeOfString:link];
         if (range.location == NSNotFound) continue;

@@ -83,6 +83,11 @@ static NSString *SysCtlByName(char *typeSpecifier)
     _bkjs = obj;
 }
 
+- (void)configure;
+{
+    
+}
+
 #pragma mark Utilities
 
 + (void)setCredentials:(NSString *)login secret:(NSString*)secret
