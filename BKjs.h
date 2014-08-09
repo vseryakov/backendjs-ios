@@ -44,7 +44,8 @@
 typedef void (^GenericBlock)();
 typedef void (^SuccessBlock)(id obj);
 typedef void (^DictionaryBlock)(NSDictionary *obj);
-typedef void (^ArrayBlock)(NSArray *list);
+typedef void (^ListBlock)(NSArray *list);
+typedef void (^ArrayBlock)(NSArray *list, NSString *next);
 typedef void (^ErrorBlock)(NSError *error);
 typedef void (^StringBlock)(NSString *str);
 typedef void (^FailureBlock)(NSInteger code, NSString *reason);
@@ -150,7 +151,7 @@ typedef void (^ControllerBlock)(UIViewController *controller, NSDictionary *item
 + (void)getAccountIcon:(NSDictionary*)params success:(ImageSuccessBlock)success failure:(FailureBlock)failure;
 + (void)putAccountIcon:(UIImage*)image params:(NSDictionary*)params success:(GenericBlock)success failure:(FailureBlock)failure;
 + (void)delAccountIcon:(NSDictionary*)params success:(GenericBlock)success failure:(FailureBlock)failure;
-+ (void)getAccountIcons:(NSDictionary*)params success:(ArrayBlock)success failure:(GenericBlock)failure;
++ (void)getAccountIcons:(NSDictionary*)params success:(ListBlock)success failure:(GenericBlock)failure;
 
 #pragma mark Icon API
 
@@ -179,10 +180,10 @@ typedef void (^ControllerBlock)(UIViewController *controller, NSDictionary *item
 + (void)getNewMessages:(NSDictionary*)params success:(ArrayBlock)success failure:(FailureBlock)failure;
 + (void)getConversation:(NSDictionary*)params success:(ArrayBlock)success failure:(FailureBlock)failure;
 + (void)addMessage:(NSDictionary*)params success:(SuccessBlock)success failure:(FailureBlock)failure;
-+ (void)archiveMessage:(NSDictionary*)params success:(ArrayBlock)success failure:(FailureBlock)failure;
-+ (void)delMessage:(NSDictionary*)params success:(ArrayBlock)success failure:(FailureBlock)failure;
-+ (void)delArchivedMessage:(NSDictionary*)params success:(ArrayBlock)success failure:(FailureBlock)failure;
-+ (void)delSentMessage:(NSDictionary*)params success:(ArrayBlock)success failure:(FailureBlock)failure;
++ (void)archiveMessage:(NSDictionary*)params success:(SuccessBlock)success failure:(FailureBlock)failure;
++ (void)delMessage:(NSDictionary*)params success:(SuccessBlock)success failure:(FailureBlock)failure;
++ (void)delArchivedMessage:(NSDictionary*)params success:(SuccessBlock)success failure:(FailureBlock)failure;
++ (void)delSentMessage:(NSDictionary*)params success:(SuccessBlock)success failure:(FailureBlock)failure;
 + (void)getMessageIcon:(NSDictionary*)params success:(ImageSuccessBlock)success failure:(FailureBlock)failure;
 
 #pragma mark Dictionary properties

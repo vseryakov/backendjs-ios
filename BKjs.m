@@ -65,9 +65,6 @@ static NSString *SysCtlByName(char *typeSpecifier)
 
         _locationManager = [[CLLocationManager alloc] init];
         _locationManager.delegate = _bkjs;
-        [_locationManager setDesiredAccuracy:kCLLocationAccuracyKilometer];
-        [_locationManager setDistanceFilter:1000];
-        [_locationManager startUpdatingLocation];
         
         [_bkjs setReachabilityStatusChangeBlock:^(AFNetworkReachabilityStatus status) {
             dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(1 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
@@ -677,7 +674,7 @@ static NSString *SysCtlByName(char *typeSpecifier)
 
 #pragma mark Account Icon API
 
-+ (void)getAccountIcons:(NSDictionary*)params success:(ArrayBlock)success failure:(GenericBlock)failure
++ (void)getAccountIcons:(NSDictionary*)params success:(ListBlock)success failure:(GenericBlock)failure
 {
     [BKjs sendQuery:@"/account/select/icon"
              method:@"POST"
@@ -800,7 +797,7 @@ static NSString *SysCtlByName(char *typeSpecifier)
              method:@"POST"
              params:params
             success:^(NSDictionary *json) {
-                if (success) success([BKjs toArray:json name:@"data"]);
+                if (success) success([BKjs toArray:json name:@"data"], json[@"next_token"]);
             }
             failure:failure];
 }
@@ -831,7 +828,7 @@ static NSString *SysCtlByName(char *typeSpecifier)
              method:@"POST"
              params:params
             success:^(NSDictionary *json) {
-                if (success) success([BKjs toArray:json name:@"data"]);
+                if (success) success([BKjs toArray:json name:@"data"], json[@"next_token"]);
             }
             failure:failure];
 }
@@ -858,15 +855,15 @@ static NSString *SysCtlByName(char *typeSpecifier)
 
 + (void)getConversation:(NSDictionary*)params success:(ArrayBlock)success failure:(FailureBlock)failure
 {
-    [BKjs getSentMessages:params success:^(NSArray *list) {
-        [BKjs getArchivedMessages:params success:^(NSArray *list2) {
+    [BKjs getSentMessages:params success:^(NSArray *list, NSString *token1) {
+        [BKjs getArchivedMessages:params success:^(NSArray *list2, NSString *token2) {
             NSArray* rc = [list arrayByAddingObjectsFromArray:list2];
             rc = [rc sortedArrayUsingComparator:^NSComparisonResult(id a, id b) {
                 double m1 = [BKjs toNumber:a name:@"mtime"];
                 double m2 = [BKjs toNumber:b name:@"mtime"];
                 return m1 < m2 ? NSOrderedAscending : m1 > m2 ? NSOrderedDescending : NSOrderedSame;
             }];
-            if (success) success(rc);
+            if (success) success(rc, nil);
         } failure:failure];
     } failure:failure];
 }
@@ -877,7 +874,7 @@ static NSString *SysCtlByName(char *typeSpecifier)
            method:@"POST"
            params:params
           success:^(NSDictionary *json) {
-              if (success) success([BKjs toArray:json name:@"data"]);
+              if (success) success([BKjs toArray:json name:@"data"], json[@"next_token"]);
           }
           failure:failure];
 }
@@ -888,7 +885,7 @@ static NSString *SysCtlByName(char *typeSpecifier)
            method:@"POST"
            params:params
           success:^(NSDictionary *json) {
-              if (success) success([BKjs toArray:json name:@"data"]);
+              if (success) success([BKjs toArray:json name:@"data"], json[@"next_token"]);
           }
           failure:failure];
 }
@@ -899,7 +896,7 @@ static NSString *SysCtlByName(char *typeSpecifier)
            method:@"POST"
            params:params
           success:^(NSDictionary *json) {
-              if (success) success([BKjs toArray:json name:@"data"]);
+              if (success) success([BKjs toArray:json name:@"data"], json[@"next_token"]);
           }
           failure:failure];
 }
@@ -922,7 +919,7 @@ static NSString *SysCtlByName(char *typeSpecifier)
           failure:failure];
 }
 
-+ (void)archiveMessage:(NSDictionary*)params success:(ArrayBlock)success failure:(FailureBlock)failure
++ (void)archiveMessage:(NSDictionary*)params success:(SuccessBlock)success failure:(FailureBlock)failure
 {
     [self sendQuery:@"/message/archive"
              method:@"POST"
@@ -931,7 +928,7 @@ static NSString *SysCtlByName(char *typeSpecifier)
             failure:failure];
 }
 
-+ (void)delMessage:(NSDictionary*)params success:(ArrayBlock)success failure:(FailureBlock)failure
++ (void)delMessage:(NSDictionary*)params success:(SuccessBlock)success failure:(FailureBlock)failure
 {
     [self sendQuery:@"/message/del"
              method:@"POST"
@@ -940,7 +937,7 @@ static NSString *SysCtlByName(char *typeSpecifier)
             failure:failure];
 }
 
-+ (void)delArchivedMessage:(NSDictionary*)params success:(ArrayBlock)success failure:(FailureBlock)failure
++ (void)delArchivedMessage:(NSDictionary*)params success:(SuccessBlock)success failure:(FailureBlock)failure
 {
     [self sendQuery:@"/message/del/archive"
              method:@"POST"
@@ -949,7 +946,7 @@ static NSString *SysCtlByName(char *typeSpecifier)
             failure:failure];
 }
 
-+ (void)delSentMessage:(NSDictionary*)params success:(ArrayBlock)success failure:(FailureBlock)failure
++ (void)delSentMessage:(NSDictionary*)params success:(SuccessBlock)success failure:(FailureBlock)failure
 {
     [self sendQuery:@"/message/del/sent"
              method:@"POST"
@@ -1001,8 +998,9 @@ static NSString *SysCtlByName(char *typeSpecifier)
     [BKjs sendQuery:@"/location/get"
            method:@"POST"
            params:params
-          success:success
-          failure:failure];
+            success:^(NSDictionary *json) {
+                if (success) success([BKjs toArray:json name:@"data"], json[@"next_token"]);
+            } failure:failure];
 }
 
 #pragma mark Keychain methods

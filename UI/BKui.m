@@ -542,6 +542,8 @@ static UIActivityIndicatorView *_activity;
                 NSMutableDictionary *item = [@{} mutableCopy];
                 item[@"alias"] = str;
 
+                item[@"id"] = @(ABRecordGetRecordID(person));
+                
                 str = CFBridgingRelease(ABRecordCopyValue(person, kABPersonNicknameProperty));
                 if (str) item[@"nickname"] = str;
                 str = CFBridgingRelease(ABRecordCopyValue(person, kABPersonFirstNameProperty));
