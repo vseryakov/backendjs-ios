@@ -97,6 +97,12 @@
 // Called after the view was created but before the view will be shown
 - (void)prepareForShow:(UIViewController*)owner name:(NSString*)name mode:(NSString*)mode params:(NSDictionary*)params;
 
+// Called before returning to the previous controller
+- (void)prepareForHide:(NSDictionary*)params;
+
+// Called before returning from a child controller
+- (void)prepareForReturn;
+
 - (UIViewController*)prevController;
 - (void)showPrevious;
 - (void)showPrevious:(NSDictionary*)params;
@@ -104,7 +110,6 @@
 #pragma mark Menubar
 
 - (void)addMenubar:(NSArray*)items params:(NSDictionary*)params;
-- (void)updateMenubar;
 
 #pragma mark Toolbar
 

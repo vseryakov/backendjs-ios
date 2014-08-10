@@ -654,10 +654,10 @@ static UIActivityIndicatorView *_activity;
         if ([key isEqual:@"y"]) view.y = num; else
         if ([key isEqual:@"width"]) view.width = num; else
         if ([key isEqual:@"height"]) view.height = num; else
-        if ([key isEqual:@"center-x"]) view.centerX = num; else
-        if ([key isEqual:@"center-y"]) view.centerY = num; else
-        if ([key isEqual:@"background-color"] && [val isKindOfClass:[UIColor class]]) view.backgroundColor = val; else
-        if ([key isEqual:@"tint-color"] && [val isKindOfClass:[UIColor class]]) view.backgroundColor = val; else
+        if ([key isEqual:@"centerX"]) view.centerX = num; else
+        if ([key isEqual:@"centerY"]) view.centerY = num; else
+        if ([key isEqual:@"backgroundColor"] && [val isKindOfClass:[UIColor class]]) view.backgroundColor = val; else
+        if ([key isEqual:@"tintColor"] && [val isKindOfClass:[UIColor class]]) view.backgroundColor = val; else
         if ([key isEqual:@"alpha"]) view.alpha = num; else
         if ([key isEqual:@"tag"]) view.tag = num; else
         if ([key isEqual:@"border"] && [val isKindOfClass:[NSDictionary class]]) [BKui setViewBorder:view color:val[@"color"] radius:[val num:@"radius"]]; else
@@ -667,65 +667,69 @@ static UIActivityIndicatorView *_activity;
             bg.frame = view.bounds;
             [view addSubview:bg];
             [view sendSubviewToBack:bg];
+        } else
+        if ([key isEqual:@"block"]) {
+            SuccessBlock block = val;
+            block(view);
         }
 
         if ([view isKindOfClass:[UILabel class]]) {
             UILabel *label = (UILabel*)view;
-            if ([key isEqual:@"lines"]) label.numberOfLines = num; else
-            if ([key isEqual:@"break-mode"]) label.lineBreakMode = num; else
-            if ([key isEqual:@"baseline"]) label.baselineAdjustment = num; else
-            if ([key isEqual:@"text-alignment"]) label.textAlignment = num; else
-            if ([key isEqual:@"text-color"] && [val isKindOfClass:[UIColor class]]) label.textColor = val; else
+            if ([key isEqual:@"numberOfLines"]) label.numberOfLines = num; else
+            if ([key isEqual:@"lineBreakMode"]) label.lineBreakMode = num; else
+            if ([key isEqual:@"baselineAdjustment"]) label.baselineAdjustment = num; else
+            if ([key isEqual:@"textAlignment"]) label.textAlignment = num; else
+            if ([key isEqual:@"textColor"] && [val isKindOfClass:[UIColor class]]) label.textColor = val; else
             if ([key isEqual:@"font"] && [val isKindOfClass:[UIFont class]]) label.font = val;
         }
         
         if ([view isKindOfClass:[UITextField class]]) {
             UITextField *text = (UITextField*)view;
             if ([key isEqual:@"font"] && [val isKindOfClass:[UIFont class]]) text.font = val; else
-            if ([key isEqual:@"text-color"] && [val isKindOfClass:[UIColor class]]) text.textColor = val; else
-            if ([key isEqual:@"text-alignment"]) text.textAlignment = num; else
-            if ([key isEqual:@"keyboard-type"]) text.keyboardType = num; else
-            if ([key isEqual:@"keyboard-appearance"]) text.keyboardAppearance = num; else
-            if ([key isEqual:@"keyboard-correct"]) text.autocorrectionType = num; else
-            if ([key isEqual:@"keyboard-cap"]) text.autocapitalizationType = num; else
-            if ([key isEqual:@"keyboard-spell"]) text.spellCheckingType = num; else
-            if ([key isEqual:@"keyboard-return"]) text.returnKeyType = num;
+            if ([key isEqual:@"textColor"] && [val isKindOfClass:[UIColor class]]) text.textColor = val; else
+            if ([key isEqual:@"textAlignment"]) text.textAlignment = num; else
+            if ([key isEqual:@"keyboardType"]) text.keyboardType = num; else
+            if ([key isEqual:@"keyboardAppearance"]) text.keyboardAppearance = num; else
+            if ([key isEqual:@"autocorrectionType"]) text.autocorrectionType = num; else
+            if ([key isEqual:@"autocapitalizationType"]) text.autocapitalizationType = num; else
+            if ([key isEqual:@"spellCheckingType"]) text.spellCheckingType = num; else
+            if ([key isEqual:@"returnKeyTypen"]) text.returnKeyType = num;
         }
 
         if ([view isKindOfClass:[UITextView class]]) {
             UITextView *text = (UITextView*)view;
+            if ([key isEqual:@"textContainerInset"]) text.textContainerInset = [self toEdgeInsets:style name:key]; else
             if ([key isEqual:@"font"] && [val isKindOfClass:[UIFont class]]) text.font = val; else
-            if ([key isEqual:@"text-color"] && [val isKindOfClass:[UIColor class]]) text.textColor = val; else
-            if ([key isEqual:@"text-alignment"]) text.textAlignment = num; else
-            if ([key isEqual:@"text-inset"]) text.textContainerInset = [self toEdgeInsets:style name:key]; else
-            if ([key isEqual:@"keyboard-type"]) text.keyboardType = num; else
-            if ([key isEqual:@"keyboard-appearance"]) text.keyboardAppearance = num; else
-            if ([key isEqual:@"keyboard-correct"]) text.autocorrectionType = num; else
-            if ([key isEqual:@"keyboard-cap"]) text.autocapitalizationType = num; else
-            if ([key isEqual:@"keyboard-spell"]) text.spellCheckingType = num; else
-            if ([key isEqual:@"keyboard-return"]) text.returnKeyType = num;
+            if ([key isEqual:@"textColor"] && [val isKindOfClass:[UIColor class]]) text.textColor = val; else
+            if ([key isEqual:@"textAlignment"]) text.textAlignment = num; else
+            if ([key isEqual:@"keyboardType"]) text.keyboardType = num; else
+            if ([key isEqual:@"keyboardAppearance"]) text.keyboardAppearance = num; else
+            if ([key isEqual:@"autocorrectionType"]) text.autocorrectionType = num; else
+            if ([key isEqual:@"autocapitalizationType"]) text.autocapitalizationType = num; else
+            if ([key isEqual:@"spellCheckingType"]) text.spellCheckingType = num; else
+            if ([key isEqual:@"returnKeyTypen"]) text.returnKeyType = num;
         }
 
         if ([view isKindOfClass:[UITableView class]]) {
             UITableView *table = (UITableView*)view;
-            if ([key isEqual:@"keyboard-dismiss-mode"]) table.keyboardDismissMode = num; else
-            if ([key isEqual:@"allow-multiple"]) table.allowsMultipleSelection = num; else
+            if ([key isEqual:@"keyboardDismissMode"]) table.keyboardDismissMode = num; else
+            if ([key isEqual:@"allowsMultipleSelection"]) table.allowsMultipleSelection = num; else
             if ([key isEqual:@"rowHeight"]) table.rowHeight = num; else
-            if ([key isEqual:@"separator-color"] && [val isKindOfClass:[UIColor class]]) table.separatorColor = val; else
-            if ([key isEqual:@"separator-inset"]) table.separatorInset = [self toEdgeInsets:style name:key]; else
-            if ([key isEqual:@"content-inset"]) table.contentInset = [self toEdgeInsets:style name:key]; else
-            if ([key isEqual:@"separator-style"]) table.separatorStyle = num; else
-            if ([key isEqual:@"header-view"] && [val isKindOfClass:[UIView class]]) table.tableHeaderView = val; else
-            if ([key isEqual:@"footer-view"] && [val isKindOfClass:[UIView class]]) table.tableFooterView = val; else
-            if ([key isEqual:@"background-view"] && [val isKindOfClass:[UIView class]]) table.backgroundView = val;
+            if ([key isEqual:@"separatorColor"] && [val isKindOfClass:[UIColor class]]) table.separatorColor = val; else
+            if ([key isEqual:@"separatorInset"]) table.separatorInset = [self toEdgeInsets:style name:key]; else
+            if ([key isEqual:@"contentInset"]) table.contentInset = [self toEdgeInsets:style name:key]; else
+            if ([key isEqual:@"separatorStyle"]) table.separatorStyle = num; else
+            if ([key isEqual:@"tableHeaderView"] && [val isKindOfClass:[UIView class]]) table.tableHeaderView = val; else
+            if ([key isEqual:@"tableFooterView"] && [val isKindOfClass:[UIView class]]) table.tableFooterView = val; else
+            if ([key isEqual:@"backgroundView"] && [val isKindOfClass:[UIView class]]) table.backgroundView = val;
         }
 
         if ([view isKindOfClass:[UIButton class]]) {
             UIButton *button = (UIButton*)view;
             if ([key isEqual:@"disabled"]) button.enabled = NO; else
             if ([key isEqual:@"enabled"]) button.enabled = YES; else
-            if ([key isEqual:@"horizontal-alignment"]) button.contentHorizontalAlignment = num; else
-            if ([key isEqual:@"vertical-alignment"]) button.contentVerticalAlignment = num; else
+            if ([key isEqual:@"contentHorizontalAlignment"]) button.contentHorizontalAlignment = num; else
+            if ([key isEqual:@"contentVerticalAlignment"]) button.contentVerticalAlignment = num; else
             if ([key isEqual:@"icon"]) [button setImage:[UIImage imageNamed:val] forState:UIControlStateNormal]; else
             if ([key isEqual:@"icon-tint"]) [button setImage:[BKui makeImageWithTint:[UIImage imageNamed:style[@"icon"]] color:[button tintColor]] forState:UIControlStateNormal]; else
             if ([key isEqual:@"icon-disabled"]) [button setImage:[UIImage imageNamed:val] forState:UIControlStateDisabled]; else
@@ -749,10 +753,10 @@ static UIActivityIndicatorView *_activity;
             if ([key isEqual:@"color-selected-highlighted"]) [button setTitleColor:[button titleColorForState:UIControlStateHighlighted] forState:UIControlStateSelected]; else
             if ([key isEqual:@"color-disabled"] && [val isKindOfClass:[UIColor class]]) [button setTitleColor:val forState:UIControlStateDisabled]; else
             if ([key isEqual:@"font"] && [val isKindOfClass:[UIFont class]]) [button.titleLabel setFont:val]; else
-            if ([key isEqual:@"content-insets"]) button.contentEdgeInsets = [self toEdgeInsets:style name:key]; else
-            if ([key isEqual:@"image-insets"]) button.imageEdgeInsets = [self toEdgeInsets:style name:key]; else
-            if ([key isEqual:@"title-insets"]) button.titleEdgeInsets = [self toEdgeInsets:style name:key]; else
-            if ([key isEqual:@"line-break"]) button.titleLabel.lineBreakMode = [self toLineBreak:style name:key]; else
+            if ([key isEqual:@"contentEdgeInsets"]) button.contentEdgeInsets = [self toEdgeInsets:style name:key]; else
+            if ([key isEqual:@"imageEdgeInsets"]) button.imageEdgeInsets = [self toEdgeInsets:style name:key]; else
+            if ([key isEqual:@"titleEdgeInsets"]) button.titleEdgeInsets = [self toEdgeInsets:style name:key]; else
+            if ([key isEqual:@"lineBreakMode"]) button.titleLabel.lineBreakMode = [self toLineBreak:style name:key]; else
             if ([key isEqual:@"fit"]) [button sizeToFit]; else
             if ([key isEqual:@"vertical"]) {
                 // Align icon and title vertically in the button, vertical defines top/bottom padding

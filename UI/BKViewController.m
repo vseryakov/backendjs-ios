@@ -134,7 +134,7 @@
         self.infoTextView.delegate = self;
         self.infoTextView.textContainerInset = UIEdgeInsetsMake(20, 10, 20, 10);
         self.infoTextView.textAlignment = NSTextAlignmentCenter;
-        [BKui setStyle:self.infoTextView style:BKui.style[@"infotext"]];
+        [BKui setStyle:self.infoTextView style:BKui.style[@"info-text"]];
     } else {
         self.infoTextView.frame = self.infoView.bounds;
     }
@@ -163,9 +163,8 @@
     self.toolbarView.userInteractionEnabled = YES;
     self.toolbarView.backgroundColor = [BKui makeColor:self.view.backgroundColor h:1 s:1 b:0.95 a:1];
     [self.view addSubview:self.toolbarView];
-    
-    [BKui setViewShadow:self.toolbarView color:nil offset:CGSizeMake(0, 0.5) opacity:0.5];
-    
+    [BKui setStyle:self.toolbarView style:BKui.style[@"toolbar"]];
+   
     self.toolbarBack = [BKui makeCustomButton:@"Back" image:nil];
     self.toolbarBack.contentHorizontalAlignment = UIControlContentHorizontalAlignmentLeft;
     self.toolbarBack.frame = CGRectMake(10, 20, self.toolbarView.height, self.toolbarView.height - 20);
@@ -187,8 +186,6 @@
     [self.toolbarNext addTarget:self action:@selector(onNext:) forControlEvents:UIControlEventTouchUpInside];
     [self.toolbarView addSubview:self.toolbarNext];
     [BKui setStyle:self.toolbarNext style:BKui.style[@"toolbar-next"]];
-    
-    [BKui setStyle:self.toolbarView style:BKui.style[@"toolbar"]];
 }
 
 #pragma mark Menubar
@@ -198,14 +195,8 @@
     self.navigationController.navigationBarHidden = YES;
     self.menubarView = [[BKMenubarView alloc] init:CGRectMake(0, 0, self.view.width, 64) items:items params:params];
     [self.view addSubview:self.menubarView];
-    [BKui setViewShadow:self.menubarView color:nil offset:CGSizeMake(0, 0.5) opacity:0.5];
     self.menubarView.backgroundColor = [BKui makeColor:self.view.backgroundColor h:1 s:1 b:0.95 a:1];
-    [self updateMenubar];
     [BKui setStyle:self.menubarView style:BKui.style[@"menubar"]];
-}
-
-- (void)updateMenubar
-{
 }
 
 #pragma mark Table
@@ -236,7 +227,7 @@
     self.tableSearchField = [[UITextField alloc] initWithFrame:CGRectMake(0, 0, frame.size.width, 32)];
     self.tableSearchField.placeholder = @"Search";
     self.tableSearchField.delegate = self;
-    [BKui setStyle:self.tableSearchField style:BKui.style[@"searchfield"]];
+    [BKui setStyle:self.tableSearchField style:BKui.style[@"search-text"]];
 
     self.tableSearchBar = [[UISearchBar alloc] initWithFrame:CGRectMake(0, 0, frame.size.width, 44)];
     self.tableSearchBar.placeholder = @"Search";
@@ -244,7 +235,7 @@
     if (self.tableSearchable) {
         self.tableView.tableHeaderView = self.tableSearchBar;
     }
-    [BKui setStyle:self.tableSearchBar style:BKui.style[@"searchbar"]];
+    [BKui setStyle:self.tableSearchBar style:BKui.style[@"search-bar"]];
     
     self.tableRefresh = [[UIRefreshControl alloc]init];
     [self.tableRefresh addTarget:self action:@selector(refreshItems) forControlEvents:UIControlEventValueChanged];
@@ -581,8 +572,13 @@
     if ([[self prevController] isKindOfClass:[BKViewController class]]) {
         BKViewController *prev = (BKViewController*)[self prevController];
         for (id key in params) prev.params[key] = params[key];
-        [prev updateMenubar];
+        [prev prepareForReturn];
     }
+}
+
+- (void)prepareForReturn
+{
+    
 }
 
 - (void)onPan:(UIPanGestureRecognizer *)recognizer view:(UIView*)view right:(BOOL)right completion:(GenericBlock)completion
