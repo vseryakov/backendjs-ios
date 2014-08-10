@@ -656,16 +656,68 @@ static UIActivityIndicatorView *_activity;
         if ([key isEqual:@"height"]) view.height = num; else
         if ([key isEqual:@"center-x"]) view.centerX = num; else
         if ([key isEqual:@"center-y"]) view.centerY = num; else
-        if ([key isEqual:@"background-color"]) view.backgroundColor = val; else
+        if ([key isEqual:@"background-color"] && [val isKindOfClass:[UIColor class]]) view.backgroundColor = val; else
+        if ([key isEqual:@"tint-color"] && [val isKindOfClass:[UIColor class]]) view.backgroundColor = val; else
         if ([key isEqual:@"alpha"]) view.alpha = num; else
         if ([key isEqual:@"tag"]) view.tag = num; else
-        if ([key isEqual:@"border"]) [BKui setViewBorder:view color:val[@"color"] radius:[val num:@"radius"]]; else
-        if ([key isEqual:@"shadow"]) [BKui setViewShadow:view color:val[@"color"] offset:CGSizeMake([val num:@"width"], [val num:@"height"]) opacity:[val num:@"opacity"]]; else
+        if ([key isEqual:@"border"] && [val isKindOfClass:[NSDictionary class]]) [BKui setViewBorder:view color:val[@"color"] radius:[val num:@"radius"]]; else
+        if ([key isEqual:@"shadow"] && [val isKindOfClass:[NSDictionary class]]) [BKui setViewShadow:view color:val[@"color"] offset:CGSizeMake([val num:@"width"], [val num:@"height"]) opacity:[val num:@"opacity"]]; else
         if ([key isEqual:@"background-image"]) {
             UIImageView *bg = [[UIImageView alloc] initWithImage:val];
             bg.frame = view.bounds;
             [view addSubview:bg];
             [view sendSubviewToBack:bg];
+        }
+
+        if ([view isKindOfClass:[UILabel class]]) {
+            UILabel *label = (UILabel*)view;
+            if ([key isEqual:@"lines"]) label.numberOfLines = num; else
+            if ([key isEqual:@"break-mode"]) label.lineBreakMode = num; else
+            if ([key isEqual:@"baseline"]) label.baselineAdjustment = num; else
+            if ([key isEqual:@"text-alignment"]) label.textAlignment = num; else
+            if ([key isEqual:@"text-color"] && [val isKindOfClass:[UIColor class]]) label.textColor = val; else
+            if ([key isEqual:@"font"] && [val isKindOfClass:[UIFont class]]) label.font = val;
+        }
+        
+        if ([view isKindOfClass:[UITextField class]]) {
+            UITextField *text = (UITextField*)view;
+            if ([key isEqual:@"font"] && [val isKindOfClass:[UIFont class]]) text.font = val; else
+            if ([key isEqual:@"text-color"] && [val isKindOfClass:[UIColor class]]) text.textColor = val; else
+            if ([key isEqual:@"text-alignment"]) text.textAlignment = num; else
+            if ([key isEqual:@"keyboard-type"]) text.keyboardType = num; else
+            if ([key isEqual:@"keyboard-appearance"]) text.keyboardAppearance = num; else
+            if ([key isEqual:@"keyboard-correct"]) text.autocorrectionType = num; else
+            if ([key isEqual:@"keyboard-cap"]) text.autocapitalizationType = num; else
+            if ([key isEqual:@"keyboard-spell"]) text.spellCheckingType = num; else
+            if ([key isEqual:@"keyboard-return"]) text.returnKeyType = num;
+        }
+
+        if ([view isKindOfClass:[UITextView class]]) {
+            UITextView *text = (UITextView*)view;
+            if ([key isEqual:@"font"] && [val isKindOfClass:[UIFont class]]) text.font = val; else
+            if ([key isEqual:@"text-color"] && [val isKindOfClass:[UIColor class]]) text.textColor = val; else
+            if ([key isEqual:@"text-alignment"]) text.textAlignment = num; else
+            if ([key isEqual:@"text-inset"]) text.textContainerInset = [self toEdgeInsets:style name:key]; else
+            if ([key isEqual:@"keyboard-type"]) text.keyboardType = num; else
+            if ([key isEqual:@"keyboard-appearance"]) text.keyboardAppearance = num; else
+            if ([key isEqual:@"keyboard-correct"]) text.autocorrectionType = num; else
+            if ([key isEqual:@"keyboard-cap"]) text.autocapitalizationType = num; else
+            if ([key isEqual:@"keyboard-spell"]) text.spellCheckingType = num; else
+            if ([key isEqual:@"keyboard-return"]) text.returnKeyType = num;
+        }
+
+        if ([view isKindOfClass:[UITableView class]]) {
+            UITableView *table = (UITableView*)view;
+            if ([key isEqual:@"keyboard-dismiss-mode"]) table.keyboardDismissMode = num; else
+            if ([key isEqual:@"allow-multiple"]) table.allowsMultipleSelection = num; else
+            if ([key isEqual:@"rowHeight"]) table.rowHeight = num; else
+            if ([key isEqual:@"separator-color"] && [val isKindOfClass:[UIColor class]]) table.separatorColor = val; else
+            if ([key isEqual:@"separator-inset"]) table.separatorInset = [self toEdgeInsets:style name:key]; else
+            if ([key isEqual:@"content-inset"]) table.contentInset = [self toEdgeInsets:style name:key]; else
+            if ([key isEqual:@"separator-style"]) table.separatorStyle = num; else
+            if ([key isEqual:@"header-view"] && [val isKindOfClass:[UIView class]]) table.tableHeaderView = val; else
+            if ([key isEqual:@"footer-view"] && [val isKindOfClass:[UIView class]]) table.tableFooterView = val; else
+            if ([key isEqual:@"background-view"] && [val isKindOfClass:[UIView class]]) table.backgroundView = val;
         }
 
         if ([view isKindOfClass:[UIButton class]]) {
@@ -681,22 +733,22 @@ static UIActivityIndicatorView *_activity;
             if ([key isEqual:@"icon-highlighted-tint"]) [button setImage:[BKui makeImageWithTint:[UIImage imageNamed:style[@"icon"]] color:[button tintColor]] forState:UIControlStateHighlighted]; else
             if ([key isEqual:@"icon-selected"]) [button setImage:[UIImage imageNamed:val] forState:UIControlStateSelected]; else
             if ([key isEqual:@"icon-selected-highlighted"]) [button setImage:[button imageForState:UIControlStateHighlighted] forState:UIControlStateSelected]; else
-            if ([key isEqual:@"image"]) [button setImage:val forState:UIControlStateNormal]; else
-            if ([key isEqual:@"image-disabled"]) [button setImage:val forState:UIControlStateDisabled]; else
-            if ([key isEqual:@"image-highlighted"]) [button setImage:val forState:UIControlStateHighlighted]; else
+            if ([key isEqual:@"image"] && [val isKindOfClass:[UIImage class]]) [button setImage:val forState:UIControlStateNormal]; else
+            if ([key isEqual:@"image-disabled"] && [val isKindOfClass:[UIImage class]]) [button setImage:val forState:UIControlStateDisabled]; else
+            if ([key isEqual:@"image-highlighted"] && [val isKindOfClass:[UIImage class]]) [button setImage:val forState:UIControlStateHighlighted]; else
             if ([key isEqual:@"image-highlighted-tint"]) [button setImage:[BKui makeImageWithTint:style[@"image"] color:[button tintColor]] forState:UIControlStateHighlighted]; else
-            if ([key isEqual:@"image-selected"]) [button setImage:val forState:UIControlStateSelected]; else
+            if ([key isEqual:@"image-selected"] && [val isKindOfClass:[UIImage class]]) [button setImage:val forState:UIControlStateSelected]; else
             if ([key isEqual:@"image-selected-highlighted"]) [button setImage:[button imageForState:UIControlStateHighlighted] forState:UIControlStateSelected]; else
             if ([key isEqual:@"title"]) [button setTitle:val forState:UIControlStateNormal]; else
             if ([key isEqual:@"title-highlighted"]) [button setTitle:val forState:UIControlStateHighlighted]; else
             if ([key isEqual:@"title-disabled"]) [button setTitle:val forState:UIControlStateDisabled]; else
-            if ([key isEqual:@"color"]) [button setTitleColor:val forState:UIControlStateNormal]; else
+            if ([key isEqual:@"color"] && [val isKindOfClass:[UIColor class]]) [button setTitleColor:val forState:UIControlStateNormal]; else
             if ([key isEqual:@"color-tint"]) [button setTitleColor:[button tintColor] forState:UIControlStateNormal]; else
-            if ([key isEqual:@"color-highlighted"]) [button setTitleColor:val forState:UIControlStateHighlighted]; else
-            if ([key isEqual:@"color-selected"]) [button setTitleColor:val forState:UIControlStateSelected]; else
+            if ([key isEqual:@"color-highlighted"] && [val isKindOfClass:[UIColor class]]) [button setTitleColor:val forState:UIControlStateHighlighted]; else
+            if ([key isEqual:@"color-selected"] && [val isKindOfClass:[UIColor class]]) [button setTitleColor:val forState:UIControlStateSelected]; else
             if ([key isEqual:@"color-selected-highlighted"]) [button setTitleColor:[button titleColorForState:UIControlStateHighlighted] forState:UIControlStateSelected]; else
-            if ([key isEqual:@"color-disabled"]) [button setTitleColor:val forState:UIControlStateDisabled]; else
-            if ([key isEqual:@"font"]) [button.titleLabel setFont:val]; else
+            if ([key isEqual:@"color-disabled"] && [val isKindOfClass:[UIColor class]]) [button setTitleColor:val forState:UIControlStateDisabled]; else
+            if ([key isEqual:@"font"] && [val isKindOfClass:[UIFont class]]) [button.titleLabel setFont:val]; else
             if ([key isEqual:@"content-insets"]) button.contentEdgeInsets = [self toEdgeInsets:style name:key]; else
             if ([key isEqual:@"image-insets"]) button.imageEdgeInsets = [self toEdgeInsets:style name:key]; else
             if ([key isEqual:@"title-insets"]) button.titleEdgeInsets = [self toEdgeInsets:style name:key]; else

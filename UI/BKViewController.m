@@ -68,6 +68,7 @@
     self.activityView.layer.masksToBounds = YES;
     self.activityView.layer.cornerRadius = 8;
     [self.view addSubview:self.activityView];
+    [BKui setStyle:self.activityView style:BKui.style[@"activity"]];
 
     self.view.backgroundColor = [UIColor whiteColor];
 
@@ -83,12 +84,6 @@
     [super viewWillAppear:animated];
     self.navigationController.navigationBarHidden = YES;
 
-    // Replace button fonts manually
-    for (UIButton *view in self.view.subviews) {
-        if ([view isKindOfClass:[UIButton class]]) {
-            view.titleLabel.font = [UIFont systemFontOfSize:view.titleLabel.font.pointSize];
-        }
-    }
     // Do not preserve selection
     if (self.tableView && self.tableUnselected) {
         [self onTableSelect:[self.tableView indexPathForSelectedRow] selected:NO];
@@ -127,6 +122,7 @@
         self.infoView.backgroundColor = self.view.backgroundColor;
         self.infoView.hidden = YES;
         [self.view addSubview:self.infoView];
+        [BKui setStyle:self.infoView style:BKui.style[@"info"]];
     
         self.infoTextView = [[UITextView alloc] initWithFrame:self.infoView.bounds];
         [self.infoView addSubview:self.infoTextView];
@@ -138,6 +134,7 @@
         self.infoTextView.delegate = self;
         self.infoTextView.textContainerInset = UIEdgeInsetsMake(20, 10, 20, 10);
         self.infoTextView.textAlignment = NSTextAlignmentCenter;
+        [BKui setStyle:self.infoTextView style:BKui.style[@"infotext"]];
     } else {
         self.infoTextView.frame = self.infoView.bounds;
     }
@@ -174,19 +171,23 @@
     self.toolbarBack.frame = CGRectMake(10, 20, self.toolbarView.height, self.toolbarView.height - 20);
     [self.toolbarBack addTarget:self action:@selector(onBack:) forControlEvents:UIControlEventTouchUpInside];
     [self.toolbarView addSubview:self.toolbarBack];
+    [BKui setStyle:self.toolbarBack style:BKui.style[@"toolbar-back"]];
     
     self.toolbarTitle = [[UILabel alloc] initWithFrame:CGRectMake(self.toolbarView.height, 20, self.toolbarView.width-self.toolbarView.height*2, self.toolbarView.height - 20)];
     self.toolbarTitle.textAlignment = NSTextAlignmentCenter;
     self.toolbarTitle.text = title;
     self.toolbarTitle.centerY = self.toolbarView.height/2 + 10;
     [self.toolbarView addSubview:self.toolbarTitle];
-    
+    [BKui setStyle:self.toolbarTitle style:BKui.style[@"toolbar-title"]];
+
     self.toolbarNext = [BKui makeCustomButton:@"Next" image:nil];
     self.toolbarNext.contentHorizontalAlignment = UIControlContentHorizontalAlignmentRight;
     self.toolbarNext.frame = CGRectMake(self.toolbarView.width - self.toolbarView.height - 10, 20, self.toolbarView.height, self.toolbarView.height - 20);
     self.toolbarNext.hidden = YES;
     [self.toolbarNext addTarget:self action:@selector(onNext:) forControlEvents:UIControlEventTouchUpInside];
     [self.toolbarView addSubview:self.toolbarNext];
+    [BKui setStyle:self.toolbarNext style:BKui.style[@"toolbar-next"]];
+    
     [BKui setStyle:self.toolbarView style:BKui.style[@"toolbar"]];
 }
 
@@ -223,6 +224,7 @@
     self.tableView.canCancelContentTouches = YES;
     self.tableView.showsHorizontalScrollIndicator = NO;
     self.tableView.showsVerticalScrollIndicator = YES;
+    self.tableView.keyboardDismissMode = UIScrollViewKeyboardDismissModeOnDrag;
 
     if (self.tableRounded) {
         self.tableView.backgroundColor = [UIColor clearColor];
@@ -234,6 +236,7 @@
     self.tableSearchField = [[UITextField alloc] initWithFrame:CGRectMake(0, 0, frame.size.width, 32)];
     self.tableSearchField.placeholder = @"Search";
     self.tableSearchField.delegate = self;
+    [BKui setStyle:self.tableSearchField style:BKui.style[@"searchfield"]];
 
     self.tableSearchBar = [[UISearchBar alloc] initWithFrame:CGRectMake(0, 0, frame.size.width, 44)];
     self.tableSearchBar.placeholder = @"Search";
@@ -241,6 +244,7 @@
     if (self.tableSearchable) {
         self.tableView.tableHeaderView = self.tableSearchBar;
     }
+    [BKui setStyle:self.tableSearchBar style:BKui.style[@"searchbar"]];
     
     self.tableRefresh = [[UIRefreshControl alloc]init];
     [self.tableRefresh addTarget:self action:@selector(refreshItems) forControlEvents:UIControlEventValueChanged];
@@ -704,12 +708,6 @@
     return self.barStyle;
 }
 
-- (void)touchesBegan:(NSSet *)touches withEvent:(UIEvent *)event
-{
-    [self.view endEditing:YES];
-    [super touchesBegan:touches withEvent:event];
-}
-
 # pragma mark - UINavigationControllerDelegate methods
 
 - (BKTransitionAnimation*)getAnimation:(BOOL)present
@@ -837,13 +835,6 @@
         return NO;
     }
     return YES;
-}
-
-#pragma mark UIScrollView delegate
-
--(void)scrollViewWillBeginDragging:(UIScrollView *)scrollView
-{
-    [self.tableSearchBar resignFirstResponder];
 }
 
 #pragma mark UITabBarDelegate

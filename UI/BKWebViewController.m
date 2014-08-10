@@ -38,10 +38,11 @@
     self.webview.autoresizingMask = UIViewAutoresizingFlexibleWidth | UIViewAutoresizingFlexibleHeight;
     self.webview.layer.masksToBounds = YES;
     self.webview.layer.cornerRadius = 0;
+    self.webview.scrollView.contentInset = UIEdgeInsetsMake(20, 0, 0, 0);
     [self.view addSubview:self.webview];
     
     self.close = [UIButton buttonWithType:UIButtonTypeCustom];
-    self.close.frame = CGRectMake(5, 22, 32, 32);
+    self.close.frame = CGRectMake(5, 20, 32, 32);
     [self.close setImage:[UIImage imageNamed:@"black_close"] forState:UIControlStateNormal];
     [self.close addTarget:self action:@selector(cancel) forControlEvents:UIControlEventTouchUpInside];
     self.close.autoresizingMask = UIViewAutoresizingFlexibleRightMargin | UIViewAutoresizingFlexibleBottomMargin;
