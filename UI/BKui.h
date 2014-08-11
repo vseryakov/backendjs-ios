@@ -55,11 +55,11 @@
 + (void)setTextLinks:(UITextView*)label text:(NSString*)text links:(NSArray*)links handler:(SuccessBlock)handler;
 + (void)setLabelLink:(UILabel*)label text:(NSString*)text link:(NSString*)link handler:(SuccessBlock)handler;
 + (void)setLabelAttributes:(UILabel*)label color:(UIColor*)color font:(UIFont*)font range:(NSRange)range;
-+ (void)setViewBorder:(UIView*)view color:(UIColor*)color radius:(float)radius;
++ (void)setViewBorder:(UIView*)view color:(UIColor*)color width:(float)width radius:(float)radius;
 + (void)setImageBorder:(UIView*)view color:(UIColor*)color radius:(float)radius border:(int)border;
 + (void)addImageWithBorderAndShadow:(UIView*)view image:(UIImageView*)image color:(UIColor*)color radius:(float)radius;
 + (void)setRoundCorner:(UIView*)view corner:(UIRectCorner)corner radius:(float)radius;
-+ (void)setViewShadow:(UIView*)view color:(UIColor*)color offset:(CGSize)offset opacity:(float)opacity;
++ (void)setViewShadow:(UIView*)view color:(UIColor*)color offset:(CGSize)offset opacity:(float)opacity radius:(float)radius;
 
 + (void)setPlaceholder:(UITextView*)view text:(NSString*)text;
 + (void)checkPlaceholder:(UITextView*)view;

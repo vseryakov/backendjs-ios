@@ -42,7 +42,6 @@
 @property (nonatomic, strong) UIColor *totalColor;
 @property (nonatomic, strong) UIColor *currentColor;
 @property (nonatomic, strong) UIColor *axisColor;
-@property (nonatomic) float axisFontSize;
 @property (nonatomic) float total;
 @property (nonatomic) float current;
 @property (nonatomic) float lineWidth;

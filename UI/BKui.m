@@ -299,21 +299,22 @@ static UIActivityIndicatorView *_activity;
     return img;
 }
 
-+ (void)setViewShadow:(UIView*)view color:(UIColor*)color offset:(CGSize)offset opacity:(float)opacity
++ (void)setViewShadow:(UIView*)view color:(UIColor*)color offset:(CGSize)offset opacity:(float)opacity radius:(float)radius
 {
     view.layer.masksToBounds = NO;
     view.layer.shadowColor = color ? color.CGColor : [UIColor blackColor].CGColor;
     view.layer.shadowOffset = offset;
+    view.layer.shadowRadius = radius < 0 ? 3 : radius;
     view.layer.shadowOpacity = opacity < 0 ? 0.5 : opacity;
     view.layer.shadowPath = [UIBezierPath bezierPathWithRect:view.bounds].CGPath;
 }
 
-+ (void)setViewBorder:(UIView*)view color:(UIColor*)color radius:(float)radius
++ (void)setViewBorder:(UIView*)view color:(UIColor*)color width:(float)width radius:(float)radius
 {
     view.layer.masksToBounds = YES;
     view.layer.cornerRadius = radius;
     view.layer.borderColor = color ? color.CGColor : [UIColor lightGrayColor].CGColor;
-    view.layer.borderWidth = 1;
+    view.layer.borderWidth = width < 0 ? 1 : width;
 }
 
 + (void)setPlaceholder:(UITextView*)view text:(NSString*)text
@@ -660,8 +661,13 @@ static UIActivityIndicatorView *_activity;
         if ([key isEqual:@"tintColor"] && [val isKindOfClass:[UIColor class]]) view.backgroundColor = val; else
         if ([key isEqual:@"alpha"]) view.alpha = num; else
         if ([key isEqual:@"tag"]) view.tag = num; else
-        if ([key isEqual:@"border"] && [val isKindOfClass:[NSDictionary class]]) [BKui setViewBorder:view color:val[@"color"] radius:[val num:@"radius"]]; else
-        if ([key isEqual:@"shadow"] && [val isKindOfClass:[NSDictionary class]]) [BKui setViewShadow:view color:val[@"color"] offset:CGSizeMake([val num:@"width"], [val num:@"height"]) opacity:[val num:@"opacity"]]; else
+        if ([key isEqual:@"border"] && [val isKindOfClass:[NSDictionary class]]) [BKui setViewBorder:view color:val[@"color"] width:[val num:@"width"] radius:[val num:@"radius"]]; else
+        if ([key isEqual:@"shadow"] && [val isKindOfClass:[NSDictionary class]]) [BKui setViewShadow:view color:val[@"color"] offset:CGSizeMake([val num:@"width"], [val num:@"height"]) opacity:[val num:@"opacity"] radius:[val num:@"radius"]]; else
+        if ([key isEqual:@"masksToBounds"]) view.layer.masksToBounds = num; else
+        if ([key isEqual:@"cornerRadius"]) view.layer.cornerRadius = num; else
+        if ([key isEqual:@"corner-radius-eclipse"]) view.layer.cornerRadius = view.width/2; else
+        if ([key isEqual:@"borderColor"] && [val isKindOfClass:[UIColor class]]) view.layer.borderColor = [val CGColor]; else
+        if ([key isEqual:@"borderWidth"]) view.layer.borderWidth = num; else
         if ([key isEqual:@"background-image"]) {
             UIImageView *bg = [[UIImageView alloc] initWithImage:val];
             bg.frame = view.bounds;

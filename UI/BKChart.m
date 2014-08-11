@@ -246,10 +246,9 @@
     self.total = 100;
     self.current = 90;
     self.lineWidth = 3;
-    self.axisFontSize = 20;
     self.axisColor = [UIColor blackColor];
-    self.currentColor = [UIColor grayColor];
-    self.totalColor = [UIColor blackColor];
+    self.currentColor = [UIColor greenColor];
+    self.totalColor = [UIColor colorWithRed:90/255. green:198/255. blue:255/255. alpha:1.0];
     self.bgColor = nil;
     
     self.label = [[BKProgressLabel alloc] initWithFrame:self.frame];
@@ -285,7 +284,6 @@
     float radius = self.frame.size.height * 0.5 - _lineWidth - chartMargin*2;
 
     self.label.textColor = self.axisColor;
-    self.label.font = [UIFont boldSystemFontOfSize:self.axisFontSize];
     self.label.frame = self.frame;
     self.label.center = CGPointMake(self.bounds.size.width/2, self.bounds.size.height/2);
 

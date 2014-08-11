@@ -183,8 +183,8 @@
     self.scroll.frame = CGRectMake(0, 44, self.width, self.height - 44);
     self.exclusiveTouch = YES;
     
-    [BKui setViewBorder:self color:[UIColor darkGrayColor] radius:8];
-    [BKui setViewShadow:self color:nil offset:CGSizeMake(-5, 5) opacity:0.5];
+    [BKui setViewBorder:self color:[UIColor darkGrayColor] width:1 radius:8];
+    [BKui setViewShadow:self color:nil offset:CGSizeMake(-5, 5) opacity:0.5 radius:-1];
     
     self.closeButton = [BKui makeCustomButton:@"Close" image:nil];
     [self.closeButton sizeToFit];
