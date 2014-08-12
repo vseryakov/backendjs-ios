@@ -28,7 +28,9 @@
 #define XSTRINGIFY(n)     #n
 #define STRINGIFY(n)      XSTRINGIFY(n)
 
+#ifndef Logger
 #define Logger(fmt, ...)  NSLog((@"%s:%d " fmt), __PRETTY_FUNCTION__, __LINE__, ##__VA_ARGS__)
+#endif
 
 #ifdef BK_DEBUG
 #define Debug(fmt, ...)   NSLog((@"%s:%d " fmt), __PRETTY_FUNCTION__, __LINE__, ##__VA_ARGS__)
@@ -172,6 +174,7 @@ typedef void (^ControllerBlock)(UIViewController *controller, NSDictionary *item
 + (void)addConnection:(NSDictionary*)params success:(SuccessBlock)success failure:(FailureBlock)failure;
 + (void)updateConnection:(NSDictionary*)params success:(GenericBlock)success failure:(FailureBlock)failure;
 + (void)incrConnection:(NSDictionary*)params success:(GenericBlock)success failure:(FailureBlock)failure;
++ (void)delConnection:(NSDictionary*)params success:(SuccessBlock)success failure:(FailureBlock)failure;
 
 #pragma mark Message API
 

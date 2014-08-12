@@ -822,6 +822,17 @@ static NSString *SysCtlByName(char *typeSpecifier)
           failure:failure];
 }
 
++ (void)delConnection:(NSDictionary*)params success:(SuccessBlock)success failure:(FailureBlock)failure
+{
+    [BKjs sendQuery:@"/connection/del"
+             method:@"POST"
+             params:params
+            success:^(NSDictionary *json) {
+                if (success) success(json);
+            }
+            failure:failure];
+}
+
 + (void)selectConnection:(NSDictionary*)params success:(ArrayBlock)success failure:(FailureBlock)failure
 {
     [BKjs sendQuery:@"/connection/select"

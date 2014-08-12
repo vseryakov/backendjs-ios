@@ -93,7 +93,6 @@
         self.tableView.contentOffset = CGPointMake(0, self.tableView.tableHeaderView.height);
     }
     self.activityView.center = self.view.center;
-    if (self.tableView) [self getItems];
 }
 
 - (void)viewDidAppear:(BOOL)animated
@@ -278,6 +277,7 @@
 
 - (void)refreshItems
 {
+    [self clearItems];
     [self getItems];
 }
 
