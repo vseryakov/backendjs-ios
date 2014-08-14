@@ -135,6 +135,7 @@
     self.backgroundColor = [UIColor whiteColor];
     self.axisColor = [UIColor blackColor];
     self.lineColor = [UIColor whiteColor];
+    self.lineWidth = 1;
     self.clipsToBounds = YES;
     
     return self;
@@ -151,7 +152,7 @@
     CAShapeLayer *chartLine = [CAShapeLayer layer];
     chartLine.lineCap = kCALineCapRound;
     chartLine.lineJoin = kCALineJoinBevel;
-    chartLine.lineWidth = 3.0;
+    chartLine.lineWidth = self.lineWidth;
     chartLine.strokeEnd = 0.0;
     chartLine.fillColor = [[UIColor whiteColor] CGColor];
     chartLine.strokeColor = [_lineColor CGColor];
@@ -166,7 +167,7 @@
     float chartHeight = self.frame.size.height - chartMargin - bottomMargin;
     float yLabelWidth = [[NSString stringWithFormat:@"%0.f", max] length] * fontSize;
     float xLabelWidth = (self.frame.size.width - chartMargin*2 - yLabelWidth)/[_xLabels count];
-    float yLabelStep = (max - min) / _yValues.count;
+    float yLabelStep = (max - min) / (chartHeight / (fontSize*2));
     
     for (int index = 0; index < _xLabels.count; index++) {
         UILabel *label = [[UILabel alloc] initWithFrame:CGRectMake(chartMargin + yLabelWidth + index * xLabelWidth, self.frame.size.height - bottomMargin - chartMargin + fontSize/2, xLabelWidth, bottomMargin)];
@@ -179,10 +180,10 @@
         label.text = _xLabels[index];
         [self addSubview:label];
     }
-	for (int index = 0; index < 5; index++) {
+	for (int index = 0; index < _yValues.count; index++) {
         float scale = (yLabelStep * index) / (max - min);
         float y = chartHeight - scale * chartHeight;
-        // Keep edges within chrating area
+        // Keep edges within chart area
         if (scale == 1) y = chartMargin;
         if (scale == 0) y = self.frame.size.height - bottomMargin - fontSize;
 		UILabel *label = [[UILabel alloc] initWithFrame:CGRectMake(chartMargin, y, yLabelWidth, bottomMargin)];
@@ -212,11 +213,30 @@
         [progressline addLineToPoint:point];
         [progressline moveToPoint:point];
         [progressline stroke];
+        
+        UIView *dot = [[UIView alloc] initWithFrame:CGRectMake(point.x - 3, point.y - 3, 6, 6)];
+        dot.backgroundColor = _lineColor;
+        dot.layer.cornerRadius = 3;
+        [self addSubview:dot];
+        
+//        CAKeyframeAnimation *dotAnim = [CAKeyframeAnimation animationWithKeyPath:@"transform.scale"];
+//        dotAnim.timingFunction = [CAMediaTimingFunction functionWithName:kCAMediaTimingFunctionLinear];
+//        dotAnim.duration = 1.5;
+//        dotAnim.autoreverses = NO;
+//        dotAnim.values = @[ @(0), @(0.5), @(0.7), @(1), @(1.2), @(1)];
+        
+        CABasicAnimation *dotAnim = [CABasicAnimation animationWithKeyPath:@"transform.scale"];
+        dotAnim.timingFunction = [CAMediaTimingFunction functionWithName:kCAMediaTimingFunctionEaseIn];
+        dotAnim.duration = 1.5;
+        dotAnim.autoreverses = NO;
+        dotAnim.fromValue = [NSNumber numberWithFloat:0];
+        dotAnim.toValue = [NSNumber numberWithFloat:1];
+        [dot.layer addAnimation:dotAnim forKey:@"scale"];
     }
     chartLine.path = progressline.CGPath;
     
     CABasicAnimation *anim = [CABasicAnimation animationWithKeyPath:@"strokeEnd"];
-    anim.duration = 1.0;
+    anim.duration = 1.5;
     anim.timingFunction = [CAMediaTimingFunction functionWithName:kCAMediaTimingFunctionEaseInEaseOut];
     anim.fromValue = [NSNumber numberWithFloat:0.0f];
     anim.toValue = [NSNumber numberWithFloat:1.0f];
@@ -234,7 +254,7 @@
 
 @end
 
-@implementation BKCircleChart {
+@implementation BKRatioChart {
     CAShapeLayer *_totalLayer;
     CAShapeLayer *_currentLayer;
     CAGradientLayer *_gradientLayer;
@@ -243,18 +263,18 @@
 - (id)initWithFrame:(CGRect)frame
 {
     self = [super initWithFrame:frame];
-    self.total = 100;
-    self.current = 90;
+    self.startValue = 0;
+    self.endValue = 100;
     self.lineWidth = 3;
-    self.axisColor = [UIColor blackColor];
-    self.currentColor = [UIColor greenColor];
-    self.totalColor = [UIColor colorWithRed:90/255. green:198/255. blue:255/255. alpha:1.0];
+    self.color1 = [UIColor greenColor];
+    self.color2 = [UIColor colorWithRed:90/255. green:198/255. blue:255/255. alpha:1.0];
     self.bgColor = nil;
     
     self.label = [[BKProgressLabel alloc] initWithFrame:self.frame];
     self.label.textAlignment = NSTextAlignmentCenter;
     self.label.method = @"EaseOut";
     self.label.format = @"%d%%";
+    self.label.textColor = [UIColor blackColor];
     [self addSubview:self.label];
 
     _totalLayer = [CAShapeLayer layer];
@@ -283,7 +303,6 @@
 {
     float radius = self.frame.size.height * 0.5 - _lineWidth - chartMargin*2;
 
-    self.label.textColor = self.axisColor;
     self.label.frame = self.frame;
     self.label.center = CGPointMake(self.bounds.size.width/2, self.bounds.size.height/2);
 
@@ -293,37 +312,30 @@
                                                    endAngle:DEGREES_TO_RADIANS(360)
                                                   clockwise:NO].CGPath;
     _totalLayer.fillColor = _bgColor.CGColor;
-    _totalLayer.strokeColor = _totalColor.CGColor;
+    _totalLayer.strokeColor = _color1.CGColor;
 
     _currentLayer.path = [UIBezierPath bezierPathWithArcCenter:_label.center
                                                         radius:radius
                                                     startAngle:DEGREES_TO_RADIANS(0)
                                                       endAngle:DEGREES_TO_RADIANS(360)
                                                      clockwise:YES].CGPath;
-    _currentLayer.strokeColor = _currentColor.CGColor;
+    _currentLayer.strokeColor = _color2.CGColor;
     _currentLayer.lineWidth = _lineWidth;
     
     _gradientLayer.frame = self.bounds;
-    _gradientLayer.colors = @[ (id)_totalColor.CGColor, (id)_totalColor.CGColor, (id)_currentColor.CGColor, (id)_currentColor.CGColor ];
+    _gradientLayer.colors = @[ (id)_color1.CGColor, (id)_color1.CGColor, (id)_color2.CGColor, (id)_color2.CGColor ];
     
     CABasicAnimation *anim = [CABasicAnimation animationWithKeyPath:@"strokeEnd"];
     anim.duration = 2.0;
     anim.timingFunction = [CAMediaTimingFunction functionWithName:kCAMediaTimingFunctionEaseOut];
     anim.fromValue = [NSNumber numberWithFloat:0.0f];
-    anim.toValue = [NSNumber numberWithFloat:_current/_total];
+    anim.toValue = [NSNumber numberWithFloat:1.0f];
     anim.autoreverses = NO;
     anim.delegate = self;
     [_currentLayer addAnimation:anim forKey:@"strokeEndAnimation"];
-    float strokeEnd = _current/_total;
-    if (strokeEnd > 1) {
-        strokeEnd = 1;
-    } else
-    if (strokeEnd < 0) {
-        strokeEnd = 0;
-    }
-    _currentLayer.strokeEnd = strokeEnd;
+    _currentLayer.strokeEnd = 1;
     
-    [self.label countFrom:0 to:_currentLayer.strokeEnd*100 duration:anim.duration];
+    [self.label countFrom:_startValue to:_endValue duration:anim.duration];
 }
 
 - (void)animationDidStop:(CAAnimation *)theAnimation finished:(BOOL)flag

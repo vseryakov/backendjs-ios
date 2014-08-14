@@ -344,7 +344,7 @@
 
 - (void)onTableSearch:(id)sender
 {
-    Debug(@"%@, %d items", self.searchText, (int)self.items.count);
+    Debug(@"%@, %d items, %d all", self.searchText, (int)[self.items count], (int)[self.itemsAll count]);
     
     // Clearing the text while the spell suggestion is up may clear but never calls the delegate
     if (![self.searchText isEqual:self.tableSearchBar.text]) self.tableSearchBar.text = self.searchText;

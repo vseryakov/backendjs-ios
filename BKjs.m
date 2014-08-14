@@ -8,6 +8,7 @@
 #import "BKjs.h"
 #import <sys/sysctl.h>
 #import <Security/Security.h>
+#import <pthread.h>
 
 static BKjs *_bkjs;
 static CLLocationManager *_locationManager;
@@ -22,6 +23,43 @@ static NSString* _serverVersion;
 static NSString* _iOSVersion;
 static NSString* _iOSPlatform;
 static NSString *_iOSModel;
+
+static int _log_max = 0;
+static NSMutableArray *_log;
+static pthread_mutex_t _log_lock = PTHREAD_MUTEX_INITIALIZER;
+
+void BKLog(NSString *format, ...)
+{
+    if (!format || !format.length) return;
+    
+    static dispatch_once_t _bkOnce;
+    dispatch_once(&_bkOnce, ^{ _log = [@[] mutableCopy]; });
+    
+    va_list ap;
+    va_start(ap, format);
+    NSLogv(format, ap);
+    NSString *str = CFBridgingRelease(CFStringCreateWithFormatAndArguments(NULL, NULL, (CFStringRef)format, ap));
+    va_end(ap);
+    if (!str || !str.length) return;
+    
+    pthread_mutex_lock(&_log_lock);
+    [_log addObject:str];
+    if (_log.count > _log_max) {
+        str = [_log componentsJoinedByString:@"\n"];
+        [_log removeAllObjects];
+    } else {
+        str = nil;
+    }
+    pthread_mutex_unlock(&_log_lock);
+    if (!str || !str.length) return;
+    
+    [BKjs sendJSON:@"/log"
+            method:@"POST"
+            params:@{ @"log": str,
+                      @"id": [BKjs.account str:@"alias"] }
+           success:nil
+           failure:nil];
+}
 
 static NSString *SysCtlByName(char *typeSpecifier)
 {
@@ -58,17 +96,9 @@ static NSString *SysCtlByName(char *typeSpecifier)
         if ([_iOSModel hasPrefix:@"iPad"]) _iOSPlatform = @"iPad";
         if ([_iOSModel hasPrefix:@"iPod"]) _iOSPlatform = @"iPod";
 
-        _account = [@{} mutableCopy];
-        _images = [@{} mutableCopy];
-        _params = [@{} mutableCopy];
-        _cache = [[NSCache alloc] init];
-
-        _locationManager = [[CLLocationManager alloc] init];
-        _locationManager.delegate = _bkjs;
-        
         [_bkjs setReachabilityStatusChangeBlock:^(AFNetworkReachabilityStatus status) {
             dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(1 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
-                [[NSNotificationCenter defaultCenter] postNotificationName:@"NetworkStatusChanged" object:self userInfo:@{ @"status": @(status) }];
+                [[NSNotificationCenter defaultCenter] postNotificationName:@"BKNetworkStatusChangedNotification" object:self userInfo:@{ @"status": @(status) }];
             });
         }];
     });
@@ -100,17 +130,30 @@ static NSString *SysCtlByName(char *typeSpecifier)
 
 + (NSMutableDictionary*)account
 {
+    static dispatch_once_t _bkOnce;
+    dispatch_once(&_bkOnce, ^{ _account = [@{} mutableCopy]; });
     return _account;
 }
 
 + (NSMutableDictionary*)images
 {
+    static dispatch_once_t _bkOnce;
+    dispatch_once(&_bkOnce, ^{ _images = [@{} mutableCopy]; });
     return _images;
 }
 
 + (NSMutableDictionary*)params
 {
+    static dispatch_once_t _bkOnce;
+    dispatch_once(&_bkOnce, ^{ _params = [@{} mutableCopy]; });
     return _params;
+}
+
++ (NSCache*)cache
+{
+    static dispatch_once_t _bkOnce;
+    dispatch_once(&_bkOnce, ^{ _cache = [[NSCache alloc] init]; });
+    return _cache;
 }
 
 + (NSString*)appName
@@ -154,6 +197,16 @@ static NSString *SysCtlByName(char *typeSpecifier)
 + (NSUserDefaults*)defaults
 {
     return [NSUserDefaults standardUserDefaults];
+}
+
++ (BOOL)checkDefaults:(NSString*)key
+{
+    if (![self.defaults boolForKey:key]) {
+        [self.defaults setObject:@(1) forKey:key];
+        [self.defaults synchronize];
+        return NO;
+    }
+    return YES;
 }
 
 + (NSString *)documentsDirectory
@@ -659,17 +712,17 @@ static NSString *SysCtlByName(char *typeSpecifier)
 
 - (UIImage*)getCachedImage:(NSString*)url
 {
-    return url ? [_cache objectForKey:url] : nil;
+    return url ? [BKjs.cache objectForKey:url] : nil;
 }
 
 - (void)cacheImage:(NSString*)url image:(UIImage*)image
 {
-    if (url && image) [_cache setObject:image forKey:url];
+    if (url && image) [BKjs.cache setObject:image forKey:url];
 }
 
 - (void)uncacheImage:(NSString*)url
 {
-    if (url) [_cache removeObjectForKey:url];
+    if (url) [BKjs.cache removeObjectForKey:url];
 }
 
 #pragma mark Account Icon API
@@ -734,14 +787,17 @@ static NSString *SysCtlByName(char *typeSpecifier)
            method:@"POST"
            params:params
           success:^(NSDictionary *json) {
-              // Current account
-              if ((!params || !params[@"id"]) && [json isKindOfClass:[NSDictionary class]]) {
+              // Current account sae locally
+              if ([self isEmpty:params name:@"id"] && [json isKindOfClass:[NSDictionary class]]) {
                   for (NSString *key in json) BKjs.account[key] = json[key];
                   if (success) success(BKjs.account);
               } else {
                   if (success) success(json);
               }
-          } failure:failure];
+          } failure:^(NSInteger code, NSString *reason) {
+              if ([self isEmpty:params name:@"id"]) [self.account removeAllObjects];
+              if (failure) failure(code, reason);
+          }];
 }
 
 + (void)addAccount:(NSDictionary*)params success:(GenericBlock)success failure:(FailureBlock)failure
@@ -776,6 +832,14 @@ static NSString *SysCtlByName(char *typeSpecifier)
               if (success) success();
           }
           failure:failure];
+}
+
++ (void)updateDevice:(NSString*)device success:(GenericBlock)success failure:(FailureBlock)failure
+{
+    // Update push notifications device token
+    if (device && BKjs.account[@"id"] && ![device isEqual:[BKjs.account str:@"device_id"]]) {
+        [BKjs updateAccount:@{ @"device_id": device } success:success failure:failure];
+    }
 }
 
 #pragma mark Connection API
@@ -978,6 +1042,11 @@ static NSString *SysCtlByName(char *typeSpecifier)
 
 + (CLLocationManager*)locationManager
 {
+    static dispatch_once_t _bkOnce;
+    dispatch_once(&_bkOnce, ^{
+        _locationManager = [[CLLocationManager alloc] init];
+        _locationManager.delegate = [BKjs get];
+    });
     return _locationManager;
 }
 
@@ -989,7 +1058,8 @@ static NSString *SysCtlByName(char *typeSpecifier)
 + (void)locationManager:(CLLocationManager *)manager didUpdateLocations:(NSArray *)locations
 {
     _location = [locations lastObject];
-    [[NSNotificationCenter defaultCenter] postNotificationName:@"LocationChanged" object:self userInfo:@{ @"location": _location }];
+    if (!_location) return;
+    [[NSNotificationCenter defaultCenter] postNotificationName:@"BKLocationChangedNotification" object:self userInfo:@{ @"location": _location }];
 }
 
 + (void)putLocation:(CLLocation*)location params:(NSDictionary*)params success:(GenericBlock)success failure:(FailureBlock)failure

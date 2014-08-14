@@ -38,9 +38,14 @@
 #define Debug(fmt,...)
 #endif
 
+#define BKLogger(fmt, ...)  BKLog((@"%s:%d " fmt), __PRETTY_FUNCTION__, __LINE__, ##__VA_ARGS__)
+
 #define BKScreenWidth     [UIScreen mainScreen].bounds.size.width
 #define BKScreenHeight    [UIScreen mainScreen].bounds.size.height
 #define BKScreenTall      [UIScreen mainScreen].bounds.size.height > 480
+
+// Logger that periodically flushes log lines tot he backend using /log API call
+void BKLog(NSString *format, ...);
 
 // Block types for the callbacks
 typedef void (^GenericBlock)();
@@ -81,7 +86,6 @@ typedef void (^ControllerBlock)(UIViewController *controller, NSDictionary *item
 + (void)setCredentials:(NSString*)name secret:(NSString*)secret;
 
 + (id<UIApplicationDelegate>)appDelegate;
-+ (NSUserDefaults*)defaults;
 + (NSString*)documentsDirectory;
 + (NSString*)appName;
 + (NSString*)appVersion;
@@ -106,6 +110,14 @@ typedef void (^ControllerBlock)(UIViewController *controller, NSDictionary *item
 
 // Generic properties
 + (NSMutableDictionary*)params;
+
+// Image cache
++ (NSCache*)cache;
+
+// Returns defaults object
++ (NSUserDefaults*)defaults;
+// Returns YES if defaults key has been already set or sets it and returns NO
++ (BOOL)checkDefaults:(NSString*)key;
 
 #pragma mark Keychain methods
 
@@ -145,8 +157,9 @@ typedef void (^ControllerBlock)(UIViewController *controller, NSDictionary *item
 #pragma mark Account API
 
 + (void)getAccount:(NSDictionary*)params success:(DictionaryBlock)success failure:(FailureBlock)failure;
-+ (void)updateAccount:(NSDictionary*)params success:(GenericBlock)success failure:(FailureBlock)failure;
 + (void)delAccount:(NSDictionary*)params success:(GenericBlock)success failure:(GenericBlock)failure;
++ (void)updateAccount:(NSDictionary*)params success:(GenericBlock)success failure:(FailureBlock)failure;
++ (void)updateDevice:(NSString*)device success:(GenericBlock)success failure:(FailureBlock)failure;
 
 #pragma mark Account icons API
 

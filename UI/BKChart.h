@@ -31,19 +31,19 @@
 @interface BKLineChart : UIView
 @property (strong, nonatomic) NSArray *xLabels;
 @property (strong, nonatomic) NSArray *yValues;
+@property (nonatomic) float lineWidth;
 @property (nonatomic, strong) UIColor *lineColor;
 @property (nonatomic, strong) UIColor *axisColor;
 @property (nonatomic, strong) SuccessBlock completionHandler;
 - (void)drawChart;
 @end
 
-@interface BKCircleChart : UIView
+@interface BKRatioChart : UIView
+@property (nonatomic, strong) UIColor *color1;
+@property (nonatomic, strong) UIColor *color2;
 @property (nonatomic, strong) UIColor *bgColor;
-@property (nonatomic, strong) UIColor *totalColor;
-@property (nonatomic, strong) UIColor *currentColor;
-@property (nonatomic, strong) UIColor *axisColor;
-@property (nonatomic) float total;
-@property (nonatomic) float current;
+@property (nonatomic) float startValue;
+@property (nonatomic) float endValue;
 @property (nonatomic) float lineWidth;
 @property (nonatomic, strong) BKProgressLabel* label;
 @property (nonatomic, strong) SuccessBlock completionHandler;
