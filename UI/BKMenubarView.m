@@ -61,6 +61,13 @@
     return [name isEqual:params[item]];
 }
 
+- (void)update:(NSDictionary*)params
+{
+    for (NSString *name in self.buttons) {
+        [self updateButtonStyle:name params:params];
+    }
+}
+
 - (void)updateButtonStyle:(NSString*)name params:(NSDictionary*)params
 {
     if (!name || !params) return;
@@ -72,6 +79,7 @@
     if ([self checkItem:name params:params item:@"enabled"]) button.enabled = YES;
     if ([self checkItem:name params:params item:@"hidden"]) button.hidden = YES;
     if ([self checkItem:name params:params item:@"visible"]) button.hidden = NO;
+    if (params[@"badge"] && params[@"badge"][name]) [BKui makeBadge:button style:params[@"badge"][name]];
 }
 
 - (IBAction)onButton:(id)sender

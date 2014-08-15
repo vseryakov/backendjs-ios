@@ -88,11 +88,11 @@ static UIActivityIndicatorView *_activity;
     return nil;
 }
 
-+ (void)showViewController:(UIViewController*)owner name:(NSString*)name params:(NSDictionary*)params
++ (UIViewController*)showViewController:(UIViewController*)owner name:(NSString*)name params:(NSDictionary*)params
 {
     Logger(@"name: %@, params: %@", name, params ? params : @"");
 
-    if (!name) return;
+    if (!name) return nil;
     NSString *title = name;
     NSString *mode = nil;
     
@@ -110,16 +110,16 @@ static UIActivityIndicatorView *_activity;
             if (storyboard) controller = [storyboard instantiateViewControllerWithIdentifier:title];
         }
     }
-    [self showViewController:owner controller:controller name:title mode:mode params:params];
+    return [self showViewController:owner controller:controller name:title mode:mode params:params];
 }
 
-+ (void)showViewController:(UIViewController*)owner controller:(UIViewController*)controller name:(NSString*)name mode:(NSString*)mode params:(NSDictionary*)params
++ (UIViewController*)showViewController:(UIViewController*)owner controller:(UIViewController*)controller name:(NSString*)name mode:(NSString*)mode params:(NSDictionary*)params
 {
     Debug(@"name: %@, mode: %@, params: %@", name, mode, params ? params : @"");
     
     if (!controller) {
         Logger(@"Error: name: %@, mode: %@, no controller provided", name, mode);
-        return;
+        return nil;
     }
     BKViewController *view = nil;
     if (!owner) owner = [self rootController];
@@ -141,6 +141,7 @@ static UIActivityIndicatorView *_activity;
     } else {
         [owner.navigationController setViewControllers:@[controller] animated:YES];
     }
+    return controller;
 }
 
 + (void)showAlert:(NSString *)title text:(NSString *)text delegate:(id)delegate cancelButtonText:(NSString*)cancel otherButtonTitles:(NSArray*)otherButtonTitles tag:(int)tag
@@ -412,24 +413,56 @@ static UIActivityIndicatorView *_activity;
     }
 }
 
-+ (UIImageView*)makeImageWithBadge:(CGRect)frame icon:(NSString*)icon color:(UIColor*)color value:(int)value insets:(CGPoint)insets
++ (UILabel*)makeBadge:(int)value font:(UIFont*)font color:(UIColor*)color bgColor:(UIColor*)bg borderColor:(UIColor*)border
 {
-    UIImageView *image = [[UIImageView alloc] initWithImage:[UIImage imageNamed:icon]];
-    if (frame.size.width && frame.size.height) {
-        image.contentMode = UIViewContentModeScaleAspectFit;
-        image.frame = frame;
-    } else {
-        image.frame = CGRectMake(frame.origin.x, frame.origin.y, image.frame.size.width, image.frame.size.height);
-    }
-    
-    UILabel *label = [[UILabel alloc] initWithFrame:CGRectInset(image.bounds, insets.x, insets.y)];
+    UILabel *label = [[UILabel alloc] initWithFrame:CGRectZero];
     label.baselineAdjustment = UIBaselineAdjustmentAlignCenters;
     label.textAlignment = NSTextAlignmentCenter;
-    label.adjustsFontSizeToFitWidth = YES;
-    label.textColor = color ? color : [UIColor darkGrayColor];
+    label.textColor = color ? color : [UIColor whiteColor];
+    label.font = font ? font : [UIFont systemFontOfSize:12];
     label.text = [NSString stringWithFormat:@"%d", value];
-    [image addSubview:label];
-    return image;
+    [label sizeToFit];
+    label.width += 2;
+    label.height += 2;
+    if (label.width < label.height) label.width = label.height;
+    label.layer.borderWidth = 1;
+    label.layer.borderColor = border ? border.CGColor : [UIColor whiteColor].CGColor;
+    label.backgroundColor = [UIColor clearColor];
+    label.layer.backgroundColor = bg ? bg.CGColor : [UIColor colorWithRed:142.0f/255 green:156.0f/255 blue:183.0f/255 alpha:1.0].CGColor;
+    label.layer.cornerRadius = label.height / 2;
+    return label;
+}
+
++ (UILabel*)makeBadge:(UIView*)view style:(NSDictionary*)style
+{
+    if (!style || [style num:@"count"] <= 0) {
+        UIView *badge = [view viewWithTag:515151];
+        [badge removeFromSuperview];
+        return nil;
+    }
+    UILabel *badge = [BKui makeBadge:[style num:@"count"] font:style[@"font"] color:style[@"color"] bgColor:style[@"bg-color"] borderColor:style[@"border-color"]];
+    [view addSubview:badge];
+    badge.tag = 515151;
+    badge.centerX = view.width - badge.width/2;
+    badge.centerY = badge.height/2;
+    if (style[@"x"]) badge.x = [style num:@"x"];
+    if (style[@"y"]) badge.y = [style num:@"x"];
+    if (style[@"gloss"]) [self makeGloss:badge];
+    return badge;
+}
+
++ (void)makeGloss:(UIView*)view
+{
+    CAGradientLayer *gloss = [[CAGradientLayer alloc] init];
+    gloss.frame = view.layer.bounds;
+    gloss.cornerRadius = view.layer.cornerRadius;
+    CGColorRef white = [UIColor whiteColor].CGColor;
+    CGColorRef clear = CGColorCreateCopyWithAlpha(white, 0);
+    gloss.colors = [NSArray arrayWithObjects:(__bridge id)white, (__bridge id)clear, nil];
+    CFRelease(clear);
+    gloss.startPoint = CGPointMake(0.5, -0.15);
+    gloss.endPoint = CGPointMake(0.5, 0.65);
+    [view.layer addSublayer:gloss];
 }
 
 + (UIImage*)makeImageWithTint:(UIImage*)image color:(UIColor*)color
@@ -569,63 +602,73 @@ static UIActivityIndicatorView *_activity;
                 
                 ABMultiValueRef phones = ABRecordCopyValue(person, kABPersonPhoneProperty);
                 if (phones && ABMultiValueGetCount(phones) > 0) {
-                    item[@"phone"] = [@[] mutableCopy];
+                    item[@"phone"] = [@{} mutableCopy];
                     for (CFIndex i = 0; i < ABMultiValueGetCount(phones); i++) {
                         NSString *val = CFBridgingRelease(ABMultiValueCopyValueAtIndex(phones, i));
                         if (!val) continue;
-                        NSMutableDictionary *rec = [@{ @"name": @"phone", @"value": val } mutableCopy];
+                        str = @"phone";
                         CFStringRef label = ABMultiValueCopyLabelAtIndex(phones, i);
                         if (label) {
-                            rec[@"name"] = CFBridgingRelease(ABAddressBookCopyLocalizedLabel(label));
+                            str = CFBridgingRelease(ABAddressBookCopyLocalizedLabel(label));
                             CFRelease(label);
                         }
-                        [item[@"phone"] addObject:rec];
+                        for (int j = 1; ; j++) {
+                            if (!item[@"phone"][str]) break;
+                            str = [NSString stringWithFormat:@"%@%d", str, j];
+                        }
+                        item[@"phone"][str] = val;
                     }
                 }
                 if (phones) CFRelease(phones);
                 
                 ABMultiValueRef emails = ABRecordCopyValue(person, kABPersonEmailProperty);
                 if (emails && ABMultiValueGetCount(emails) > 0) {
-                    item[@"email"] = [@[] mutableCopy];
+                    item[@"email"] = [@{} mutableCopy];
                     for (CFIndex i = 0; i < ABMultiValueGetCount(phones); i++) {
                         NSString *val = CFBridgingRelease(ABMultiValueCopyValueAtIndex(emails, i));
                         if (!val) continue;
-                        NSMutableDictionary *rec = [@{ @"name": @"email", @"value": val } mutableCopy];
+                        str = @"email";
                         CFStringRef label = ABMultiValueCopyLabelAtIndex(emails, i);
                         if (label) {
-                            rec[@"name"] = CFBridgingRelease(ABAddressBookCopyLocalizedLabel(label));
+                            str = CFBridgingRelease(ABAddressBookCopyLocalizedLabel(label));
                             CFRelease(label);
                         }
-                        [item[@"email"] addObject:rec];
+                        for (int j = 1; ; j++) {
+                            if (!item[@"email"][str]) break;
+                            str = [NSString stringWithFormat:@"%@%d", str, j];
+                        }
+                        item[@"email"][str] = val;
                     }
                 }
                 if (emails) CFRelease(emails);
                 
                 ABMultiValueRef addrs = ABRecordCopyValue(person, kABPersonAddressProperty);
                 if (addrs && ABMultiValueGetCount(addrs) > 0) {
-                    item[@"address"] = [@[] mutableCopy];
+                    item[@"address"] = [@{} mutableCopy];
                     for (CFIndex i = 0; i < ABMultiValueGetCount(addrs); i++) {
                         NSDictionary *addr = CFBridgingRelease(ABMultiValueCopyValueAtIndex(addrs, i));
                         if (!addr) continue;
-                        NSMutableDictionary *rec = [@{ @"name": @"address"}  mutableCopy];
+                        str = @"address";
                         CFStringRef label = ABMultiValueCopyLabelAtIndex(addrs, i);
                         if (label) {
-                            rec[@"name"] = CFBridgingRelease(ABAddressBookCopyLocalizedLabel(label));
+                            str = CFBridgingRelease(ABAddressBookCopyLocalizedLabel(label));
                             CFRelease(label);
                         }
-                        rec[@"value"] = [NSString stringWithFormat:@"%@ %@ %@ %@ %@",
+                        NSString *val = [NSString stringWithFormat:@"%@ %@ %@ %@ %@",
                                          [addr str:CFBridgingRelease(kABPersonAddressStreetKey)],
                                          [addr str:CFBridgingRelease(kABPersonAddressCityKey)],
                                          [addr str:CFBridgingRelease(kABPersonAddressStateKey)],
                                          [addr str:CFBridgingRelease(kABPersonAddressZIPKey)],
                                          [addr str:CFBridgingRelease(kABPersonAddressCountryKey)]];
-                        [item[@"address"] addObject:rec];
+                        for (int j = 1; ; j++) {
+                            if (!item[@"address"][str]) break;
+                            str = [NSString stringWithFormat:@"%@%d", str, j];
+                        }
+                        item[@"address"][str] = val;
                     }
                 }
                 if (addrs) CFRelease(addrs);
-                
-                if (!item[@"phone"] && !item[@"email"]) continue;
-                
+               
                 [items addObject:item];
             }
             CFRelease(book);
@@ -677,8 +720,11 @@ static UIActivityIndicatorView *_activity;
         if ([key isEqual:@"block"]) {
             SuccessBlock block = val;
             block(view);
+        } else
+        if ([key isEqual:@"badge"] && [val isKindOfClass:[NSDictionary class]]) {
+            [self makeBadge:view style:val];
         }
-
+        
         if ([view isKindOfClass:[UILabel class]]) {
             UILabel *label = (UILabel*)view;
             if ([key isEqual:@"numberOfLines"]) label.numberOfLines = num; else

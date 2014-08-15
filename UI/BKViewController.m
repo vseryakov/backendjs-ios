@@ -198,6 +198,11 @@
     [BKui setStyle:self.menubarView style:BKui.style[@"menubar"]];
 }
 
+- (void)updateMenubar:(NSDictionary*)params
+{
+    if (self.menubarView) [self.menubarView update:params];
+}
+
 #pragma mark Table
 
 - (void)addTable

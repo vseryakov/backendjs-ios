@@ -11,5 +11,6 @@
 
 - (instancetype)init:(CGRect)frame items:(NSArray*)items params:(NSDictionary*)params;
 - (void)updateButtonStyle:(NSString*)name params:(NSDictionary*)params;
+- (void)update:(NSDictionary*)params;
 
 @end

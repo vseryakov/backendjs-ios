@@ -34,8 +34,8 @@
 + (void)showAlert:(NSString*)title text:(NSString*)text confirmHandler:(AlertBlock)confirmHandler;
 + (void)showConfirm:(NSString*)title text:(NSString*)text ok:(NSString*)ok cancel:(NSString*)cancel confirmHandler:(AlertBlock)confirmHandler;
 + (void)showConfirm:(NSString*)title text:(NSString*)text buttons:(NSArray*)buttons confirmHandler:(AlertBlock)confirmHandler;
-+ (void)showViewController:(UIViewController*)owner name:(NSString*)name params:(NSDictionary*)params;
-+ (void)showViewController:(UIViewController*)owner controller:(UIViewController*)controller name:(NSString*)name mode:(NSString*)mode params:(NSDictionary*)params;
++ (UIViewController*)showViewController:(UIViewController*)owner name:(NSString*)name params:(NSDictionary*)params;
++ (UIViewController*)showViewController:(UIViewController*)owner controller:(UIViewController*)controller name:(NSString*)name mode:(NSString*)mode params:(NSDictionary*)params;
 
 + (void)showActivity;
 + (void)showActivityInView:(UIView*)view;
@@ -47,8 +47,10 @@
 + (UITextView*)makeTextView:(CGRect)frame text:(NSString*)text color:(UIColor*)color font:(UIFont*)font;
 + (UIActionSheet*)makeAction:(NSString *)title actions:(NSArray*)actions confirmHandler:(ActionBlock)confirmHandler;
 + (UIImageView*)makeImageAvatar:(UIView*)view frame:(CGRect)frame eclipse:(UIImage*)eclipse;
-+ (UIImageView*)makeImageWithBadge:(CGRect)frame icon:(NSString*)icon color:(UIColor*)color value:(int)value insets:(CGPoint)insets;
 + (UIImage*)makeImageWithTint:(UIImage*)image color:(UIColor*)color;
++ (UILabel*)makeBadge:(int)value font:(UIFont*)font color:(UIColor*)color bgColor:(UIColor*)bgColor borderColor:(UIColor*)borderColor;
++ (UILabel*)makeBadge:(UIView*)view style:(NSDictionary*)style;
++ (void)makeGloss:(UIView*)view;
 
 + (UIButton*)makeCustomButton:(NSString*)title image:(UIImage*)image;
 

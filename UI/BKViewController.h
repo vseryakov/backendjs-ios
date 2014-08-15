@@ -110,6 +110,7 @@
 #pragma mark Menubar
 
 - (void)addMenubar:(NSArray*)items params:(NSDictionary*)params;
+- (void)updateMenubar:(NSDictionary*)params;
 
 #pragma mark Toolbar
 
