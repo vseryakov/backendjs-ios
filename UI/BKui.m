@@ -206,22 +206,6 @@ static UIActivityIndicatorView *_activity;
 
 #pragma mark UI components
 
-+ (UIColor*)makeColor:(NSString *)color
-{
-    int r, g, b;
-    if (color && color.length == 7) {
-        const char *str = [color UTF8String];
-        sscanf(str, "#%2x%2x%2x", &r, &g, &b);
-        return [UIColor colorWithRed:(r / 255.0) green:(g / 255.0) blue:(b / 255.0) alpha:1.0];
-    } else
-    if (color && color.length == 4) {
-        const char *str = [color UTF8String];
-        sscanf(str, "#%x%x%x", &r, &g, &b);
-        return [UIColor colorWithRed:(r / 255.0) green:(g / 255.0) blue:(b / 255.0) alpha:1.0];
-    }
-    return nil;
-}
-
 + (UILabel*)makeLabel:(CGRect)frame text:(NSString*)text color:(UIColor*)color font:(UIFont*)font
 {
     UILabel* label = [[UILabel alloc] initWithFrame:frame];
@@ -422,11 +406,11 @@ static UIActivityIndicatorView *_activity;
     label.font = font ? font : [UIFont systemFontOfSize:12];
     label.text = [NSString stringWithFormat:@"%d", value];
     [label sizeToFit];
-    label.width += 2;
-    label.height += 2;
+    label.width += 3;
+    label.height += 3;
     if (label.width < label.height) label.width = label.height;
     label.layer.borderWidth = 1;
-    label.layer.borderColor = border ? border.CGColor : [UIColor whiteColor].CGColor;
+    label.layer.borderColor = border ? border.CGColor : [UIColor clearColor].CGColor;
     label.backgroundColor = [UIColor clearColor];
     label.layer.backgroundColor = bg ? bg.CGColor : [UIColor colorWithRed:142.0f/255 green:156.0f/255 blue:183.0f/255 alpha:1.0].CGColor;
     label.layer.cornerRadius = label.height / 2;
@@ -440,14 +424,18 @@ static UIActivityIndicatorView *_activity;
         [badge removeFromSuperview];
         return nil;
     }
-    UILabel *badge = [BKui makeBadge:[style num:@"count"] font:style[@"font"] color:style[@"color"] bgColor:style[@"bg-color"] borderColor:style[@"border-color"]];
+    UILabel *badge = [BKui makeBadge:[style num:@"count"]
+                                font:style[@"font"]
+                               color:style[@"textColor"]
+                             bgColor:style[@"backgroundColor"]
+                         borderColor:style[@"borderColor"]];
     [view addSubview:badge];
     badge.tag = 515151;
     badge.centerX = view.width - badge.width/2;
     badge.centerY = badge.height/2;
-    if (style[@"x"]) badge.x = [style num:@"x"];
-    if (style[@"y"]) badge.y = [style num:@"x"];
     if (style[@"gloss"]) [self makeGloss:badge];
+    if (style[@"x"]) badge.x = [style num:@"x"];
+    if (style[@"y"]) badge.y = [style num:@"y"];
     return badge;
 }
 
@@ -480,6 +468,22 @@ static UIActivityIndicatorView *_activity;
     UIImage *tintedImage = UIGraphicsGetImageFromCurrentImageContext();
     UIGraphicsEndImageContext();
     return tintedImage;
+}
+
++ (UIColor*)makeColor:(NSString *)color
+{
+    int r, g, b;
+    if (color && color.length == 7) {
+        const char *str = [color UTF8String];
+        sscanf(str, "#%2x%2x%2x", &r, &g, &b);
+        return [UIColor colorWithRed:(r / 255.0) green:(g / 255.0) blue:(b / 255.0) alpha:1.0];
+    } else
+        if (color && color.length == 4) {
+            const char *str = [color UTF8String];
+            sscanf(str, "#%x%x%x", &r, &g, &b);
+            return [UIColor colorWithRed:(r / 255.0) green:(g / 255.0) blue:(b / 255.0) alpha:1.0];
+        }
+    return nil;
 }
 
 + (UIColor *)makeColor:(UIColor*)color h:(double)h s:(double)s b:(double)b a:(double)a
@@ -700,10 +704,13 @@ static UIActivityIndicatorView *_activity;
         if ([key isEqual:@"height"]) view.height = num; else
         if ([key isEqual:@"centerX"]) view.centerX = num; else
         if ([key isEqual:@"centerY"]) view.centerY = num; else
+        if ([key isEqual:@"frameInset"]) view.frame = CGRectInset(view.frame, [val num:@"x"], [val num:@"y"]);
         if ([key isEqual:@"backgroundColor"] && [val isKindOfClass:[UIColor class]]) view.backgroundColor = val; else
         if ([key isEqual:@"tintColor"] && [val isKindOfClass:[UIColor class]]) view.backgroundColor = val; else
         if ([key isEqual:@"alpha"]) view.alpha = num; else
         if ([key isEqual:@"tag"]) view.tag = num; else
+        if ([key isEqual:@"gloss"]) [BKui makeGloss:view]; else
+        if ([key isEqual:@"contentMode"]) view.contentMode = num; else
         if ([key isEqual:@"border"] && [val isKindOfClass:[NSDictionary class]]) [BKui setViewBorder:view color:val[@"color"] width:[val num:@"width"] radius:[val num:@"radius"]]; else
         if ([key isEqual:@"shadow"] && [val isKindOfClass:[NSDictionary class]]) [BKui setViewShadow:view color:val[@"color"] offset:CGSizeMake([val num:@"width"], [val num:@"height"]) opacity:[val num:@"opacity"] radius:[val num:@"radius"]]; else
         if ([key isEqual:@"masksToBounds"]) view.layer.masksToBounds = num; else
@@ -727,6 +734,7 @@ static UIActivityIndicatorView *_activity;
         
         if ([view isKindOfClass:[UILabel class]]) {
             UILabel *label = (UILabel*)view;
+            if ([key isEqual:@"text"]) label.text = val; else
             if ([key isEqual:@"numberOfLines"]) label.numberOfLines = num; else
             if ([key isEqual:@"lineBreakMode"]) label.lineBreakMode = num; else
             if ([key isEqual:@"baselineAdjustment"]) label.baselineAdjustment = num; else
@@ -737,6 +745,7 @@ static UIActivityIndicatorView *_activity;
         
         if ([view isKindOfClass:[UITextField class]]) {
             UITextField *text = (UITextField*)view;
+            if ([key isEqual:@"text"]) text.text = val; else
             if ([key isEqual:@"font"] && [val isKindOfClass:[UIFont class]]) text.font = val; else
             if ([key isEqual:@"textColor"] && [val isKindOfClass:[UIColor class]]) text.textColor = val; else
             if ([key isEqual:@"textAlignment"]) text.textAlignment = num; else
@@ -750,6 +759,7 @@ static UIActivityIndicatorView *_activity;
 
         if ([view isKindOfClass:[UITextView class]]) {
             UITextView *text = (UITextView*)view;
+            if ([key isEqual:@"text"]) text.text = val; else
             if ([key isEqual:@"textContainerInset"]) text.textContainerInset = [self toEdgeInsets:style name:key]; else
             if ([key isEqual:@"font"] && [val isKindOfClass:[UIFont class]]) text.font = val; else
             if ([key isEqual:@"textColor"] && [val isKindOfClass:[UIColor class]]) text.textColor = val; else
@@ -776,10 +786,31 @@ static UIActivityIndicatorView *_activity;
             if ([key isEqual:@"backgroundView"] && [val isKindOfClass:[UIView class]]) table.backgroundView = val;
         }
 
+        if ([view isKindOfClass:[UITableViewCell class]]) {
+            UITableViewCell *cell = (UITableViewCell*)view;
+            if ([key isEqual:@"title"]) cell.textLabel.text = val; else
+            if ([key isEqual:@"subtitle"]) cell.detailTextLabel.text = val; else
+            if ([key isEqual:@"textLabel"]) [BKui setStyle:cell.textLabel style:val]; else
+            if ([key isEqual:@"detailTextLabel"]) [BKui setStyle:cell.detailTextLabel style:val]; else
+            if ([key isEqual:@"imageView"]) [BKui setStyle:cell.imageView style:val]; else
+            if ([key isEqual:@"contentView"]) [BKui setStyle:cell.contentView style:val]; else
+            if ([key isEqual:@"backgroundView"]) [BKui setStyle:cell.backgroundView style:val]; else
+            if ([key isEqual:@"accessoryView"]) [BKui setStyle:cell.accessoryView style:val]; else
+            if ([key isEqual:@"indentationLevel"]) cell.indentationLevel = num; else
+            if ([key isEqual:@"indentationWidth"]) cell.indentationWidth = num; else
+            if ([key isEqual:@"accessoryType"]) cell.accessoryType = num; else
+            if ([key isEqual:@"separatorInset"]) cell.separatorInset = [self toEdgeInsets:style name:key]; else
+            if ([key isEqual:@"editingAccessoryType"]) cell.editingAccessoryType = num; else
+            if ([key isEqual:@"selectionStyle"]) cell.selectionStyle = num;
+        }
+        
         if ([view isKindOfClass:[UIButton class]]) {
             UIButton *button = (UIButton*)view;
             if ([key isEqual:@"disabled"]) button.enabled = NO; else
             if ([key isEqual:@"enabled"]) button.enabled = YES; else
+            if ([key isEqual:@"selected"]) button.selected = YES; else
+            if ([key isEqual:@"highlighted"]) button.highlighted = YES; else
+            if ([key isEqual:@"normal"]) button.selected = button.highlighted = NO; else
             if ([key isEqual:@"contentHorizontalAlignment"]) button.contentHorizontalAlignment = num; else
             if ([key isEqual:@"contentVerticalAlignment"]) button.contentVerticalAlignment = num; else
             if ([key isEqual:@"icon"]) [button setImage:[UIImage imageNamed:val] forState:UIControlStateNormal]; else
@@ -809,6 +840,7 @@ static UIActivityIndicatorView *_activity;
             if ([key isEqual:@"imageEdgeInsets"]) button.imageEdgeInsets = [self toEdgeInsets:style name:key]; else
             if ([key isEqual:@"titleEdgeInsets"]) button.titleEdgeInsets = [self toEdgeInsets:style name:key]; else
             if ([key isEqual:@"lineBreakMode"]) button.titleLabel.lineBreakMode = [self toLineBreak:style name:key]; else
+            if ([key isEqual:@"imageContentMode"]) button.imageView.contentMode = num; else
             if ([key isEqual:@"fit"]) [button sizeToFit]; else
             if ([key isEqual:@"vertical"]) {
                 // Align icon and title vertically in the button, vertical defines top/bottom padding

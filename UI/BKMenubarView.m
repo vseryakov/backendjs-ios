@@ -35,7 +35,7 @@
         if (i) x += len[i - 1];
         
         NSDictionary *obj = [items objectAtIndex:i];
-        NSString *name = [obj str:@[@"title",@"icon"] dflt:nil];
+        NSString *name = [obj str:@[@"id",@"title",@"icon"] dflt:[NSString stringWithFormat:@"%d", i]];
         
         NSMutableDictionary *item = [obj mutableCopy];
         [self.items addObject:item];
@@ -47,10 +47,10 @@
         button.imageView.contentMode = UIViewContentModeScaleAspectFit;
         button.contentHorizontalAlignment = UIControlContentHorizontalAlignmentCenter;
         [self addSubview:button];
-        self.buttons[name] = button;
         [BKui setStyle:button style:item];
-        [self updateButtonStyle:name params:params];
+        self.buttons[name] = button;
     }
+    [self update:params];
     return self;
 }
 
@@ -63,23 +63,16 @@
 
 - (void)update:(NSDictionary*)params
 {
+    if (!params) return;
     for (NSString *name in self.buttons) {
-        [self updateButtonStyle:name params:params];
+        [self update:name params:params[name]];
     }
 }
 
-- (void)updateButtonStyle:(NSString*)name params:(NSDictionary*)params
+- (void)update:(NSString*)name params:(NSDictionary*)params
 {
     if (!name || !params) return;
-    UIButton *button = self.buttons[name];
-    if (!button) return;
-
-    if ([name isEqual:params[@"current"]]) button.selected = YES;
-    if ([self checkItem:name params:params item:@"disabled"]) button.enabled = NO;
-    if ([self checkItem:name params:params item:@"enabled"]) button.enabled = YES;
-    if ([self checkItem:name params:params item:@"hidden"]) button.hidden = YES;
-    if ([self checkItem:name params:params item:@"visible"]) button.hidden = NO;
-    if (params[@"badge"] && params[@"badge"][name]) [BKui makeBadge:button style:params[@"badge"][name]];
+    [BKui setStyle:self.buttons[name] style:params];
 }
 
 - (IBAction)onButton:(id)sender
