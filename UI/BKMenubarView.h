@@ -10,6 +10,7 @@
 @property (strong, nonatomic) NSMutableDictionary *buttons;
 
 - (instancetype)init:(CGRect)frame items:(NSArray*)items params:(NSDictionary*)params;
+- (void)setMenu:(NSArray*)items params:(NSDictionary*)params;
 - (void)update:(NSString*)name params:(NSDictionary*)params;
 - (void)update:(NSDictionary*)params;
 

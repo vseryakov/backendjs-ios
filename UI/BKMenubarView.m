@@ -16,7 +16,16 @@
 
     self.items = [@[] mutableCopy];
     self.buttons = [@{} mutableCopy];
-   
+    [self setMenu:items params:params];
+    return self;
+}
+
+- (void)setMenu:(NSArray*)items params:(NSDictionary*)params
+{
+    if (!items) return;
+    [self.items removeAllObjects];
+    [self.buttons removeAllObjects];
+    
     // Calculate width of every button, if we have specic width given for any button we
     // give remaining space to the rest of the buttons equally.
     unsigned long x = 0, count = items.count, width = self.width, len[count + 1];
@@ -51,7 +60,6 @@
         self.buttons[name] = button;
     }
     [self update:params];
-    return self;
 }
 
 - (BOOL)checkItem:(NSString*)name params:(NSDictionary*)params item:(NSString*)item

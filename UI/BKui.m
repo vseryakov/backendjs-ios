@@ -152,34 +152,34 @@ static UIActivityIndicatorView *_activity;
     [alert show];
 }
 
-+ (void)showAlert:(NSString*)title text:(NSString*)text confirmHandler:(AlertBlock)confirmHandler
++ (void)showAlert:(NSString*)title text:(NSString*)text finish:(AlertBlock)finish
 {
     UIAlertView *alertView = [[UIAlertView alloc] initWithTitle:title message:text delegate:[self get] cancelButtonTitle:@"OK" otherButtonTitles:nil];
-    if (confirmHandler) objc_setAssociatedObject(alertView, @"alertBlock", confirmHandler, OBJC_ASSOCIATION_RETAIN);
+    if (finish) objc_setAssociatedObject(alertView, @"alertBlock", finish, OBJC_ASSOCIATION_RETAIN);
     [alertView show];
 }
 
-+ (void)showConfirm:(NSString*)title text:(NSString*)text buttons:(NSArray*)buttons confirmHandler:(AlertBlock)confirmHandler
++ (void)showConfirm:(NSString*)title text:(NSString*)text buttons:(NSArray*)buttons finish:(AlertBlock)finish
 {
     UIAlertView *alertView = [[UIAlertView alloc] initWithTitle:title message:text delegate:[self get] cancelButtonTitle:nil otherButtonTitles:nil];
     for (NSString *key in buttons) [alertView addButtonWithTitle:key];
-    if (confirmHandler) objc_setAssociatedObject(alertView, @"alertBlock", confirmHandler, OBJC_ASSOCIATION_RETAIN);
+    if (finish) objc_setAssociatedObject(alertView, @"alertBlock", finish, OBJC_ASSOCIATION_RETAIN);
     [alertView show];
 }
 
-+ (void)showConfirm:(NSString*)title text:(NSString*)text ok:(NSString*)ok cancel:(NSString*)cancel confirmHandler:(AlertBlock)confirmHandler
++ (void)showConfirm:(NSString*)title text:(NSString*)text ok:(NSString*)ok cancel:(NSString*)cancel finish:(AlertBlock)finish
 {
     UIAlertView *alertView = [[UIAlertView alloc] initWithTitle:title message:text delegate:[self get] cancelButtonTitle:cancel ? cancel : @"Cancel" otherButtonTitles:ok ? ok : @"OK",nil];
-    if (confirmHandler) objc_setAssociatedObject(alertView, @"alertBlock", confirmHandler, OBJC_ASSOCIATION_RETAIN);
+    if (finish) objc_setAssociatedObject(alertView, @"alertBlock", finish, OBJC_ASSOCIATION_RETAIN);
     [alertView show];
 }
 
-+ (UIActionSheet*)makeAction:(NSString *)title actions:(NSArray*)actions confirmHandler:(ActionBlock)confirmHandler
++ (UIActionSheet*)makeAction:(NSString *)title actions:(NSArray*)actions finish:(ActionBlock)finish
 {
     UIActionSheet *action = [[UIActionSheet alloc] initWithTitle:title delegate:[self get] cancelButtonTitle:@"Cancel" destructiveButtonTitle:nil otherButtonTitles:nil];
     for (NSString *button in actions) [action addButtonWithTitle:button];
     action.actionSheetStyle = UIActionSheetStyleBlackOpaque;
-    if (confirmHandler) objc_setAssociatedObject(action, @"actionBlock", confirmHandler, OBJC_ASSOCIATION_RETAIN);
+    if (finish) objc_setAssociatedObject(action, @"actionBlock", finish, OBJC_ASSOCIATION_RETAIN);
     return action;
 }
 

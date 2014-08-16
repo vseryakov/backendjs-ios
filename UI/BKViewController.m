@@ -29,6 +29,7 @@
     BOOL _panStarted;
     NSTimer *_timer;
     ImagePicker *_picker;
+    UIView *_panView;
 }
 
 - (instancetype)init
@@ -467,7 +468,7 @@
 {
     CGRect frame = self.view.frame;
     
-    // Screen capture the current content of the navigation view (alogn with the navigation bar, if any)
+    // Screen capture the current content of the navigation view (along with the navigation bar, if any)
     UIImage *image = [BKui captureImage:owner.view.window];
     
     // Sliding button with the screenshot
@@ -586,18 +587,18 @@
     
 }
 
-- (void)onPan:(UIPanGestureRecognizer *)recognizer view:(UIView*)view right:(BOOL)right completion:(GenericBlock)completion
+- (void)onPan:(UIPanGestureRecognizer *)recognizer view:(UIView*)view right:(BOOL)right finish:(FinishBlock)finish
 {
+    CGPoint point = [recognizer translationInView:self.view];
+    
     if (recognizer.state == UIGestureRecognizerStateBegan) {
-        CGPoint point = [recognizer locationInView:self.view];
         if (CGRectEqualToRect(self.panRect, CGRectZero) || CGRectContainsPoint(self.panRect, point)) {
             _center = view.center;
             _panStarted = YES;
         }
     } else
     if (_panStarted && recognizer.state == UIGestureRecognizerStateChanged) {
-        CGPoint point = [recognizer translationInView:self.view];
-        if (_center.x + point.x >= self.view.frame.size.width/2) {
+        if (_center.x + point.x >= self.view.width/2) {
             view.center = CGPointMake(_center.x + point.x, _center.y);
         }
     } else
@@ -605,54 +606,63 @@
         _panStarted = NO;
         CGPoint velocity = [recognizer velocityInView:self.view];
         float magnitude = sqrtf((velocity.x * velocity.x) + (velocity.y * velocity.y));
-        float offset = view.frame.origin.x - self.view.frame.size.width*0.5;
-        Debug(@"onPan: %g: %g: %g: %g", view.frame.origin.x, velocity.x, magnitude, offset);
+        float offset = view.x - self.view.width*0.5;
+        Debug(@"onPan: %g: %g: %g: %g", view.x, velocity.x, magnitude, offset);
         if ((magnitude > 1500 && ((!right && velocity.x < 0) || (right && velocity.x > 0))) || (!right && offset <= 0) || (right && offset >= 0)) {
-            completion();
+            finish(YES);
         } else {
             [UIView animateWithDuration:0.25
                                   delay:0
                                 options:UIViewAnimationOptionCurveEaseOut
-                             animations:^{ view.center = _center; }
-                             completion:nil];
+                             animations:^{
+                                 view.center = _center;
+                             }
+                             completion:^(BOOL finished) {
+                                 finish(NO);
+                             }];
         }
     }
 }
 
 - (void)onDrawerPan:(UIPanGestureRecognizer *)recognizer
 {
-    [self onPan:recognizer view:self.drawerView right:NO completion:^{ [self showPrevious]; }];
+    [self onPan:recognizer view:self.drawerView right:NO finish:^(BOOL finished){ if (finished) [self showPrevious]; }];
 }
 
 - (void)onViewPan:(UIPanGestureRecognizer *)recognizer
 {
-    UIView *view;
-    [self onPan:recognizer view:view right:YES completion:^{
-            [UIView animateWithDuration:0.25
-                                  delay:0
-                                options:UIViewAnimationOptionCurveEaseOut|UIViewAnimationOptionBeginFromCurrentState|UIViewAnimationOptionOverrideInheritedDuration
-                             animations:^{
-                                 view.center = CGPointMake(self.view.frame.size.width*1.5, self.view.center.y);
-                             } completion:^(BOOL stop) {
-                                 [self.navigationController popViewControllerAnimated:NO];
-                                 self.view = view;
-                             }];
+    [self onPan:recognizer view:_panView right:YES finish:^(BOOL finished) {
+        if (!finished) {
+            return;
+        }
+        [UIView animateWithDuration:0.25
+                              delay:0
+                            options:UIViewAnimationOptionCurveEaseOut|UIViewAnimationOptionBeginFromCurrentState|UIViewAnimationOptionOverrideInheritedDuration
+                         animations:^{
+                             _panView.center = CGPointMake(self.view.width*1.5, self.view.center.y);
+                         } completion:^(BOOL stop) {
+                             [self.navigationController popViewControllerAnimated:NO];
+                         }];
     }];
 }
 
 - (void)onPushPan:(UIScreenEdgePanGestureRecognizer *)gesture
 {
+    CGPoint point = [gesture translationInView:gesture.view];
+    
     if (gesture.state == UIGestureRecognizerStateBegan) {
+        _center = gesture.view.center;
         self.interactionController = [[UIPercentDrivenInteractiveTransition alloc] init];
         [self showPrevious];
     } else
     if (gesture.state == UIGestureRecognizerStateChanged) {
-        CGPoint translation = [gesture translationInView:gesture.view];
-        [self.interactionController updateInteractiveTransition:ABS(translation.x / gesture.view.width)];
+        CGFloat percent = (point.x) / (gesture.view.width);
+        Logger(@"%g, %g, %g", percent, point.x, gesture.view.width);
+        [self.interactionController updateInteractiveTransition:percent];
     } else
     if (gesture.state == UIGestureRecognizerStateEnded || gesture.state == UIGestureRecognizerStateCancelled) {
-        CGPoint translation = [gesture translationInView:gesture.view];
-        CGFloat percent = ABS(translation.x / gesture.view.width);
+        CGFloat percent = (point.x) / (gesture.view.width);
+        Logger(@"%d: %g, %g, %g", (int)gesture.state, percent, point.x, gesture.view.width);
         if (percent < 0.5 || gesture.state == UIGestureRecognizerStateCancelled) {
             [self.interactionController cancelInteractiveTransition];
         } else {

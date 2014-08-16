@@ -7,16 +7,16 @@
 
 @implementation BKTransitionAnimation
 
-- (id)init:(BOOL)present params:(NSDictionary *)params
+- (id)init:(BOOL)presenting params:(NSDictionary *)params
 {
     self = [super init];
-    self.present = present;
+    self.presenting = presenting;
     self.type = params[@"type"];
-    self.duration = [params num:@[@"duration"] dflt:0.5];
+    self.duration = [params num:@[@"duration"] dflt:0.7];
     self.damping = [params num:@[@"damping"] dflt:1];
     self.velocity = [params num:@[@"velocity"] dflt:1];
     self.delay = [params num:@[@"delay"] dflt:0];
-    Debug(@"%d: %@", self.present, params);
+    Debug(@"%d: %@", self.presenting, params);
     return self;
 }
 
@@ -37,18 +37,14 @@
 
     UIView* containerView = [transitionContext containerView];
     toVC.view.frame = [transitionContext finalFrameForViewController:toVC];
-    [toVC.view layoutIfNeeded];
-    
-    BOOL showHide = self.options & UIViewAnimationOptionShowHideTransitionViews;
-    if (!showHide) [containerView addSubview:toVC.view];
+    [containerView addSubview:toVC.view];
     
     [UIView transitionFromView:fromVC.view
                         toView:toVC.view
                       duration:self.duration
-                       options:self.options | UIViewAnimationOptionShowHideTransitionViews
+                       options:self.options
                     completion:^(BOOL finished) {
-                        if (!showHide) [fromVC.view removeFromSuperview];
-                        [transitionContext completeTransition:YES];
+                        [transitionContext completeTransition:!transitionContext.transitionWasCancelled];
                     }];
 }
 
@@ -58,18 +54,18 @@
     UIViewController *toVC = [transitionContext viewControllerForKey:UITransitionContextToViewControllerKey];
     UIView* containerView = [transitionContext containerView];
     
-    if (self.present) {
+    if (self.presenting) {
         toVC.view.frame = frame;
         [containerView addSubview:toVC.view];
         [UIView animateWithDuration:self.duration
                               delay:self.delay
              usingSpringWithDamping:self.damping
               initialSpringVelocity:self.velocity
-                            options:(UIViewAnimationOptions)self.options
+                            options:self.options
                          animations:^{
                              toVC.view.frame = containerView.bounds;
                          } completion:^(BOOL finished) {
-                             [transitionContext completeTransition:YES];
+                             [transitionContext completeTransition:!transitionContext.transitionWasCancelled];
                          }];
     } else {
         [containerView insertSubview:toVC.view belowSubview:fromVC.view];
@@ -77,12 +73,12 @@
                               delay:self.delay
              usingSpringWithDamping:self.damping
               initialSpringVelocity:self.velocity
-                            options:(UIViewAnimationOptions)self.options
+                            options:self.options
                          animations:^{
                              fromVC.view.frame = frame;
                          } completion:^(BOOL finished) {
-                             [fromVC.view removeFromSuperview];
-                             [transitionContext completeTransition:YES];
+                             if (transitionContext.transitionWasCancelled) fromVC.view.frame = containerView.bounds;
+                             [transitionContext completeTransition:!transitionContext.transitionWasCancelled];
                          }];
     }
 }

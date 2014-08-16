@@ -55,6 +55,7 @@ typedef void (^ListBlock)(NSArray *list);
 typedef void (^ArrayBlock)(NSArray *list, NSString *next);
 typedef void (^ErrorBlock)(NSError *error);
 typedef void (^StringBlock)(NSString *str);
+typedef void (^FinishBlock)(BOOL finished);
 typedef void (^FailureBlock)(NSInteger code, NSString *reason);
 typedef void (^ImageSuccessBlock)(UIImage *image, NSString *url);
 typedef UIImage* (^ImageProcessBlock)(UIImage *image, NSString *url);
@@ -84,6 +85,9 @@ typedef void (^ControllerBlock)(UIViewController *controller, NSDictionary *item
 
 // Set credentials for API calls, takes effect immediately
 + (void)setCredentials:(NSString*)name secret:(NSString*)secret;
+
+// Clear credentials and account
++ (void)logout;
 
 + (id<UIApplicationDelegate>)appDelegate;
 + (NSString*)documentsDirectory;
@@ -191,6 +195,7 @@ typedef void (^ControllerBlock)(UIViewController *controller, NSDictionary *item
 
 #pragma mark Message API
 
++ (void)getMessages:(NSDictionary*)params success:(ArrayBlock)success failure:(FailureBlock)failure;
 + (void)getArchivedMessages:(NSDictionary*)params success:(ArrayBlock)success failure:(FailureBlock)failure;
 + (void)getSentMessages:(NSDictionary*)params success:(ArrayBlock)success failure:(FailureBlock)failure;
 + (void)getNewMessages:(NSDictionary*)params success:(ArrayBlock)success failure:(FailureBlock)failure;

@@ -117,6 +117,12 @@ static NSString *SysCtlByName(char *typeSpecifier)
 
 #pragma mark Utilities
 
++ (void)logout
+{
+    [self setCredentials:nil secret:nil];
+    [self.account removeAllObjects];
+}
+
 + (void)setCredentials:(NSString *)login secret:(NSString*)secret
 {
     [self setPassword:login forService:@"login" account:BKjs.appName error:nil];
@@ -775,8 +781,8 @@ static NSString *SysCtlByName(char *typeSpecifier)
     [BKjs sendQuery:@"/account/del/icon"
            method:@"POST"
            params:params
-          success:success
-          failure:failure];
+            success:success
+            failure:failure];
 }
 
 #pragma mark Account API
@@ -817,8 +823,10 @@ static NSString *SysCtlByName(char *typeSpecifier)
     [BKjs sendQuery:@"/account/del"
            method:@"POST"
            params:params
-          success:success
-          failure:failure];
+            success:^(id obj) {
+                [self logout];
+                if (success) success();
+            } failure:failure];
 }
 
 + (void)updateAccount:(NSDictionary*)params success:(GenericBlock)success failure:(FailureBlock)failure
@@ -931,6 +939,21 @@ static NSString *SysCtlByName(char *typeSpecifier)
 + (void)getConversation:(NSDictionary*)params success:(ArrayBlock)success failure:(FailureBlock)failure
 {
     [BKjs getSentMessages:params success:^(NSArray *list, NSString *token1) {
+        [BKjs getArchivedMessages:params success:^(NSArray *list2, NSString *token2) {
+            NSArray* rc = [list arrayByAddingObjectsFromArray:list2];
+            rc = [rc sortedArrayUsingComparator:^NSComparisonResult(id a, id b) {
+                double m1 = [BKjs toNumber:a name:@"mtime"];
+                double m2 = [BKjs toNumber:b name:@"mtime"];
+                return m1 < m2 ? NSOrderedAscending : m1 > m2 ? NSOrderedDescending : NSOrderedSame;
+            }];
+            if (success) success(rc, nil);
+        } failure:failure];
+    } failure:failure];
+}
+
++ (void)getMessages:(NSDictionary*)params success:(ArrayBlock)success failure:(FailureBlock)failure
+{
+    [BKjs getNewMessages:params success:^(NSArray *list, NSString *token1) {
         [BKjs getArchivedMessages:params success:^(NSArray *list2, NSString *token2) {
             NSArray* rc = [list arrayByAddingObjectsFromArray:list2];
             rc = [rc sortedArrayUsingComparator:^NSComparisonResult(id a, id b) {

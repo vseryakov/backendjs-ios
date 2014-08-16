@@ -8,7 +8,7 @@
 //
 
 @interface BKTransitionAnimation: NSObject<UIViewControllerAnimatedTransitioning>
-@property (nonatomic, assign) BOOL present;
+@property (nonatomic, assign) BOOL presenting;
 @property (nonatomic, strong) NSString *type;
 @property (nonatomic, assign) float duration;
 @property (nonatomic, assign) float damping;
@@ -16,7 +16,7 @@
 @property (nonatomic, assign) float delay;
 @property (nonatomic, assign) UIViewAnimationOptions options;
 
-- (id)init:(BOOL)show params:(NSDictionary*)params;
+- (id)init:(BOOL)presenting params:(NSDictionary*)params;
 @end
 
 @interface BKBounceAnimation: CAKeyframeAnimation
