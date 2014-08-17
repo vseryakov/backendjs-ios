@@ -84,11 +84,6 @@
 @property (strong, nonatomic) IBOutlet UIButton *drawerView;
 @property (nonatomic, strong) UIPanGestureRecognizer *drawerPanGesture;
 
-// Push mode panning gesture
-@property (nonatomic, assign) CGRect panRect;
-@property (nonatomic, assign) BOOL panInPushMode;
-@property (nonatomic, strong) UIGestureRecognizer *panGesture;
-
 // Subscribe to notifications
 - (void)subscribe;
 

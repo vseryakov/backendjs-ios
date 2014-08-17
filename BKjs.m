@@ -953,9 +953,9 @@ static NSString *SysCtlByName(char *typeSpecifier)
 
 + (void)getMessages:(NSDictionary*)params success:(ArrayBlock)success failure:(FailureBlock)failure
 {
-    [BKjs getNewMessages:params success:^(NSArray *list, NSString *token1) {
+    [BKjs getNewMessages:params success:^(NSArray *list1, NSString *token1) {
         [BKjs getArchivedMessages:params success:^(NSArray *list2, NSString *token2) {
-            NSArray* rc = [list arrayByAddingObjectsFromArray:list2];
+            NSArray* rc = [params isEmpty:@"_archive"] ? [list1 arrayByAddingObjectsFromArray:list2] : list2;
             rc = [rc sortedArrayUsingComparator:^NSComparisonResult(id a, id b) {
                 double m1 = [BKjs toNumber:a name:@"mtime"];
                 double m2 = [BKjs toNumber:b name:@"mtime"];

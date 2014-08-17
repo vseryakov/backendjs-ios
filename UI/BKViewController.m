@@ -51,8 +51,6 @@
     self.tableSearchHidden = YES;
     self.tableRefreshable = NO;
     self.drawerPanning = YES;
-    self.panInPushMode = YES;
-    self.panRect = CGRectZero;
     self.transitioningDelegate = self;
     return self;
 }
@@ -84,6 +82,7 @@
 {
     [super viewWillAppear:animated];
     self.navigationController.navigationBarHidden = YES;
+    self.navigationController.interactivePopGestureRecognizer.delegate = self;
 
     // Do not preserve selection
     if (self.tableView && self.tableUnselected) {
@@ -108,6 +107,12 @@
     [super viewWillDisappear:animated];
     [self saveTablePosition:nil];
     self.navigationController.navigationBarHidden = YES;
+}
+
+- (void)viewDidDisappear:(BOOL)animated
+{
+    [super viewDidDisappear:animated];
+    self.navigationController.delegate = nil;
 }
 
 - (void)dealloc
@@ -544,22 +549,6 @@
     if ([self.navigationMode isEqual:@"push"]) {
         self.navigationController.delegate = self;
         owner.navigationController.delegate = self;
-        
-        if (self.panInPushMode) {
-            const NSDictionary *edges = @{ @"slideLeft": @(UIRectEdgeLeft), @"slideRight": @(UIRectEdgeRight), @"slideUp": @(UIRectEdgeTop), @"slideDown": @(UIRectEdgeBottom) };
-            if ([self.transition isEmpty:@"type"]) self.transition[@"type"] = @"slideLeft";
-            if (edges[self.transition[@"type"]]) {
-                self.panGesture = [[UIScreenEdgePanGestureRecognizer alloc] initWithTarget:self action:@selector(onPushPan:)];
-                self.panGesture.delegate = self;
-                [(UIScreenEdgePanGestureRecognizer*)self.panGesture setEdges:[edges num:self.transition[@"type"]]];
-                [self.view addGestureRecognizer:self.panGesture];
-            }
-        } else {
-            if (self.panGesture) {
-                [self.view removeGestureRecognizer:self.panGesture];
-                self.panGesture = nil;
-            }
-        }
     }
     
     if ([self.navigationMode isEqual:@"modal"]) {
@@ -592,10 +581,8 @@
     CGPoint point = [recognizer translationInView:self.view];
     
     if (recognizer.state == UIGestureRecognizerStateBegan) {
-        if (CGRectEqualToRect(self.panRect, CGRectZero) || CGRectContainsPoint(self.panRect, point)) {
-            _center = view.center;
-            _panStarted = YES;
-        }
+        _center = view.center;
+        _panStarted = YES;
     } else
     if (_panStarted && recognizer.state == UIGestureRecognizerStateChanged) {
         if (_center.x + point.x >= self.view.width/2) {
@@ -627,49 +614,6 @@
 - (void)onDrawerPan:(UIPanGestureRecognizer *)recognizer
 {
     [self onPan:recognizer view:self.drawerView right:NO finish:^(BOOL finished){ if (finished) [self showPrevious]; }];
-}
-
-- (void)onViewPan:(UIPanGestureRecognizer *)recognizer
-{
-    [self onPan:recognizer view:_panView right:YES finish:^(BOOL finished) {
-        if (!finished) {
-            return;
-        }
-        [UIView animateWithDuration:0.25
-                              delay:0
-                            options:UIViewAnimationOptionCurveEaseOut|UIViewAnimationOptionBeginFromCurrentState|UIViewAnimationOptionOverrideInheritedDuration
-                         animations:^{
-                             _panView.center = CGPointMake(self.view.width*1.5, self.view.center.y);
-                         } completion:^(BOOL stop) {
-                             [self.navigationController popViewControllerAnimated:NO];
-                         }];
-    }];
-}
-
-- (void)onPushPan:(UIScreenEdgePanGestureRecognizer *)gesture
-{
-    CGPoint point = [gesture translationInView:gesture.view];
-    
-    if (gesture.state == UIGestureRecognizerStateBegan) {
-        _center = gesture.view.center;
-        self.interactionController = [[UIPercentDrivenInteractiveTransition alloc] init];
-        [self showPrevious];
-    } else
-    if (gesture.state == UIGestureRecognizerStateChanged) {
-        CGFloat percent = (point.x) / (gesture.view.width);
-        Logger(@"%g, %g, %g", percent, point.x, gesture.view.width);
-        [self.interactionController updateInteractiveTransition:percent];
-    } else
-    if (gesture.state == UIGestureRecognizerStateEnded || gesture.state == UIGestureRecognizerStateCancelled) {
-        CGFloat percent = (point.x) / (gesture.view.width);
-        Logger(@"%d: %g, %g, %g", (int)gesture.state, percent, point.x, gesture.view.width);
-        if (percent < 0.5 || gesture.state == UIGestureRecognizerStateCancelled) {
-            [self.interactionController cancelInteractiveTransition];
-        } else {
-            [self.interactionController finishInteractiveTransition];
-        }
-        self.interactionController = nil;
-    }
 }
 
 #pragma mark Pickers
@@ -760,29 +704,17 @@
 
 # pragma mark - UIGestureRecognizerDelegate methods
 
-- (BOOL)onGesture:(UIGestureRecognizer *)recognizer touch:(UITouch *)touch
+-(BOOL)gestureRecognizer:(UIGestureRecognizer *)gestureRecognizer shouldRecognizeSimultaneouslyWithGestureRecognizer:(UIGestureRecognizer *)otherGestureRecognizer
 {
-    if (recognizer == self.panGesture) {
-        if ([touch.view isKindOfClass:[BKRangeSlider class]] || [touch.view isKindOfClass:[UISlider class]]) return NO;
-    }
-    return YES;
+    return ![otherGestureRecognizer isKindOfClass:UIPanGestureRecognizer.class];
 }
 
-- (BOOL)gestureRecognizer:(UIGestureRecognizer *)recognizer shouldReceiveTouch:(UITouch *)touch
+- (BOOL)gestureRecognizer:(UIGestureRecognizer *)gestureRecognizer shouldBeRequiredToFailByGestureRecognizer:(UIGestureRecognizer *)otherGestureRecognizer
 {
-    return [self onGesture:recognizer touch:touch];
+    return [gestureRecognizer isKindOfClass:UIScreenEdgePanGestureRecognizer.class];
 }
 
-- (BOOL)gestureRecognizerShouldBegin:(UIGestureRecognizer *)recognizer
-{
-    if (recognizer == self.panGesture) {
-        CGPoint point = [recognizer locationInView:self.view];
-        if (!CGRectEqualToRect(self.panRect, CGRectZero) && !CGRectContainsPoint(self.panRect, point)) return NO;
-    }
-    return YES;
-}
-
-#pragma  mark UISearchBar delegate
+#pragma mark UISearchBar delegate
 
 - (BOOL)searchBar:(UISearchBar *)searchBar shouldChangeTextInRange:(NSRange)range replacementText:(NSString *)text
 {
