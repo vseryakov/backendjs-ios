@@ -123,7 +123,8 @@
 - (void)addInfoView:(NSString*)text
 {
     if (!self.infoView) {
-        self.infoView = [[UIView alloc] initWithFrame:CGRectMake(0, 64, self.view.width, self.view.height - 64)];
+        int y = self.tableView ? self.tableView.y : 64;
+        self.infoView = [[UIView alloc] initWithFrame:CGRectMake(0, y, self.view.width, self.view.height - y)];
         self.infoView.backgroundColor = self.view.backgroundColor;
         self.infoView.hidden = YES;
         [self.view addSubview:self.infoView];
@@ -131,6 +132,7 @@
     
         self.infoTextView = [[UITextView alloc] initWithFrame:self.infoView.bounds];
         [self.infoView addSubview:self.infoTextView];
+        self.infoTextView.scrollEnabled = NO;
         self.infoTextView.textColor = [UIColor grayColor];
         self.infoTextView.font = [UIFont systemFontOfSize:18];
         self.infoTextView.userInteractionEnabled = YES;
@@ -158,6 +160,11 @@
     [self.infoTextView sizeToFit];
     self.infoTextView.y = self.infoView.height/2 - self.infoTextView.height/2;
     self.infoTextView.centerX = self.view.centerX;
+}
+
+- (void)updateInfoView
+{
+    if (self.infoView) self.infoView.hidden = self.tableRows + self.items.count > 0 ? YES : NO;
 }
 
 #pragma mark Toolbar
@@ -264,8 +271,8 @@
     Logger(@"%@: items: %d", self.name, (int)self.items.count + (int)self.tableRows);
     
     if (self.tableRefresh.isRefreshing) [self.tableRefresh endRefreshing];
-    if (self.infoView) self.infoView.hidden = self.tableRows + self.items.count > 0 ? YES : NO;
     [self.tableView reloadData];
+    [self updateInfoView];
 }
 
 - (void)reloadItems:(NSArray*)items
@@ -336,6 +343,7 @@
 {
     NSMutableArray *list = [@[] mutableCopy];
     if (![items isKindOfClass:[NSArray class]]) return list;
+    Logger(@"text=%@, items=%d", self.searchText, (int)items.count);
     
     for (int i = 0; i < items.count; i++) {
         if (!self.searchText || !self.searchText.length) {
@@ -371,6 +379,7 @@
     for (int i = 0; i < self.items.count; i++) [paths addObject:[NSIndexPath indexPathForRow:i+self.tableRows inSection:0]];
     [self.tableView insertRowsAtIndexPaths:paths withRowAnimation:UITableViewRowAnimationFade];
     [self.tableView endUpdates];
+    [self updateInfoView];
 }
 
 - (void)hideKeyboard

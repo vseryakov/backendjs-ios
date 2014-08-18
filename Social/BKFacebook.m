@@ -90,6 +90,7 @@
         for (NSDictionary *item in result[@"data"]) {
             NSMutableDictionary *rec = [item mutableCopy];
             rec[@"type"] = self.name;
+            rec[@"alias"] = item[@"name"];
             rec[@"icon"] = [NSString stringWithFormat:@"https://graph.facebook.com/%@/picture?type=small", rec[@"id"]];
             [list addObject:rec];
         }
@@ -103,6 +104,7 @@
         NSMutableArray *list = [@[] mutableCopy];
         for (NSMutableDictionary *item in result[@"data"]) {
             item[@"type"] = self.name;
+            item[@"alias"] = item[@"name"];
             item[@"icon"] = [BKjs toDictionaryString:[BKjs toDictionary:item name:@"picture"] name:@"data" field:@"url"];
             [list addObject:item];
         }

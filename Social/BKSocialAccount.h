@@ -22,10 +22,12 @@
 @property (nonatomic, strong) NSArray* launchURLs;
 
 @property (nonatomic, strong) NSString* dataName;
-@property (nonatomic, strong) NSString* accessTokenName;
+@property (nonatomic, strong) NSString* parseTokenName;
+@property (nonatomic, strong) NSString* requestTokenName;
 @property (nonatomic, strong) NSString* refreshTokenName;
 @property (nonatomic, strong) NSString* expiresName;
 @property (nonatomic, strong) NSString* errorName;
+@property (nonatomic, strong) NSString* errorDescr;
 @property (nonatomic, strong) NSMutableDictionary* headers;
 
 @property (nonatomic, strong) NSMutableDictionary* account;
@@ -46,7 +48,6 @@
 - (void)logout;
 - (void)login:(ErrorBlock)finished;
 - (BOOL)launch;
-- (void)saveAccount;
 - (void)enableCookies;
 - (void)clearCookies;
 

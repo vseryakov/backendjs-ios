@@ -133,6 +133,7 @@
 
 - (void)addInfoView:(NSString*)text;
 - (void)addInfoView:(NSString*)text links:(NSArray*)links handler:(SuccessBlock)handler;
+- (void)updateInfoView;
 
 #pragma mark Items
 
@@ -170,10 +171,6 @@
 - (void)showImagePickerFromAlbums:(NSDictionary*)params;
 - (void)showImagePickerFromCamera:(id)sender params:(NSDictionary*)params;
 - (void)showImagePickerFromLibrary:(id)sender params:(NSDictionary*)params;
-
-#pragma mark Gestures
-
-- (BOOL)onGesture:(UIGestureRecognizer *)recognizer touch:(UITouch *)touch;
 
 @end
 

@@ -47,24 +47,44 @@ static NSMutableDictionary *_accounts;
     self.name = name;
     self.type = @"web";
     self.clientId = clientId ? clientId : [[NSBundle mainBundle] objectForInfoDictionaryKey:[NSString stringWithFormat:@"%@AppID", self.name]];
-    self.accessToken = [BKjs passwordForService:self.clientId account:self.name error:nil];
     self.redirectURL = [NSString stringWithFormat:@"http://%@/oauth/%@", BKjs.appDomain, self.clientId];
-    self.accessTokenName = @"access_token";
+    self.parseTokenName = @"access_token";
+    self.requestTokenName = @"access_token";
     self.refreshTokenName = @"refresh_token";
     self.expiresName = @"expires_in";
     self.errorName = @"error";
+    self.errorDescr = @"error_description";
     self.dataName = @"data";
     self.oauthSignature = @"HMAC-SHA1";
     self.account = [@{} mutableCopy];
     self.oauthState = [BKjs getUUID];
     self.headers = [@{} mutableCopy];
     [[BKSocialAccount accounts] setObject:self forKey:self.name];
+    [self restoreToken];
     return self;
 }
 
 - (BOOL)isOpen
 {
     return self.accessToken != nil && self.accessToken.length > 0;
+}
+
+- (void)saveToken
+{
+    if (self.accessToken && self.accessToken.length > 0) {
+        NSString *token = [NSString stringWithFormat:@"%@|%@|%ld", self.accessToken, self.refreshToken ? self.refreshToken : @"", (long)self.oauthExpires];
+        [BKjs setPassword:token forService:self.clientId account:self.name error:nil];
+    }
+}
+
+- (void)restoreToken
+{
+    NSArray *token = [[BKjs passwordForService:self.clientId account:self.name error:nil] componentsSeparatedByString:@"|"];
+    if (token && token.count == 3) {
+        self.accessToken = token[0];
+        self.refreshToken = token[1];
+        self.oauthExpires = [token[2] longValue];
+    }
 }
 
 // List of objects with "url" and "param" properties
@@ -81,37 +101,28 @@ static NSMutableDictionary *_accounts;
     return NO;
 }
 
-// By default save id and username for each social account, some API requests work by id some only by username
-- (void)saveAccount
-{
-    NSString *aid = [NSString stringWithFormat:@"%@_id",self.name];
-    NSString *aname = [NSString stringWithFormat:@"%@_username",self.name];
-    
-    BKjs.account[aid] = [self.account str:@"id"];
-    BKjs.account[aname] = [self.account str:@"username"];
-}
-
 // Parse access token from the url or the data,
 - (BOOL)parseRedirectURL:(NSURLRequest *)request
 {
     // By default client-side OAuth 2.0 uses the url fragment in the redirect url
     NSMutableDictionary *query = [BKjs parseQueryString:[[request URL] fragment]];
-    NSString *token = query[self.accessTokenName];
+    self.accessToken = query[self.parseTokenName];
     NSString *error = query[self.errorName];
+    NSString *errorDescr = query[self.errorDescr];
     
-    if ([BKjs isEmpty:token]) {
+    if ([BKjs isEmpty:self.accessToken]) {
         // Try the query string in case when access token is in the parameters
         query = [BKjs parseQueryString:[[request URL] query]];
-        token = query[self.accessTokenName];
+        self.accessToken = query[self.parseTokenName];
         if (!error) error = query[self.errorName];
+        if (!errorDescr) errorDescr = query[self.errorDescr];
     }
-    if (![BKjs isEmpty:token]) {
-        self.accessToken = [token copy];
-        [BKjs setPassword:self.accessToken forService:self.clientId account:self.name error:nil];
-    } else {
-        self.accessToken = nil;
-    }
-    [self.loginView finish:request error:error ? [NSError errorWithDomain:self.name code:0 userInfo:@{ NSLocalizedDescriptionKey: error }] : nil];
+    [self saveToken];
+    [self.loginView finish:request
+                     error:error ? [NSError errorWithDomain:self.name
+                                                       code:0
+                                                   userInfo:@{ NSLocalizedDescriptionKey: error,
+                                                               NSLocalizedFailureReasonErrorKey: errorDescr ? errorDescr : @"" }] : nil];
     return NO;
 }
 
@@ -124,7 +135,7 @@ static NSMutableDictionary *_accounts;
 {
     NSMutableDictionary *query = [@{} mutableCopy];
     for (id key in params) query[key] = params[key];
-    if (self.accessToken) query[self.accessTokenName] = self.accessToken;
+    if (self.accessToken) query[self.requestTokenName] = self.accessToken;
     return query;
 }
 
@@ -209,6 +220,8 @@ static NSMutableDictionary *_accounts;
 {
     self.account = [@{} mutableCopy];
     self.accessToken = nil;
+    self.refreshToken = nil;
+    self.oauthExpires = 0;
     [BKjs deletePasswordForService:self.clientId account:self.name error:nil];
     [self clearCookies];
 }
@@ -230,8 +243,8 @@ static NSMutableDictionary *_accounts;
 {
     Debug(@"%@", [request URL]);
     
-    self.accessToken = nil;
     if (!self.loginView) self.loginView = [BKWebViewController initWithDelegate:self completionHandler:nil];
+    self.accessToken = nil;
     [self enableCookies];
     [self.loginView start:request completionHandler:completionHandler];
 }
@@ -248,11 +261,6 @@ static NSMutableDictionary *_accounts;
     return YES;
 }
 
-- (void)webViewDidStartLoad:(UIWebView *)webView
-{
-    Debug(@"%@", [webView.request URL]);
-}
-
 - (void)webViewDidFinishLoad:(UIWebView *)webView
 {
     Debug(@"%@", [webView.request URL]);
@@ -262,13 +270,11 @@ static NSMutableDictionary *_accounts;
 
 - (void)webView:(UIWebView *)webView didFailLoadWithError:(NSError *)error
 {
-    NSString* url = error.userInfo[@"NSURLErrorFailingURLErrorKey"];
+    NSString* url = error.userInfo[NSURLErrorFailingURLStringErrorKey];
     if (![url hasPrefix:self.redirectURL]) {
-        Logger(@"%@: %@", [webView.request URL], error);
+        Logger(@"%@: %@", url, error);
         // Schedule block due to the webview being slow closing
-        [BKjs scheduleBlock:0.5 block:^(id obj) {
-            [self.loginView finish:webView.request error:error];
-        } params:nil];
+        [BKjs scheduleBlock:0.5 block:^(id obj) { [self.loginView finish:webView.request error:error]; } params:nil];
     }
 }
 
@@ -291,9 +297,11 @@ static NSMutableDictionary *_accounts;
         self.oauthCode = query[@"code"];
         request = [self getAccessTokenRequest:nil];
         [BKjs sendRequest:request success:^(NSDictionary *json) {
-            self.accessToken = [BKjs toString:json name:self.accessTokenName];
+            Logger(@"%@", json);
+            self.accessToken = [BKjs toString:json name:self.parseTokenName];
             self.refreshToken = [BKjs toString:json name:self.refreshTokenName];
             if (self.expiresName) self.oauthExpires = [query num:self.expiresName];
+            [self saveToken];
             finished(nil);
         } failure:^(NSURLRequest *request, NSHTTPURLResponse *response, NSError *error, id JSON) {
             finished(error);

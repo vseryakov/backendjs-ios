@@ -73,11 +73,17 @@
 
 - (void)finish:(NSURLRequest*)request error:(NSError*)error
 {
+    Logger(@"%@: %@", [request URL], error);
     [self hideActivity];
-    [self dismissViewControllerAnimated:YES completion:^{
+    if (self.presentingViewController) {
+        [self dismissViewControllerAnimated:YES completion:^{
+            if (self.completionHandler) self.completionHandler(request, error);
+            self.completionHandler = nil;
+        }];
+    } else {
         if (self.completionHandler) self.completionHandler(request, error);
         self.completionHandler = nil;
-    }];
+    }
 }
 
 - (void)cancel

@@ -11,9 +11,10 @@
 - (id)init:(NSString*)name clientId:(NSString*)clientId
 {
     self = [super init:name clientId:clientId];
-    self.accessTokenName = @"oauth2_access_token";
-    self.scope = @"r_ basicprofile r_emailaddress r_fullprofile r_network r_contactinfo w_messages rw_nus";
-    self.baseURL = @"https://www.linkedin.com";
+    self.type = @"oauth2";
+    self.requestTokenName = @"oauth2_access_token";
+    self.scope = @"r_emailaddress r_fullprofile r_network r_contactinfo w_messages rw_nus";
+    self.baseURL = @"https://api.linkedin.com/v1";
     self.launchURLs = @[ @{ @"url": @"linkedin://profile/%@", @"param": @"id" },
                          @{ @"url": @"https://www.linkedin.com/%@", @"param": @"username" } ];
     return self;
@@ -47,11 +48,29 @@
 
 - (void)getAccount:(NSDictionary*)params success:(SuccessBlock)success failure:(FailureBlock)failure
 {
-    [self getData:@"/people~" params:params success:^(id user) {
-        NSMutableDictionary *account = [user mutableCopy];
-        self.account = account;
-        if (success) success(account);
-        
+    [self getData:@"/people/~:(id,first-name,last-name,formatted-name,email-address,picture-url,public-profile-url,headline,industry)"
+           params:[BKjs mergeParams:params params:@{ @"format": @"json" }]
+          success:^(id user) {
+              NSMutableDictionary *account = [user mutableCopy];
+              self.account = account;
+              self.account[@"alias"] = user[@"formattedName"];
+              self.account[@"icon"] = user[@"pictureUrl"];
+              if (success) success(account);
+          } failure:failure];
+}
+
+- (void)getContacts:(NSDictionary*)params success:(SuccessBlock)success failure:(FailureBlock)failure
+{
+    [self getData:@"/people/~/connections:(id,formatted-name,picture-url,public-profile-url,location,headline,industry)" params:params success:^(id result) {
+        NSMutableArray *list = [@[] mutableCopy];
+        for (NSDictionary *item in result[@"data"]) {
+            NSMutableDictionary *rec = [item mutableCopy];
+            rec[@"type"] = self.name;
+            rec[@"alias"] = item[@"formattedName"];
+            rec[@"icon"] = item[@"pictureUrl"];
+            [list addObject:rec];
+        }
+        if (success) success(list);
     } failure:failure];
 }
 
