@@ -12,6 +12,7 @@
 - (id)init:(NSString*)name clientId:(NSString*)clientId
 {
     self = [super init:name clientId:clientId];
+    self.type = @"oauth1";
     self.baseURL = @"https://api.twitter.com/1.1/";
     self.launchURLs = @[ @{ @"url": @"twitter://user?id=%@", @"param": @"id" },
                          @{ @"url": @"http://www.twitter.com/%@", @"param": @"username" } ];

@@ -25,24 +25,26 @@
 #import "AFNetworking.h"
 #import "UIImageView+AFNetworking.h"
 
-#define XSTRINGIFY(n)     #n
-#define STRINGIFY(n)      XSTRINGIFY(n)
+#define XSTRINGIFY(n)       #n
+#define STRINGIFY(n)        XSTRINGIFY(n)
 
 #ifndef Logger
-#define Logger(fmt, ...)  NSLog((@"%s:%d " fmt), __PRETTY_FUNCTION__, __LINE__, ##__VA_ARGS__)
+#define Logger(fmt, ...)    NSLog((@"%s:%d " fmt), __PRETTY_FUNCTION__, __LINE__, ##__VA_ARGS__)
 #endif
 
 #ifdef BK_DEBUG
-#define Debug(fmt, ...)   NSLog((@"%s:%d " fmt), __PRETTY_FUNCTION__, __LINE__, ##__VA_ARGS__)
+#define Debug(fmt, ...)     NSLog((@"%s:%d " fmt), __PRETTY_FUNCTION__, __LINE__, ##__VA_ARGS__)
 #else
 #define Debug(fmt,...)
 #endif
 
 #define BKLogger(fmt, ...)  BKLog((@"%s:%d " fmt), __PRETTY_FUNCTION__, __LINE__, ##__VA_ARGS__)
 
-#define BKScreenWidth     [UIScreen mainScreen].bounds.size.width
-#define BKScreenHeight    [UIScreen mainScreen].bounds.size.height
-#define BKScreenTall      [UIScreen mainScreen].bounds.size.height > 480
+#define BKScreenWidth       [UIScreen mainScreen].bounds.size.width
+#define BKScreenHeight      [UIScreen mainScreen].bounds.size.height
+#define BKScreenTall        [UIScreen mainScreen].bounds.size.height > 480
+
+#define BKapp               ((AppDelegate*)BKjs.appDelegate)
 
 // Logger that periodically flushes log lines tot he backend using /log API call
 void BKLog(NSString *format, ...);

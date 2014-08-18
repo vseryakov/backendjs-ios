@@ -90,7 +90,7 @@
         if (sender == button) {
             // Find additional parameters for given action
             for (NSDictionary *item in self.items) {
-                if ([name isEqual:item[@"name"]] || [name isEqual:item[@"icon"]]) {
+                if ([name isEqual:item[@"id"]] || [name isEqual:item[@"title"]] || [name isEqual:item[@"icon"]]) {
                     if (item[@"block"]) {
                         SuccessBlock block = item[@"block"];
                         block(item[@"params"]);

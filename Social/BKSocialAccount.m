@@ -83,7 +83,7 @@ static NSMutableDictionary *_accounts;
     if (token && token.count == 3) {
         self.accessToken = token[0];
         self.refreshToken = token[1];
-        self.oauthExpires = [token[2] longValue];
+        self.oauthExpires = [BKjs toNumber:token[2]];
     }
 }
 

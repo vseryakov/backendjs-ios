@@ -144,6 +144,12 @@
         self.icon.frame = CGRectMake(x, y, self.width - x - 5, self.width/2);
         [BKjs getIcon:params[@"icon"] success:^(UIImage *image, NSString *url) { self.icon.image = image; } failure:nil];
         y = self.icon.bottom + 5;
+    } else
+    if (params[@"image"] && [params[@"image"] isKindOfClass:[UIImage class]]) {
+        self.icon.hidden = NO;
+        self.icon.frame = CGRectMake(x, y, self.width - x - 5, self.width/2);
+        self.icon.image = params[@"image"];
+        y = self.icon.bottom + 5;
     } else {
         self.icon.hidden = YES;
     }
