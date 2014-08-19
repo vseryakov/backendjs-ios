@@ -92,11 +92,16 @@
     if (params[@"avatar"] || params[@"avatar_id"]) {
         self.avatar.hidden = NO;
         self.avatar.frame = CGRectMake(x, y, 32, 32);
-        self.avatar.image = [UIImage imageNamed:@"avatar_male"];
         [BKui setImageBorder:self.avatar color:nil radius:0 border:1];
         if (params[@"avatar"]) {
-            [BKjs getIcon:params[@"avatar"] success:^(UIImage *image, NSString *url) { self.avatar.image = image; } failure:nil];
+            if ([params[@"avatar"] rangeOfString:@"/"].location == NSNotFound) {
+                self.source.image = [UIImage imageNamed:params[@"avatar"]];
+            } else {
+                self.avatar.image = [UIImage imageNamed:@"avatar_male"];
+                [BKjs getIcon:params[@"avatar"] success:^(UIImage *image, NSString *url) { self.avatar.image = image; } failure:nil];
+            }
         } else {
+            self.avatar.image = [UIImage imageNamed:@"avatar_male"];
             [BKjs getAccountIcon:@{ @"id": params[@"avatar_id"], @"type": [params str:@"avatar_type"] } success:^(UIImage *image, NSString *url) { self.avatar.image = image; } failure:nil];
         }
         x = self.avatar.right + 5;
@@ -179,102 +184,15 @@
 
 @end
 
-@implementation BKItemPopupView {
-    UIView *_bg;
-}
+@implementation BKItemPopupView
 
 - (instancetype)initWithFrame:(CGRect)frame params:(NSDictionary*)params
 {
-    self = [super initWithFrame:frame params:params];
-    self.scroll.frame = CGRectMake(0, 44, self.width, self.height - 44);
-    self.exclusiveTouch = YES;
+    self = [super initWithFrame:frame];
+    self.itemView = [[BKItemView alloc] initWithFrame:CGRectMake(0, 44, self.width, self.height - 44) params:params];
+    [self addSubview:self.itemView];
     
-    [BKui setViewBorder:self color:[UIColor darkGrayColor] width:1 radius:8];
-    [BKui setViewShadow:self color:nil offset:CGSizeMake(-5, 5) opacity:0.5 radius:-1];
-    
-    self.closeButton = [BKui makeCustomButton:@"Close" image:nil];
-    [self.closeButton sizeToFit];
-    [self.closeButton addTarget:self action:@selector(onClose:) forControlEvents:UIControlEventTouchUpInside];
-    self.closeButton.centerY = 22;
-    self.closeButton.centerX = self.width - 10 - self.closeButton.width/2;
-    [self addSubview:self.closeButton];
-    
-    _bg = [[UIView alloc] initWithFrame:[[UIScreen mainScreen] bounds]];
-    _bg.backgroundColor = [UIColor blackColor];
-
     return self;
-}
-
-- (void)onClose:(id)sender
-{
-    [self hide:nil];
-}
-
-- (void)show:(SuccessBlock)completion
-{
-    UIWindow *win = [[[UIApplication sharedApplication] delegate] window];
-
-    _bg.alpha = 0.0;
-    
-    self.layer.opacity = 0.1;
-    self.layer.transform = CATransform3DMakeScale(0.3, 0.3, 1.0);
-
-    [win addSubview:_bg];
-    [win addSubview:self];
-
-    [UIView animateWithDuration:0.5
-                          delay:0.1
-                        options:0
-					 animations:^{
-                         _bg.alpha = 0.5;
-					 }
-					 completion:nil];
-    
-    [UIView animateWithDuration:0.5
-                          delay:0
-         usingSpringWithDamping:0.7
-          initialSpringVelocity:0.7
-                        options:UIViewAnimationOptionCurveEaseInOut
-					 animations:^{
-                         self.layer.opacity = 1.0;
-                         self.layer.transform = CATransform3DMakeScale(1, 1, 1);
-					 }
-					 completion:^(BOOL finished) {
-                         if (completion) completion(self);
-                     }];
-}
-
-- (void)hide:(SuccessBlock)completion
-{
-    _bg.alpha = 0.5f;
-    
-    self.layer.opacity = 0.5f;
-    self.layer.transform = CATransform3DMakeScale(1, 1, 1.0);
-    
-    [UIView animateWithDuration:0.5
-                          delay:0
-                        options:0
-					 animations:^{
-                         _bg.alpha = 0;
-					 }
-					 completion:^(BOOL finished) {
-                         [_bg removeFromSuperview];
-                     }];
-    
-    [UIView animateWithDuration:0.5
-                          delay:0
-         usingSpringWithDamping:0.7
-          initialSpringVelocity:0.7
-                        options:UIViewAnimationOptionCurveEaseInOut
-					 animations:^{
-                         self.layer.opacity = 0;
-                         self.layer.transform = CATransform3DMakeScale(0.3, 0.3, 1);
-					 }
-					 completion:^(BOOL finished) {
-                         [_bg removeFromSuperview];
-                         [self removeFromSuperview];
-                         if (completion) completion(self);
-                     }];
 }
 
 @end

@@ -271,12 +271,12 @@ static UIActivityIndicatorView *_activity;
 
 + (UIImageView*)makeImageAvatar:(UIView*)view frame:(CGRect)frame eclipse:(UIImage*)eclipse
 {
-    UIImageView *avatar = [[UIImageView alloc] initWithImage:eclipse];
-    avatar.frame = frame;
-    [view addSubview:avatar];
-    
-    UIImageView *img = [[UIImageView alloc] initWithFrame:CGRectMake(0, 0, avatar.width-3, avatar.height-3)];
-    img.center = avatar.center;
+    if (eclipse) {
+        UIImageView *avatar = [[UIImageView alloc] initWithImage:eclipse];
+        avatar.frame = frame;
+        [view addSubview:avatar];
+    }
+    UIImageView *img = [[UIImageView alloc] initWithFrame:CGRectInset(frame, 3, 3)];
     img.contentMode = UIViewContentModeScaleAspectFill;
     img.layer.cornerRadius = img.width/2;
     img.layer.masksToBounds = YES;

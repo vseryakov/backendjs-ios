@@ -5,6 +5,8 @@
 //  Copyright (c) 2013. All rights reserved.
 //
 
+#import "BKPopupView.h"
+
 @interface BKItemView: UIView
 @property (strong, nonatomic) UIScrollView *scroll;
 @property (strong, nonatomic) UIImageView *avatar;
@@ -20,12 +22,10 @@
 - (void)clean;
 @end;
 
-@interface BKItemPopupView: BKItemView
-@property (strong, nonatomic) UIButton *closeButton;
+@interface BKItemPopupView: BKPopupView
+@property (strong, nonatomic) BKItemView *itemView;
 
 - (instancetype)initWithFrame:(CGRect)frame params:(NSDictionary*)params;
-- (void)hide:(SuccessBlock)completion;
-- (void)show:(SuccessBlock)completion;
 @end
 
 @interface BKItemViewController : BKViewController

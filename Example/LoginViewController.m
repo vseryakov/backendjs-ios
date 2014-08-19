@@ -5,7 +5,9 @@
 
 #import "AppDelegate.h"
 
-@implementation LoginViewController
+@implementation LoginViewController {
+    BKPopupView *_login;
+}
 
 - (instancetype)init
 {
@@ -34,6 +36,71 @@
     BKapp.messageCount = 1;
 }
 
+- (void)showLogin:(GenericBlock)finish
+{
+    _login = [[BKPopupView alloc] initWithFrame:CGRectMake(20, 20, self.view.width - 40, 260)];
+    _login.backgroundColor = [BKui makeColor:@"#EEEEEE"];
+    [_login.closeButton removeFromSuperview];
+    
+    UILabel *lbl = [BKui makeLabel:CGRectMake(0, 0, _login.width, 20) text:@"Login" color:[UIColor blueColor] font:nil];
+    lbl.textAlignment = NSTextAlignmentCenter;
+    lbl.centerY = 22;
+    [_login addSubview:lbl];
+
+    lbl = [BKui makeLabel:CGRectMake(20, lbl.bottom + 20, _login.width - 40, 20) text:@"Username" color:nil font:[UIFont systemFontOfSize:15]];
+    [_login addSubview:lbl];
+
+    UITextField *nm = [[UITextField alloc] initWithFrame:CGRectMake(20, lbl.bottom + 5, _login.width - 40, 30)];
+    nm.backgroundColor = _login.backgroundColor;
+    nm.leftView = [[UIView alloc] initWithFrame:CGRectMake(0, 0, 5, nm.height)];
+    nm.leftViewMode = UITextFieldViewModeAlways;
+    nm.tag = 100;
+    [BKui setViewBorder:nm color:nil width:1 radius:2];
+    [_login addSubview:nm];
+
+    lbl = [BKui makeLabel:CGRectMake(20, nm.bottom + 10, _login.width - 40, 20) text:@"Password" color:nil font:[UIFont systemFontOfSize:15]];
+    [_login addSubview:lbl];
+
+    UITextField *pw = [[UITextField alloc] initWithFrame:CGRectMake(20, lbl.bottom + 5, _login.width - 40, 30)];
+    pw.backgroundColor = _login.backgroundColor;
+    pw.leftView = [[UIView alloc] initWithFrame:CGRectMake(0, 0, 5, pw.height)];
+    pw.leftViewMode = UITextFieldViewModeAlways;
+    pw.secureTextEntry = YES;
+    pw.tag = 101;
+    [BKui setViewBorder:pw color:nil width:1 radius:2];
+    [_login addSubview:pw];
+    
+    UIButton *btn = [BKui makeCustomButton:@"Login" image:nil];
+    [btn sizeToFit];
+    btn.centerY = pw.bottom + 30;
+    btn.centerX = _login.width*0.25;
+    [btn addTarget:self action:@selector(onLogin:) forControlEvents:UIControlEventTouchUpInside];
+    [_login addSubview:btn];
+
+    btn = [BKui makeCustomButton:@"Cancel" image:nil];
+    [btn sizeToFit];
+    btn.centerY = pw.bottom + 30;
+    btn.centerX = _login.width*0.75;
+    [btn addTarget:_login action:@selector(onClose:) forControlEvents:UIControlEventTouchUpInside];
+    [_login addSubview:btn];
+
+    [_login show:nil];
+}
+
+- (void)onLogin:(id)sender
+{
+    UITextField *nm = (UITextField*)[_login viewWithTag:100];
+    UITextField *pw = (UITextField*)[_login viewWithTag:100];
+    [BKjs setCredentials:nm.text secret:pw.text];
+    [_login hide:nil];
+    
+    [BKjs getAccount:nil success:^(NSDictionary *obj) {
+        [BKui showViewController:self name:@"Inbox" params:nil];
+    } failure:^(NSInteger code, NSString *reason) {
+        [BKui showAlert:@"Error" text:reason finish:nil];
+    }];
+}
+
 - (void)onTableSelect:(NSIndexPath *)indexPath selected:(BOOL)selected
 {
     if (!selected) return;
@@ -45,11 +112,7 @@
     }
     
     if ([item[@"type"] isEqual:@"bkjs"]) {
-        [BKjs getAccount:nil success:^(NSDictionary *obj) {
-            [BKui showViewController:self name:@"Inbox" params:nil];
-        } failure:^(NSInteger code, NSString *reason) {
-            [BKui showAlert:@"Error" text:reason finish:nil];
-        }];
+        [self showLogin:nil];
         return;
     }
     

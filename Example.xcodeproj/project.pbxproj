@@ -57,6 +57,7 @@
 		F5F20ACF19A2A89A0057E664 /* facebook@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = F5F20ACC19A2A89A0057E664 /* facebook@2x.png */; };
 		F5F20AD019A2A89A0057E664 /* settings@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = F5F20ACD19A2A89A0057E664 /* settings@2x.png */; };
 		F5F20AD219A2AF490057E664 /* logo@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = F5F20AD119A2AF490057E664 /* logo@2x.png */; };
+		F5F20AD519A2E0260057E664 /* BKPopupView.m in Sources */ = {isa = PBXBuildFile; fileRef = F5F20AD419A2E0260057E664 /* BKPopupView.m */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -141,6 +142,8 @@
 		F5F20ACC19A2A89A0057E664 /* facebook@2x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "facebook@2x.png"; sourceTree = "<group>"; };
 		F5F20ACD19A2A89A0057E664 /* settings@2x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "settings@2x.png"; sourceTree = "<group>"; };
 		F5F20AD119A2AF490057E664 /* logo@2x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "logo@2x.png"; sourceTree = "<group>"; };
+		F5F20AD319A2E0260057E664 /* BKPopupView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = BKPopupView.h; sourceTree = "<group>"; };
+		F5F20AD419A2E0260057E664 /* BKPopupView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = BKPopupView.m; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -314,6 +317,8 @@
 				F5F20A8E19A29A600057E664 /* BKItemViewController.m */,
 				F5F20A8F19A29A600057E664 /* BKMenubarView.h */,
 				F5F20A9019A29A600057E664 /* BKMenubarView.m */,
+				F5F20AD319A2E0260057E664 /* BKPopupView.h */,
+				F5F20AD419A2E0260057E664 /* BKPopupView.m */,
 				F5F20A9119A29A600057E664 /* BKRangeSlider.h */,
 				F5F20A9219A29A600057E664 /* BKRangeSlider.m */,
 				F5F20A9319A29A600057E664 /* BKui.h */,
@@ -402,6 +407,7 @@
 				F5F20AB319A29A600057E664 /* BKRangeSlider.m in Sources */,
 				F5F20AAD19A29A600057E664 /* BKTwitter.m in Sources */,
 				F5F20AC819A29E320057E664 /* SettingsViewController.m in Sources */,
+				F5F20AD519A2E0260057E664 /* BKPopupView.m in Sources */,
 				F5F20AA919A29A600057E664 /* BKGoogle.m in Sources */,
 				F5F20AAC19A29A600057E664 /* BKSocialAccount.m in Sources */,
 				F5F20AA719A29A600057E664 /* GZIP.m in Sources */,
