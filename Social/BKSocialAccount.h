@@ -52,7 +52,8 @@
 - (void)clearCookies;
 
 - (NSMutableURLRequest*)getRequest:(NSString*)method path:(NSString*)path params:(NSDictionary*)params;
-- (NSMutableURLRequest *)getRequestOAuth1:(NSString *)method path:(NSString *)path params:(NSDictionary *)parameters;
+- (NSMutableURLRequest *)getRequestOAuth1:(NSString *)method path:(NSString *)path params:(NSDictionary *)params;
+- (void)sendRequest:(NSString *)path method:(NSString*)method params:(NSDictionary*)params headers:(NSDictionary*)headers body:(NSData*)body success:(SuccessBlock)success failure:(FailureBlock)failure;
 
 - (NSMutableURLRequest*)getAuthorizeRequest:(NSDictionary*)params;
 - (NSMutableURLRequest*)getAuthenticateRequest:(NSDictionary*)params;
@@ -62,7 +63,7 @@
 - (BOOL)parseRedirectURL:(NSURLRequest*)request;
 
 - (NSString*)getDataURL:(NSString*)path;
-- (NSMutableDictionary*)getDataQuery:(NSString*)path params:(NSDictionary*)params;
+- (NSDictionary*)getDataQuery:(NSString*)path params:(NSDictionary*)params;
 - (NSString*)getDataNextURL:(id)result;
 
 - (void)getData:(NSString*)path params:(NSDictionary*)params success:(SuccessBlock)success failure:(FailureBlock)failure;

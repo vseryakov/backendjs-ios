@@ -29,14 +29,14 @@
     return [self getRequestOAuth1:@"GET" path:@"https://api.twitter.com/oauth/access_token" params:params];
 }
 
-- (NSMutableURLRequest*)getRequestTokenReqiest:(NSDictionary*)params
+- (NSMutableURLRequest*)getRequestTokenRequest:(NSDictionary*)params
 {
     return [self getRequestOAuth1:@"GET" path:@"https://api.twitter.com/oauth/request_token" params:params];
 }
 
 - (void)getAccount:(NSDictionary*)params success:(SuccessBlock)success failure:(FailureBlock)failure
 {
-    [self getData:@"/1/account/verify_credentials.json" params:params success:^(id user) {
+    [self getData:@"/account/verify_credentials.json" params:params success:^(id user) {
         NSMutableDictionary *account = [user mutableCopy];
         self.account = account;
         self.account[@"alias"] = [account str:@"name"];
@@ -51,9 +51,9 @@
     NSMutableDictionary *query = [@{ @"status": msg ? msg : @"" } mutableCopy];
     for (id key in params) query[key] = params[key];
     if (image) {
-        [BKjs uploadImage:@"/1.1/statuses/update_with_media.json" name:@"media[]" image:image params:query success:success failure:failure];
+        [BKjs uploadImage:@"/statuses/update_with_media.json" name:@"media[]" image:image params:query success:success failure:failure];
     } else {
-        [self postData:@"/1.1/statuses/update.json" params:query success:success failure:failure];
+        [self postData:@"/statuses/update.json" params:query success:success failure:failure];
     }
 }
 

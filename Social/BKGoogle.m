@@ -12,6 +12,7 @@
 - (id)init:(NSString*)name clientId:(NSString*)clientId
 {
     self = [super init:name clientId:clientId];
+    self.type = @"oauth2";
     self.scope = @"email https://www.googleapis.com/auth/plus.login";
     self.baseURL = @"https://www.googleapis.com";
     self.redirectURL = @"http://localhost";
@@ -28,7 +29,7 @@
 -(NSURLRequest*)getAuthorizeRequest:(NSDictionary*)params
 {
     return [self getRequest:@"GET" path:@"https://accounts.google.com/o/oauth2/auth"
-                     params: @{ @"response_type": @"token",
+                     params: @{ @"response_type": @"code",
                                 @"client_id": self.clientId,
                                 @"scope": self.scope,
                                 @"state": self.oauthState,

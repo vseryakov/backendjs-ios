@@ -66,24 +66,34 @@ static NSMutableDictionary *_accounts;
 
 - (BOOL)isOpen
 {
+    if ([self.type isEqual:@"oauth1"]) {
+        return  self.oauthToken != nil && self.oauthToken[@"oauth_token"];
+    }
     return self.accessToken != nil && self.accessToken.length > 0;
 }
 
 - (void)saveToken
 {
-    if (self.accessToken && self.accessToken.length > 0) {
-        NSString *token = [NSString stringWithFormat:@"%@|%@|%ld", self.accessToken, self.refreshToken ? self.refreshToken : @"", (long)self.oauthExpires];
-        [BKjs setPassword:token forService:self.clientId account:self.name error:nil];
+    if ([self.type isEqual:@"oauth1"]) {
+        
+    } else {
+        if (self.accessToken && self.accessToken.length > 0) {
+            NSString *token = [NSString stringWithFormat:@"%@|%@|%ld", self.accessToken, self.refreshToken ? self.refreshToken : @"", (long)self.oauthExpires];
+            [BKjs setPassword:token forService:self.clientId account:self.name error:nil];
+        }
     }
 }
 
 - (void)restoreToken
 {
     NSArray *token = [[BKjs passwordForService:self.clientId account:self.name error:nil] componentsSeparatedByString:@"|"];
-    if (token && token.count == 3) {
-        self.accessToken = token[0];
-        self.refreshToken = token[1];
-        self.oauthExpires = [BKjs toNumber:token[2]];
+    if ([self.type isEqual:@"oauth1"]) {
+    } else {
+        if (token && token.count == 3) {
+            self.accessToken = token[0];
+            self.refreshToken = token[1];
+            self.oauthExpires = [BKjs toNumber:token[2]];
+        }
     }
 }
 
@@ -131,12 +141,30 @@ static NSMutableDictionary *_accounts;
     return [NSString stringWithFormat:@"%@%@", self.baseURL, path];
 }
 
-- (NSMutableDictionary*)getDataQuery:(NSString*)path params:(NSDictionary*)params
+- (NSDictionary*)getDataQuery:(NSString*)path params:(NSDictionary*)params
 {
+    if (!self.accessToken) return params;
     NSMutableDictionary *query = [@{} mutableCopy];
     for (id key in params) query[key] = params[key];
-    if (self.accessToken) query[self.requestTokenName] = self.accessToken;
+    query[self.requestTokenName] = self.accessToken;
     return query;
+}
+
+- (NSMutableURLRequest*)getRequest:(NSString*)method path:(NSString*)path params:(NSDictionary*)params
+{
+    return [[BKjs get] requestWithMethod:method path:path parameters:params];
+}
+
+- (void)sendRequest:(NSString *)path method:(NSString*)method params:(NSDictionary*)params headers:(NSDictionary*)headers body:(NSData*)body success:(SuccessBlock)success failure:(FailureBlock)failure
+{
+    if ([self.type isEqual:@"oauth1"] && self.oauthToken) {
+        NSMutableDictionary *hdrs = [@{} mutableCopy];
+        for (id key in headers) hdrs[key] = headers[key];
+        hdrs[@"Authorization"] = [self getHeaderOAuth1:method path:path params:params];
+        [BKjs sendRequest:path method:method params:params headers:hdrs body:body success:success failure:false];
+    } else {
+        [BKjs sendRequest:path method:method params:params headers:headers body:body success:success failure:false];
+    }
 }
 
 - (void)getData:(NSString*)path params:(NSDictionary*)params success:(SuccessBlock)success failure:(FailureBlock)failure
@@ -144,8 +172,8 @@ static NSMutableDictionary *_accounts;
     GenericBlock relogin = ^() {
         [self login:^(NSError *error) {
             if (![self isOpen]) {
-                Logger(@"%@: %@", self.name, error);
-                if (failure) failure(error ? error.code : -1, error.description);
+                Logger(@"%@: %@", self.name, error ? error : @"login error");
+                if (failure) failure(error ? error.code : -1, error ? error.description : @"login error");
             } else {
                 [self getResult:[self getDataURL:path] params:[self getDataQuery:path params:params] success:success failure:failure];
             }
@@ -165,13 +193,13 @@ static NSMutableDictionary *_accounts;
 
 - (void)postData:(NSString*)path params:(NSDictionary*)params success:(SuccessBlock)success failure:(FailureBlock)failure
 {
-    [BKjs sendRequest:[self getDataURL:path] method:@"POST" params:[self getDataQuery:path params:params] headers:self.headers body:nil success:success failure:failure];
+    [self sendRequest:[self getDataURL:path] method:@"POST" params:[self getDataQuery:path params:params] headers:self.headers body:nil success:success failure:failure];
 }
 
 - (void)getResult:(NSString*)path params:(NSDictionary*)params success:(SuccessBlock)success failure:(FailureBlock)failure
 {
     NSMutableArray *items = [@[] mutableCopy];
-    [BKjs sendRequest:path method:@"GET" params:params headers:self.headers body:nil success:^(id result) {
+    [self sendRequest:path method:@"GET" params:params headers:self.headers body:nil success:^(id result) {
         [self processResult:result items:items success:success failure:^(NSInteger code, NSString *reason) {
             if (failure) failure(code, reason);
         }];
@@ -278,11 +306,6 @@ static NSMutableDictionary *_accounts;
     }
 }
 
-- (NSMutableURLRequest*)getRequest:(NSString*)method path:(NSString*)path params:(NSDictionary*)params
-{
-    return [[BKjs get] requestWithMethod:method path:path parameters:params];
-}
-
 #pragma mark OAUTH 2
 
 - (void)authorize2:(ErrorBlock)finished
@@ -325,88 +348,74 @@ static NSMutableDictionary *_accounts;
 
 - (void)authorize1:(ErrorBlock)finished
 {
-    [self getRequestToken:self.scope success:^(NSMutableDictionary *requestToken) {
-        NSMutableURLRequest *request = [self getAuthorizeRequest:@{ @"oauth_token": [BKjs toString:requestToken name:@"oauth_token"] }];
-        [request setHTTPShouldHandleCookies:NO];
-        Logger(@"%@", requestToken);
-        
+    [self getRequestToken:^{
+        NSMutableURLRequest *request = [self getAuthorizeRequest:@{ @"oauth_token": [BKjs toString:self.oauthToken name:@"oauth_token"] }];
         [self showWebView:request completionHandler:^(NSURLRequest *request, NSError *error) {
-            NSURL *url = [request URL];
-            NSDictionary *query = [BKjs parseQueryString:[url query]];
-            if (query[@"oauth_verifier"]) requestToken[@"oauth_verifier"] = query[@"oauth_verifier"];
+            NSDictionary *query = [BKjs parseQueryString:[[request URL] query]];
+            if (query[@"oauth_verifier"]) self.oauthToken[@"oauth_verifier"] = query[@"oauth_verifier"];
             
-            [self getAccessToken:requestToken success:^(NSMutableDictionary *accessToken) {
-                if (accessToken) {
-                    self.oauthToken = accessToken;
-                    finished(nil);
-                } else {
-                    finished(nil);
-                }
-            } failure:^(NSError *error) {
-                finished(error);
-            }];
+            [self getAccessToken:^{ finished(nil); } failure:finished];
         }];
-        
-    } failure:^(NSError *error) {
-        finished(error);
-    }];
+    } failure:finished];
 }
 
-- (void)getRequestToken:(NSString *)scope success:(SuccessBlock)success failure:(ErrorBlock)failure
+- (void)getRequestToken:(GenericBlock)success failure:(ErrorBlock)failure
 {
     NSMutableDictionary *params = [self oauthParameters];
     params[@"oauth_callback"] = self.redirectURL;
-    if (scope && !self.accessToken) params[@"scope"] = scope;
+    if (self.scope && !self.accessToken) params[@"scope"] = self.scope;
     
     NSMutableURLRequest *request = [self getRequestTokenRequest:params];
     [request setHTTPBody:nil];
     AFHTTPRequestOperation *operation = [[BKjs get] HTTPRequestOperationWithRequest:request success:^(AFHTTPRequestOperation *operation, id responseObject) {
         if (success) {
-            NSMutableDictionary *requestToken = [BKjs parseQueryString:operation.responseString];
-            success(requestToken);
+            self.oauthToken = [BKjs parseQueryString:operation.responseString];
+            success();
         }
     } failure:^(AFHTTPRequestOperation *operation, NSError *error) {
         Logger(@"%@: error: %@", request.URL, error);
+        self.oauthToken = nil;
         if (failure) failure(error);
     }];
     [[BKjs get] enqueueHTTPRequestOperation:operation];
 }
 
-- (void)getAccessToken:(NSMutableDictionary *)requestToken success:(SuccessBlock)success failure:(ErrorBlock)failure
+- (void)getAccessToken:(GenericBlock)success failure:(ErrorBlock)failure
 {
-    if (requestToken && requestToken[@"oauth_token"] && requestToken[@"oauth_verifier"]) {
-        self.oauthToken = requestToken;
-        
+    Logger(@"%@", self.oauthToken);
+
+    if (self.oauthToken && self.oauthToken[@"oauth_token"] && self.oauthToken[@"oauth_verifier"]) {
         NSMutableDictionary *params = [self oauthParameters];
-        params[@"oauth_token"] = requestToken[@"oauth_token"];
-        params[@"oauth_verifier"] = requestToken[@"oauth_verifier"];
+        params[@"oauth_token"] = self.oauthToken[@"oauth_token"];
+        params[@"oauth_verifier"] = self.oauthToken[@"oauth_verifier"];
         NSMutableURLRequest *request = [self getAccessTokenRequest:params];
         AFHTTPRequestOperation *operation = [[BKjs get] HTTPRequestOperationWithRequest:request success:^(AFHTTPRequestOperation *operation, id responseObject) {
             if (success) {
-                NSMutableDictionary *accessToken = [BKjs parseQueryString:operation.responseString];
-                success(accessToken);
+                self.oauthToken = [BKjs parseQueryString:operation.responseString];
+                success();
             }
         } failure:^(AFHTTPRequestOperation *operation, NSError *error) {
             Logger(@"%@: error: %@", request.URL, error);
+            self.oauthToken = nil;
             if (failure) failure(error);
         }];
         [[BKjs get] enqueueHTTPRequestOperation:operation];
     } else {
         NSError *error = [[NSError alloc] initWithDomain:AFNetworkingErrorDomain code:NSURLErrorBadServerResponse userInfo:@{ NSLocalizedFailureReasonErrorKey: @"Bad OAuth response received from the server" }];
+        self.oauthToken = nil;
         if (failure) failure(error);
     }
 }
 
-- (NSMutableURLRequest *)getRequestOAuth1:(NSString *)method path:(NSString *)path params:(NSDictionary *)parameters
+- (NSString*)getHeaderOAuth1:(NSString *)method path:(NSString *)path params:(NSDictionary *)parameters
 {
     NSMutableDictionary *params = parameters ? [parameters mutableCopy] : [NSMutableDictionary dictionary];
     NSMutableDictionary *aparams = [NSMutableDictionary dictionary];
-    NSString *token = self.oauthToken ? self.oauthToken[@"oauth_token"] : nil;
     NSString *secret = [BKjs toString:self.oauthToken name:@"oauth_token_secret"];
     
-    if (token) {
+    if (self.oauthToken && self.oauthToken[@"oauth_token"]) {
         [aparams addEntriesFromDictionary:[self oauthParameters]];
-        aparams[@"oauth_token"] = token;
+        aparams[@"oauth_token"] = self.oauthToken[@"oauth_token"];
     }
     [params enumerateKeysAndObjectsUsingBlock:^(id key, id obj, BOOL *stop) {
         if ([key isKindOfClass:[NSString class]] && [key hasPrefix:@"oauth_"]) aparams[key] = obj;
@@ -441,13 +450,17 @@ static NSMutableDictionary *_accounts;
         if (parts.count != 2) continue;
         [items addObject:[NSString stringWithFormat:@"%@=\"%@\"", parts[0], parts[1]]];
     }
-    NSString *authHeader = [NSString stringWithFormat:@"OAuth %@", [items componentsJoinedByString:@", "]];
-    
-    params = [parameters mutableCopy];
+    return [NSString stringWithFormat:@"OAuth %@", [items componentsJoinedByString:@", "]];
+}
+
+- (NSMutableURLRequest *)getRequestOAuth1:(NSString *)method path:(NSString *)path params:(NSDictionary *)parameters
+{
+    NSString *authHeader = [self getHeaderOAuth1:method path:path params:parameters];
+    NSMutableDictionary *params = [parameters mutableCopy];
     for (NSString *key in parameters) {
         if ([key hasPrefix:@"oauth_"]) [params removeObjectForKey:key];
     }
-    Logger(@"%@: %@: %@", path, authHeader, params);
+    Debug(@"%@: %@: %@", path, authHeader, params);
 
     NSMutableURLRequest *request = [[BKjs get] requestWithMethod:method path:path parameters:params];
     [request setValue:authHeader forHTTPHeaderField:@"Authorization"];
