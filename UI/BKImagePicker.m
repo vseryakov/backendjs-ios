@@ -25,7 +25,11 @@
     
     UICollectionViewFlowLayout *layout = [[UICollectionViewFlowLayout alloc] init];
     layout.scrollDirection = UICollectionViewScrollDirectionVertical;
-    layout.itemSize = CGSizeMake(self.tableView.width/4, self.tableView.width/4);
+    layout.sectionInset = UIEdgeInsetsMake(8, 8, 8, 8);
+    layout.minimumInteritemSpacing = 8;
+    layout.minimumLineSpacing = 8;
+    int w = (self.tableView.width - layout.minimumInteritemSpacing * 5)/4;
+    layout.itemSize = CGSizeMake(w, w);
     
     self.photosView = [[UICollectionView alloc] initWithFrame:self.tableView.frame collectionViewLayout:layout];
     self.photosView.backgroundColor = self.view.backgroundColor;
@@ -42,6 +46,7 @@
     [super viewWillAppear:animated];
     self.photosView.x = self.view.width;
     self.toolbarTitle.text = @"Albums";
+    [self getItems];
 }
 
 - (void)onBack:(id)sender
@@ -101,9 +106,10 @@
     
     UIImageView *imageView = [[UIImageView alloc] initWithFrame:CGRectMake(10, 5, cell.height-10, cell.height-10)];
     imageView.contentMode = UIViewContentModeScaleAspectFill;
+    imageView.clipsToBounds = YES;
     [cell addSubview:imageView];
     
-    [BKjs getImage:item[@"icon"] request:nil success:^(UIImage *image, NSString *url) { imageView.image = image; } failure:nil];
+    [BKjs getImage:item[@"icon"] options:BKCacheModeCache success:^(UIImage *image, NSString *url) { imageView.image = image; } failure:nil];
 }
 
 #pragma mark Photos scrollview
@@ -133,9 +139,16 @@
 - (void)onSelected:(NSInteger)index view:(UIImageView*)view
 {
     NSDictionary *item = _photosItems[index];
+    for (id key in item) self.params[key] = item[key];
+
     ControllerBlock block = self.params[@"_block"];
     if (block) {
-        block(self, item);
+        block(self, self.params);
+        [self showPrevious];
+    } else
+    if (self.pickerDelegate) {
+        [self.pickerDelegate onImagePicker:self image:item[@"_image"] params:self.params];
+        [self showPrevious];
     } else {
         [self showPrevious];
     }
@@ -162,10 +175,11 @@
     
     UIImageView *imageView = [[UIImageView alloc] initWithFrame:CGRectMake(0, 0, cell.width, cell.width)];
     imageView.contentMode = UIViewContentModeScaleAspectFill;
+    imageView.clipsToBounds = YES;
     imageView.tag = 1000;
     [cell addSubview:imageView];
     
-    [BKjs getImage:item[@"icon"] request:nil success:^(UIImage *image, NSString *url) {
+    [BKjs getImage:item[@"icon"] options:BKCacheModeCache success:^(UIImage *image, NSString *url) {
         imageView.image = image;
         item[@"_image"] = image;
         [_photosItems setObject:item atIndexedSubscript:indexPath.row];

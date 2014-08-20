@@ -98,11 +98,11 @@
                 self.source.image = [UIImage imageNamed:params[@"avatar"]];
             } else {
                 self.avatar.image = [UIImage imageNamed:@"avatar_male"];
-                [BKjs getIcon:params[@"avatar"] success:^(UIImage *image, NSString *url) { self.avatar.image = image; } failure:nil];
+                [BKjs getIcon:params[@"avatar"] options:BKCacheModeCache success:^(UIImage *image, NSString *url) { self.avatar.image = image; } failure:nil];
             }
         } else {
             self.avatar.image = [UIImage imageNamed:@"avatar_male"];
-            [BKjs getAccountIcon:@{ @"id": params[@"avatar_id"], @"type": [params str:@"avatar_type"] } success:^(UIImage *image, NSString *url) { self.avatar.image = image; } failure:nil];
+            [BKjs getAccountIcon:@{ @"id": params[@"avatar_id"], @"type": [params str:@"avatar_type"] } options:BKCacheModeCache success:^(UIImage *image, NSString *url) { self.avatar.image = image; } failure:nil];
         }
         x = self.avatar.right + 5;
     } else {
@@ -116,7 +116,7 @@
         if ([params[@"source"] rangeOfString:@"/"].location == NSNotFound) {
             self.source.image = [UIImage imageNamed:params[@"source"]];
         } else {
-            [BKjs getIcon:params[@"source"] success:^(UIImage *image, NSString *url) { self.source.image = image; } failure:nil];
+            [BKjs getIcon:params[@"source"] options:BKCacheModeCache success:^(UIImage *image, NSString *url) { self.source.image = image; } failure:nil];
         }
     } else {
         self.source.hidden = YES;
@@ -147,7 +147,7 @@
     if (params[@"icon"]) {
         self.icon.hidden = NO;
         self.icon.frame = CGRectMake(x, y, self.width - x - 5, self.width/2);
-        [BKjs getIcon:params[@"icon"] success:^(UIImage *image, NSString *url) { self.icon.image = image; } failure:nil];
+        [BKjs getIcon:params[@"icon"] options:BKCacheModeCache success:^(UIImage *image, NSString *url) { self.icon.image = image; } failure:nil];
         y = self.icon.bottom + 5;
     } else
     if (params[@"image"] && [params[@"image"] isKindOfClass:[UIImage class]]) {

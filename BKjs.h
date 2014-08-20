@@ -65,6 +65,12 @@ typedef void (^AlertBlock)(UIAlertView *view, NSString *button);
 typedef void (^ActionBlock)(UIActionSheet *view, NSString *button);
 typedef void (^ControllerBlock)(UIViewController *controller, NSDictionary *item);
 
+typedef NS_OPTIONS(NSUInteger, BKOptions) {
+    BKCacheModeCache = 1,
+    BKCacheModeFresh = 2,
+    BKCacheModeFlush = 4,
+};
+
 @interface BKjs: AFHTTPClient <CLLocationManagerDelegate,UIAlertViewDelegate>
 
 // This method should return fully qualified URL to be retrieved, by default path is unchanged and passed as it it but by
@@ -146,8 +152,8 @@ typedef void (^ControllerBlock)(UIViewController *controller, NSDictionary *item
 
 #pragma mark Image requests
 
-+ (void)getImage:(NSURLRequest*)request success:(ImageSuccessBlock)success failure:(FailureBlock)failure;
-+ (void)getImage:(NSString*)url request:(NSURLRequest*)request success:(ImageSuccessBlock)success failure:(FailureBlock)failure;
++ (void)sendImageRequest:(NSURLRequest*)request options:(BKOptions)options success:(ImageSuccessBlock)success failure:(FailureBlock)failure;
++ (void)getImage:(NSString*)url options:(BKOptions)options success:(ImageSuccessBlock)success failure:(FailureBlock)failure;
 
 #pragma mark Image cache
 
@@ -170,15 +176,15 @@ typedef void (^ControllerBlock)(UIViewController *controller, NSDictionary *item
 
 #pragma mark Account icons API
 
-+ (void)getAccountIcon:(NSDictionary*)params success:(ImageSuccessBlock)success failure:(FailureBlock)failure;
++ (void)getAccountIcon:(NSDictionary*)params options:(BKOptions)options success:(ImageSuccessBlock)success failure:(FailureBlock)failure;
 + (void)putAccountIcon:(UIImage*)image params:(NSDictionary*)params success:(GenericBlock)success failure:(FailureBlock)failure;
 + (void)delAccountIcon:(NSDictionary*)params success:(GenericBlock)success failure:(FailureBlock)failure;
 + (void)getAccountIcons:(NSDictionary*)params success:(ListBlock)success failure:(GenericBlock)failure;
 
 #pragma mark Icon API
 
-+ (void)getIcon:(NSString*)path params:(NSDictionary*)params success:(ImageSuccessBlock)success failure:(FailureBlock)failure;
-+ (void)getIcon:(NSString*)url success:(ImageSuccessBlock)success failure:(FailureBlock)failure;
++ (void)getIcon:(NSString*)path params:(NSDictionary*)params options:(BKOptions)options success:(ImageSuccessBlock)success failure:(FailureBlock)failure;
++ (void)getIcon:(NSString*)url options:(BKOptions)options success:(ImageSuccessBlock)success failure:(FailureBlock)failure;
 
 #pragma mark Location API
 
@@ -208,7 +214,7 @@ typedef void (^ControllerBlock)(UIViewController *controller, NSDictionary *item
 + (void)delMessage:(NSDictionary*)params success:(SuccessBlock)success failure:(FailureBlock)failure;
 + (void)delArchivedMessage:(NSDictionary*)params success:(SuccessBlock)success failure:(FailureBlock)failure;
 + (void)delSentMessage:(NSDictionary*)params success:(SuccessBlock)success failure:(FailureBlock)failure;
-+ (void)getMessageIcon:(NSDictionary*)params success:(ImageSuccessBlock)success failure:(FailureBlock)failure;
++ (void)getMessageIcon:(NSDictionary*)params options:(BKOptions)options success:(ImageSuccessBlock)success failure:(FailureBlock)failure;
 
 #pragma mark Dictionary properties
 
@@ -225,6 +231,7 @@ typedef void (^ControllerBlock)(UIViewController *controller, NSDictionary *item
 + (BOOL)isEmpty:(id)obj;
 + (NSString*)toString:(id)obj names:(NSArray*)names dflt:(NSString*)dflt;
 + (double)toNumber:(id)obj names:(NSArray*)names dflt:(double)dflt;
++ (NSData*)toJSON:(id)obj;
 
 #pragma mark Generic utilities
 

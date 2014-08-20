@@ -63,6 +63,11 @@ static NSMutableDictionary *_accounts;
     return self;
 }
 
+- (NSString*)description
+{
+    return [NSString stringWithFormat:@"%@: type=%@, open=%d", self.name, self.type, [self isOpen]];
+}
+
 - (BOOL)isOpen
 {
     if ([self.type isEqual:@"oauth1"]) {
@@ -195,7 +200,7 @@ static NSMutableDictionary *_accounts;
 
 - (void)postData:(NSString*)path params:(NSDictionary*)params success:(SuccessBlock)success failure:(FailureBlock)failure
 {
-    NSMutableURLRequest *request = [BKjs makeRequest:@"POST" path:[self getDataURL:path] params:[self getDataQuery:path params:params] headers:self.headers body:nil];
+    NSMutableURLRequest *request = [self getRequest:@"POST" path:[self getDataURL:path] params:[self getDataQuery:path params:params] headers:self.headers body:nil];
     [BKjs sendRequest:request success:success failure:^(NSURLRequest *request, NSHTTPURLResponse *response, NSError *error, id json) {
         if (failure) failure(response.statusCode, error.description);
     }];
@@ -204,7 +209,7 @@ static NSMutableDictionary *_accounts;
 - (void)getResult:(NSString*)path params:(NSDictionary*)params success:(SuccessBlock)success failure:(FailureBlock)failure
 {
     NSMutableArray *items = [@[] mutableCopy];
-    NSMutableURLRequest *request = [BKjs makeRequest:@"GET" path:path params:params headers:self.headers body:nil];
+    NSMutableURLRequest *request = [self getRequest:@"GET" path:path params:params headers:self.headers body:nil];
     [BKjs sendRequest:request success:^(id result) {
         [self processResult:result items:items success:success failure:^(NSInteger code, NSString *reason) {
             if (failure) failure(code, reason);

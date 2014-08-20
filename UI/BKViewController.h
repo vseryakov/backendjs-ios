@@ -170,7 +170,7 @@
 
 #pragma mark Image Pickers
 
-- (void)onImagePicker:(UIImage*)image params:(NSDictionary*)params;
+- (void)onImagePicker:(id)picker image:(UIImage*)image params:(NSDictionary*)params;
 - (void)showImagePickerFromAlbums:(NSDictionary*)params;
 - (void)showImagePickerFromCamera:(id)sender params:(NSDictionary*)params;
 - (void)showImagePickerFromLibrary:(id)sender params:(NSDictionary*)params;

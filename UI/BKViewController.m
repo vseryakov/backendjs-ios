@@ -656,18 +656,12 @@
 
 - (void)showImagePickerFromAlbums:(NSDictionary*)params
 {
-    NSMutableDictionary *aparams = [@{} mutableCopy];
-    for (id key in params) aparams[key] = params[key];
-    aparams[@"_block"] = ^(NSDictionary *item) {
-        // Keep reference when calling a callback so the image will not be freed
-        UIImage *img = item[@"_image"];
-        [self onImagePicker:img params:params];
-    };
     BKImagePickerController *picker = [[BKImagePickerController alloc] init];
+    picker.pickerDelegate = self;
     [BKui showViewController:self controller:picker name:@"Albums" mode:@"push" params:params];
 }
 
-- (void)onImagePicker:(UIImage*)image params:(NSDictionary*)params
+- (void)onImagePicker:(id)picker image:(UIImage*)image params:(NSDictionary*)params
 {
 }
 
@@ -919,7 +913,7 @@
 
 - (void)imagePickerController:(UIImagePickerController *)picker didFinishPickingMediaWithInfo:(NSDictionary *)info
 {
-    [self.view onImagePicker:info[UIImagePickerControllerOriginalImage] params:self.params];
+    [self.view onImagePicker:picker image:info[UIImagePickerControllerOriginalImage] params:self.params];
     [picker dismissViewControllerAnimated:NO completion:NULL];
 }
 

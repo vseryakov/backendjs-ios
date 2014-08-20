@@ -446,6 +446,21 @@ static NSString *SysCtlByName(char *typeSpecifier)
     return dflt;
 }
 
++ (NSData*)toJSON:(id)obj
+{
+    if (![NSJSONSerialization isValidJSONObject:obj]) {
+        Logger(@"ERROR: invalid JSON: %@", obj);
+        return nil;
+    }
+    NSError *error = nil;
+    NSData *json = [NSJSONSerialization dataWithJSONObject:obj options:(NSJSONWritingOptions)0 error:&error];
+    if (error) {
+        Logger(@"%@: %@", error, obj);
+        return nil;
+    }
+    return json;
+}
+
 #pragma mark Query parser
 
 + (NSMutableDictionary *)parseQueryString:(NSString *)query
@@ -589,11 +604,13 @@ static NSString *SysCtlByName(char *typeSpecifier)
 
 + (void)sendJSON:(NSString*)path method:(NSString*)method params:(NSDictionary*)params success:(SuccessBlock)success failure:(FailureBlock)failure
 {
-    NSError *error = nil;
     path = [[BKjs get] getURL:path];
     NSDictionary *headers = [BKjs sign:path method:method params:nil contentType:@"application/json; charset=UTF-8" expires:0 checksum:nil];
-    NSData *body = [NSJSONSerialization dataWithJSONObject:params options:(NSJSONWritingOptions)0 error:&error];
-    if (error) Logger(@"%@: %@", path, error);
+    NSData *body = [self toJSON:params];
+    if (!body) {
+        if (failure) failure(-1, @"invalid params for JSON");
+        return;
+    }
     [BKjs sendRequest:path method:method params:nil headers:headers body:body success:success failure:failure];
 }
 
@@ -647,78 +664,7 @@ static NSString *SysCtlByName(char *typeSpecifier)
     [[BKjs get].operationQueue addOperation:op];
 }
 
-+ (void)getImage:(NSString*)url request:(NSURLRequest*)request success:(ImageSuccessBlock)success failure:(FailureBlock)failure
-{
-    if (url == nil || url.length == 0) {
-        if (failure) failure(0, @"no url provided");
-        return;
-    }
-    if (!request) request = [[BKjs get] requestWithMethod:@"GET" path:url parameters:nil];
-    [BKjs getImage:request success:success failure:failure];
-}
-
-+ (void)getImage:(NSURLRequest*)request success:(ImageSuccessBlock)success failure:(FailureBlock)failure
-{
-    if (![request isKindOfClass:[NSURLRequest class]]) {
-        if (failure) failure(-1, @"invalid request");
-        return;
-    }
-    
-    NSString *url = request.URL.absoluteString;
-    if ([request.HTTPMethod isEqual:@"POST"]) {
-        NSString *type = [request valueForHTTPHeaderField:@"Content-Type"];
-        if (type && [type hasPrefix:@"application/x-www-form-urlencoded"]) {
-            url = [url stringByAppendingString:[[NSString alloc] initWithData:[request HTTPBody] encoding:NSUTF8StringEncoding]];
-        }
-    }
-    
-    UIImage *cached = [[BKjs get] getCachedImage:url];
-    if (cached) {
-        if (success) success(cached, request.URL.absoluteString);
-        return;
-    }
-    
-    Logger(@"%@", request);
-    
-    AFImageRequestOperation *op = [AFImageRequestOperation
-                                   imageRequestOperationWithRequest:request
-                                   imageProcessingBlock:^UIImage *(UIImage *image) {
-                                       return image;
-                                   }
-                                   success:^(NSURLRequest *request, NSHTTPURLResponse *response, UIImage *image) {
-                                       [self parseServerVersion:response];
-                                       [[BKjs get] cacheImage:request.URL.absoluteString image:image];
-                                       if (success) success(image, request.URL.absoluteString);
-                                   }
-                                   failure:^(NSURLRequest *request, NSHTTPURLResponse *response, NSError *error) {
-                                       [self parseServerVersion:response];
-                                       Logger(@"%@: error: %ld: %@", request.URL, (long)response.statusCode, error);
-                                       if (failure) failure(response.statusCode, error.description);
-                                   }];
-    [[BKjs get].operationQueue addOperation:op];
-}
-
-# pragma Icon API
-
-+ (void)getIcon:(NSString*)path params:(NSDictionary*)params success:(ImageSuccessBlock)success failure:(FailureBlock)failure
-{
-    path = [[BKjs get] getURL:path];
-    NSDictionary *headers = [BKjs sign:path method:@"GET" params:params contentType:nil expires:0 checksum:nil];
-    NSMutableURLRequest *request = [BKjs makeRequest:@"GET" path:[[BKjs get] getURL:path] params:params];
-    for (NSString* key in headers) [request setValue:headers[key] forHTTPHeaderField:key];
-    [BKjs getImage:request success:success failure:failure];
-}
-
-+ (void)getIcon:(NSString*)url success:(ImageSuccessBlock)success failure:(FailureBlock)failure
-{
-	NSMutableURLRequest *request = [[NSMutableURLRequest alloc] initWithURL:[NSURL URLWithString:url relativeToURL:[BKjs get].baseURL]];
-    [request setTimeoutInterval:30];
-    NSDictionary *headers = [BKjs sign:request.URL.absoluteString method:@"GET" params:nil contentType:nil expires:0 checksum:nil];
-    for (NSString* key in headers) [request setValue:headers[key] forHTTPHeaderField:key];
-    [BKjs getImage:request success:success failure:failure];
-}
-
-#pragma mark Image cache
+#pragma mark Image requests
 
 - (UIImage*)getCachedImage:(NSString*)url
 {
@@ -735,6 +681,83 @@ static NSString *SysCtlByName(char *typeSpecifier)
     if (url) [BKjs.cache removeObjectForKey:url];
 }
 
++ (void)getImage:(NSString*)url options:(BKOptions)options success:(ImageSuccessBlock)success failure:(FailureBlock)failure
+{
+    if (url == nil || url.length == 0) {
+        if (failure) failure(0, @"no url provided");
+        return;
+    }
+    [self sendImageRequest:[[BKjs get] requestWithMethod:@"GET" path:url parameters:nil] options:options success:success failure:failure];
+}
+
++ (void)sendImageRequest:(NSURLRequest*)request options:(BKOptions)options success:(ImageSuccessBlock)success failure:(FailureBlock)failure
+{
+    if (![request isKindOfClass:[NSURLRequest class]]) {
+        if (failure) failure(-1, @"invalid request");
+        return;
+    }
+    
+    NSString *url = request.URL.absoluteString;
+    if ([request.HTTPMethod isEqual:@"POST"]) {
+        NSString *type = [request valueForHTTPHeaderField:@"Content-Type"];
+        if (type && [type hasPrefix:@"application/x-www-form-urlencoded"]) {
+            url = [url stringByAppendingString:[[NSString alloc] initWithData:[request HTTPBody] encoding:NSUTF8StringEncoding]];
+        }
+    }
+    
+    if (options & (BKCacheModeFlush|BKCacheModeFresh)) {
+        [[BKjs get] uncacheImage:url];
+    }
+    if (options & BKCacheModeCache) {
+        UIImage *cached = [[BKjs get] getCachedImage:url];
+        if (cached) {
+            if (success) success(cached, request.URL.absoluteString);
+            return;
+        }
+    }
+        
+    Logger(@"%@", request);
+    
+    AFImageRequestOperation *op = [AFImageRequestOperation
+                                   imageRequestOperationWithRequest:request
+                                   imageProcessingBlock:^UIImage *(UIImage *image) {
+                                       return image;
+                                   }
+                                   success:^(NSURLRequest *request, NSHTTPURLResponse *response, UIImage *image) {
+                                       if (options & (BKCacheModeCache|BKCacheModeFresh)) {
+                                           [[BKjs get] cacheImage:request.URL.absoluteString image:image];
+                                       }
+                                       [self parseServerVersion:response];
+                                       if (success) success(image, request.URL.absoluteString);
+                                   }
+                                   failure:^(NSURLRequest *request, NSHTTPURLResponse *response, NSError *error) {
+                                       [self parseServerVersion:response];
+                                       Logger(@"%@: error: %ld: %@", request.URL, (long)response.statusCode, error);
+                                       if (failure) failure(response.statusCode, error.description);
+                                   }];
+    [[BKjs get].operationQueue addOperation:op];
+}
+
+# pragma Icon API
+
++ (void)getIcon:(NSString*)path params:(NSDictionary*)params options:(BKOptions)options success:(ImageSuccessBlock)success failure:(FailureBlock)failure
+{
+    path = [[BKjs get] getURL:path];
+    NSDictionary *headers = [BKjs sign:path method:@"GET" params:params contentType:nil expires:0 checksum:nil];
+    NSMutableURLRequest *request = [BKjs makeRequest:@"GET" path:[[BKjs get] getURL:path] params:params];
+    for (NSString* key in headers) [request setValue:headers[key] forHTTPHeaderField:key];
+    [self sendImageRequest:request options:options success:success failure:failure];
+}
+
++ (void)getIcon:(NSString*)url options:(BKOptions)options success:(ImageSuccessBlock)success failure:(FailureBlock)failure
+{
+	NSMutableURLRequest *request = [[NSMutableURLRequest alloc] initWithURL:[NSURL URLWithString:url relativeToURL:[BKjs get].baseURL]];
+    [request setTimeoutInterval:30];
+    NSDictionary *headers = [BKjs sign:request.URL.absoluteString method:@"GET" params:nil contentType:nil expires:0 checksum:nil];
+    for (NSString* key in headers) [request setValue:headers[key] forHTTPHeaderField:key];
+    [self sendImageRequest:request options:options success:success failure:failure];
+}
+
 #pragma mark Account Icon API
 
 + (void)getAccountIcons:(NSDictionary*)params success:(ListBlock)success failure:(GenericBlock)failure
@@ -748,9 +771,9 @@ static NSString *SysCtlByName(char *typeSpecifier)
             failure:failure];
 }
 
-+ (void)getAccountIcon:(NSDictionary*)params success:(ImageSuccessBlock)success failure:(FailureBlock)failure
++ (void)getAccountIcon:(NSDictionary*)params options:(BKOptions)options success:(ImageSuccessBlock)success failure:(FailureBlock)failure
 {
-    [self getIcon:@"/account/get/icon" params:params success:success failure:failure];
+    [self getIcon:@"/account/get/icon" params:params options:options success:success failure:failure];
 }
 
 // Sending nil image will delete the icon for the given type
@@ -1057,10 +1080,11 @@ static NSString *SysCtlByName(char *typeSpecifier)
             failure:failure];
 }
 
-+ (void)getMessageIcon:(NSDictionary*)params success:(ImageSuccessBlock)success failure:(FailureBlock)failure
++ (void)getMessageIcon:(NSDictionary*)params options:(BKOptions)options success:(ImageSuccessBlock)success failure:(FailureBlock)failure
 {
     [self getIcon:@"/message/image"
              params:params
+            options:options
             success:success
             failure:failure];
 }
