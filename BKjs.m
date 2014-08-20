@@ -502,6 +502,16 @@ static NSString *SysCtlByName(char *typeSpecifier)
 	return request;
 }
 
++ (NSMutableURLRequest*)makeRequest:(NSString*)method path:(NSString*)path params:(NSDictionary*)params headers:(NSDictionary*)headers body:(NSData*)body
+{
+    if (!method) method = @"GET";
+    NSMutableURLRequest *request = [BKjs makeRequest:method path:path params:params];
+    for (NSString* key in headers) [request setValue:headers[key] forHTTPHeaderField:key];
+    if (body) [request setHTTPBody:body];
+    request.timeoutInterval = 30;
+    return request;
+}
+
 + (NSString*)makeQuery:(NSDictionary*)params
 {
     NSMutableArray *list = [@[] mutableCopy];
@@ -613,14 +623,8 @@ static NSString *SysCtlByName(char *typeSpecifier)
 
 + (void)sendRequest:(NSString*)path method:(NSString*)method params:(NSDictionary*)params headers:(NSDictionary*)headers body:(NSData*)body success:(SuccessBlock)success failure:(FailureBlock)failure
 {
-    if (!method) method = @"GET";
-    
-    NSMutableURLRequest *request = [BKjs makeRequest:method path:path params:params];
-    for (NSString* key in headers) [request setValue:headers[key] forHTTPHeaderField:key];
-
-    if (body) [request setHTTPBody:body];
-    request.timeoutInterval = 30;
-    
+    NSMutableURLRequest *request = [BKjs makeRequest:method path:path params:params headers:headers body:body];
+   
     [self sendRequest:request success:success failure:^(NSURLRequest *request, NSHTTPURLResponse *response, NSError *error, id json) {
         NSString *reason = [BKjs toString:json name:@"message"];
         if (reason.length == 0) reason = error.description;

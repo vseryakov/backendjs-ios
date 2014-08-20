@@ -34,7 +34,9 @@
 @property (nonatomic, strong) NSString* accessToken;
 @property (nonatomic, strong) NSString* refreshToken;
 
-@property (nonatomic) NSInteger oauthExpires;
+@property (nonatomic) NSTimeInterval tokenTime;
+@property (nonatomic) NSTimeInterval expiresTime;
+
 @property (nonatomic, strong) NSString* oauthCode;
 @property (nonatomic, strong) NSString* oauthState;
 @property (nonatomic, strong) NSMutableDictionary *oauthToken;
@@ -53,7 +55,6 @@
 
 - (NSMutableURLRequest*)getRequest:(NSString*)method path:(NSString*)path params:(NSDictionary*)params;
 - (NSMutableURLRequest *)getRequestOAuth1:(NSString *)method path:(NSString *)path params:(NSDictionary *)params;
-- (void)sendRequest:(NSString *)path method:(NSString*)method params:(NSDictionary*)params headers:(NSDictionary*)headers body:(NSData*)body success:(SuccessBlock)success failure:(FailureBlock)failure;
 
 - (NSMutableURLRequest*)getAuthorizeRequest:(NSDictionary*)params;
 - (NSMutableURLRequest*)getAuthenticateRequest:(NSDictionary*)params;

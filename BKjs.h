@@ -135,6 +135,7 @@ typedef void (^ControllerBlock)(UIViewController *controller, NSDictionary *item
 
 + (NSString*)makeQuery:(NSDictionary*)params;
 + (NSMutableURLRequest *)makeRequest:(NSString *)method path:(NSString *)path params:(NSDictionary *)params;
++ (NSMutableURLRequest*)makeRequest:(NSString*)method path:(NSString*)path params:(NSDictionary*)params headers:(NSDictionary*)headers body:(NSData*)body;
 + (void)sendRequest:(NSString *)path method:(NSString*)method params:(NSDictionary*)params headers:(NSDictionary*)headers body:(NSData*)body success:(SuccessBlock)success failure:(FailureBlock)failure;
 + (void)sendRequest:(NSURLRequest*)request success:(SuccessBlock)success failure:(void (^)(NSURLRequest *request, NSHTTPURLResponse *response, NSError *error, id JSON))failure;
 

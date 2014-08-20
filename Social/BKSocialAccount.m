@@ -11,7 +11,6 @@ static NSMutableDictionary *_accounts;
 
 @interface BKSocialAccount () <UIWebViewDelegate>
 @property (nonatomic, strong) BKWebViewController *loginView;
-
 @property (nonatomic, strong) NSString *oauthRealm;
 @property (nonatomic, strong) NSString *oauthSignature;
 @end
@@ -78,7 +77,7 @@ static NSMutableDictionary *_accounts;
         
     } else {
         if (self.accessToken && self.accessToken.length > 0) {
-            NSString *token = [NSString stringWithFormat:@"%@|%@|%ld", self.accessToken, self.refreshToken ? self.refreshToken : @"", (long)self.oauthExpires];
+            NSString *token = [NSString stringWithFormat:@"%@|%@|%ld", self.accessToken, self.refreshToken ? self.refreshToken : @"", (long)self.expiresTime];
             [BKjs setPassword:token forService:self.clientId account:self.name error:nil];
         }
     }
@@ -92,7 +91,7 @@ static NSMutableDictionary *_accounts;
         if (token && token.count == 3) {
             self.accessToken = token[0];
             self.refreshToken = token[1];
-            self.oauthExpires = [BKjs toNumber:token[2]];
+            self.expiresTime = [BKjs toNumber:token[2]];
         }
     }
 }
@@ -152,19 +151,22 @@ static NSMutableDictionary *_accounts;
 
 - (NSMutableURLRequest*)getRequest:(NSString*)method path:(NSString*)path params:(NSDictionary*)params
 {
+    if ([self.type isEqual:@"oauth1"] && self.oauthToken) {
+        self.headers[@"Authorization"] = [self getHeaderOAuth1:method path:path params:params];
+        return [BKjs makeRequest:method path:path params:params headers:self.headers body:nil];
+    }
     return [[BKjs get] requestWithMethod:method path:path parameters:params];
 }
 
-- (void)sendRequest:(NSString *)path method:(NSString*)method params:(NSDictionary*)params headers:(NSDictionary*)headers body:(NSData*)body success:(SuccessBlock)success failure:(FailureBlock)failure
+- (NSMutableURLRequest*)getRequest:(NSString *)method path:(NSString*)path params:(NSDictionary*)params headers:(NSDictionary*)headers body:(NSData*)body
 {
     if ([self.type isEqual:@"oauth1"] && self.oauthToken) {
         NSMutableDictionary *hdrs = [@{} mutableCopy];
         for (id key in headers) hdrs[key] = headers[key];
         hdrs[@"Authorization"] = [self getHeaderOAuth1:method path:path params:params];
-        [BKjs sendRequest:path method:method params:params headers:hdrs body:body success:success failure:false];
-    } else {
-        [BKjs sendRequest:path method:method params:params headers:headers body:body success:success failure:false];
+        headers = hdrs;
     }
+    return [BKjs makeRequest:method path:path params:params headers:headers body:body];
 }
 
 - (void)getData:(NSString*)path params:(NSDictionary*)params success:(SuccessBlock)success failure:(FailureBlock)failure
@@ -193,17 +195,23 @@ static NSMutableDictionary *_accounts;
 
 - (void)postData:(NSString*)path params:(NSDictionary*)params success:(SuccessBlock)success failure:(FailureBlock)failure
 {
-    [self sendRequest:[self getDataURL:path] method:@"POST" params:[self getDataQuery:path params:params] headers:self.headers body:nil success:success failure:failure];
+    NSMutableURLRequest *request = [BKjs makeRequest:@"POST" path:[self getDataURL:path] params:[self getDataQuery:path params:params] headers:self.headers body:nil];
+    [BKjs sendRequest:request success:success failure:^(NSURLRequest *request, NSHTTPURLResponse *response, NSError *error, id json) {
+        if (failure) failure(response.statusCode, error.description);
+    }];
 }
 
 - (void)getResult:(NSString*)path params:(NSDictionary*)params success:(SuccessBlock)success failure:(FailureBlock)failure
 {
     NSMutableArray *items = [@[] mutableCopy];
-    [self sendRequest:path method:@"GET" params:params headers:self.headers body:nil success:^(id result) {
+    NSMutableURLRequest *request = [BKjs makeRequest:@"GET" path:path params:params headers:self.headers body:nil];
+    [BKjs sendRequest:request success:^(id result) {
         [self processResult:result items:items success:success failure:^(NSInteger code, NSString *reason) {
             if (failure) failure(code, reason);
         }];
-    } failure:failure];
+    } failure:^(NSURLRequest *request, NSHTTPURLResponse *response, NSError *error, id json) {
+        if (failure) failure(response.statusCode, error.description);
+    }];
 }
 
 - (void)processResult:(id)result items:(NSMutableArray*)items success:(SuccessBlock)success failure:(FailureBlock)failure
@@ -249,7 +257,9 @@ static NSMutableDictionary *_accounts;
     self.account = [@{} mutableCopy];
     self.accessToken = nil;
     self.refreshToken = nil;
-    self.oauthExpires = 0;
+    self.oauthToken = nil;
+    self.expiresTime = 0;
+    self.tokenTime = 0;
     [BKjs deletePasswordForService:self.clientId account:self.name error:nil];
     [self clearCookies];
 }
@@ -323,7 +333,8 @@ static NSMutableDictionary *_accounts;
             Logger(@"%@", json);
             self.accessToken = [BKjs toString:json name:self.parseTokenName];
             self.refreshToken = [BKjs toString:json name:self.refreshTokenName];
-            if (self.expiresName) self.oauthExpires = [query num:self.expiresName];
+            if (self.expiresName) self.expiresTime = [query num:self.expiresName];
+            self.tokenTime = BKjs.now;
             [self saveToken];
             finished(nil);
         } failure:^(NSURLRequest *request, NSHTTPURLResponse *response, NSError *error, id JSON) {

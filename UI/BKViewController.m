@@ -37,11 +37,9 @@
     self = [super init];
     _activityCount = 0;
     self.params = [@{} mutableCopy];
-    self.itemsAll = nil;
     self.items = [@[] mutableCopy];
     self.transition = [@{} mutableCopy];
     self.barStyle = UIStatusBarStyleDefault;
-    self.tableSections = 1;
     self.tableRows = 0;
     self.tableCell = nil;
     self.tableRestore = NO;
@@ -286,6 +284,8 @@
 {
     self.itemsAll = nil;
     self.itemsNext = nil;
+    self.itemsIndex = nil;
+    self.itemsSection = nil;
     [self.items removeAllObjects];
 }
 
@@ -301,14 +301,24 @@
 
 - (id)getItem:(NSIndexPath*)indexPath
 {
-    NSInteger index = indexPath.row - self.tableRows;
-    return index >= 0 && index < [self.items count] ? self.items[index] : nil;
+    if (self.itemsSection) {
+        NSArray *section = indexPath.section < self.itemsSection.count ? self.itemsSection[indexPath.section] : nil;
+        return section && indexPath.row < [section count] ? section[indexPath.row] : nil;
+    } else {
+        NSInteger index = indexPath.row - self.tableRows;
+        return index < [self.items count] ? self.items[index] : nil;
+    }
 }
 
 - (void)setItem:(NSIndexPath*)indexPath data:(id)data
 {
-    NSInteger index = indexPath.row - self.tableRows;
-    if (index >= 0 && index < [self.items count]) self.items[index] = data;
+    if (self.itemsSection) {
+        NSMutableArray *section = indexPath.section < self.itemsSection.count ? self.itemsSection[indexPath.section] : nil;
+        if (section && indexPath.row < [section count]) section[indexPath.row]  = data;
+    } else {
+        NSInteger index = indexPath.row - self.tableRows;
+        if (index < [self.items count]) self.items[index] = data;
+    }
 }
 
 - (void)restoreTablePosition
@@ -834,11 +844,14 @@
 
 - (NSInteger)numberOfSectionsInTableView:(UITableView *)tableView
 {
-    return self.tableSections;
+    return self.itemsSection ? self.itemsSection.count : 1;
 }
 
 - (NSInteger)tableView:(UITableView *)tableView numberOfRowsInSection:(NSInteger)section
 {
+    if (self.itemsSection) {
+        return [self.itemsSection[section] count];
+    }
     return self.tableRows + self.items.count;
 }
 
@@ -867,6 +880,21 @@
     }
     [self onTableCell:cell indexPath:indexPath];
     return cell;
+}
+
+- (NSString *)tableView:(UITableView *)tableView titleForHeaderInSection:(NSInteger)section
+{
+    return self.itemsIndex && section >= 0 && section < self.itemsIndex.count ? [self.itemsIndex objectAtIndex:section] : @"";
+}
+
+- (NSArray *)sectionIndexTitlesForTableView:(UITableView *)tableView
+{
+    return self.itemsIndex;
+}
+
+- (NSInteger)tableView:(UITableView *)tableView sectionForSectionIndexTitle:(NSString *)title atIndex:(NSInteger)index
+{
+    return self.itemsIndex ? [self.itemsIndex indexOfObject:title] : 0;
 }
 
 @end

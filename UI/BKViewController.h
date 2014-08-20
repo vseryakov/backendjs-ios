@@ -38,6 +38,10 @@
 // the full list before the search or other condition
 @property (strong, nonatomic) NSMutableArray *itemsAll;
 
+// Table support for sections index
+@property (strong, nonatomic) NSArray *itemsIndex;
+@property (strong, nonatomic) NSMutableArray *itemsSection;
+
 // Next token for browsing items
 @property (strong, nonatomic) NSString *itemsNext;
 
@@ -52,7 +56,6 @@
 @property (strong, nonatomic) IBOutlet UITableView *tableView;
 @property (strong, nonatomic) NSString *tableCell;
 @property (nonatomic, assign) NSInteger tableRows;
-@property (nonatomic, assign) NSInteger tableSections;
 @property (nonatomic, assign) BOOL tableUnselected;
 @property (nonatomic, assign) BOOL tableRounded;
 @property (nonatomic, assign) BOOL tableRestore;
