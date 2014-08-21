@@ -448,6 +448,7 @@ static NSString *SysCtlByName(char *typeSpecifier)
 
 + (NSData*)toJSON:(id)obj
 {
+    if (!obj) return nil;
     if (![NSJSONSerialization isValidJSONObject:obj]) {
         Logger(@"ERROR: invalid JSON: %@", obj);
         return nil;
@@ -459,6 +460,22 @@ static NSString *SysCtlByName(char *typeSpecifier)
         return nil;
     }
     return json;
+}
+
++ (NSString*)toJSONString:(id)obj
+{
+    NSData *data = [self toJSON:obj];
+    if (!data) return nil;
+    return [[NSString alloc] initWithData:data encoding:NSUTF8StringEncoding];
+}
+
++ (id)toJSONObject:(NSString*)json
+{
+    if (!json || !json.length) return nil;
+    NSError *error;
+    return [NSJSONSerialization JSONObjectWithData:[json dataUsingEncoding:NSUTF8StringEncoding]
+                                           options:NSJSONReadingMutableContainers
+                                             error:&error];
 }
 
 #pragma mark Query parser
@@ -614,17 +631,17 @@ static NSString *SysCtlByName(char *typeSpecifier)
     [BKjs sendRequest:path method:method params:nil headers:headers body:body success:success failure:failure];
 }
 
-+ (void)uploadImage:(NSString*)path name:(NSString*)name image:(UIImage*)image params:(NSDictionary*)params success:(SuccessBlock)success failure:(FailureBlock)failure
++ (void)uploadImage:(NSString*)path name:(NSString*)name image:(UIImage*)image params:(NSDictionary*)params headers:(NSDictionary*)headers success:(SuccessBlock)success failure:(FailureBlock)failure
 {
     NSData *jpeg = image ? UIImageJPEGRepresentation(image, 1.0) : nil;
     if (!jpeg) {
         if (failure) failure(-1, @"invalid image");
         return;
     }
-    [self uploadData:path name:name data:jpeg mime:@"image/jpeg" params:params success:success failure:failure];
+    [self uploadData:path name:name data:jpeg mime:@"image/jpeg" params:params headers:headers success:success failure:failure];
 }
 
-+ (void)uploadData:(NSString*)path name:(NSString*)name data:(NSData*)data mime:(NSString*)mime params:(NSDictionary*)params success:(SuccessBlock)success failure:(FailureBlock)failure
++ (void)uploadData:(NSString*)path name:(NSString*)name data:(NSData*)data mime:(NSString*)mime params:(NSDictionary*)params headers:(NSDictionary*)headers success:(SuccessBlock)success failure:(FailureBlock)failure
 {
     NSMutableURLRequest *request = [[self get]
                                     multipartFormRequestWithMethod:@"POST"
@@ -633,6 +650,7 @@ static NSString *SysCtlByName(char *typeSpecifier)
                                     constructingBodyWithBlock:^(id <AFMultipartFormData>formData) {
                                         if (data) [formData appendPartWithFileData:data name:name fileName:name mimeType:mime];
                                     }];
+    for (NSString* key in headers) [request setValue:headers[key] forHTTPHeaderField:key];
     [BKjs sendRequest:request success:success failure:^(NSURLRequest *request, NSHTTPURLResponse *response, NSError *error, id json) {
         if (failure) failure(response.statusCode, error.description);
     }];

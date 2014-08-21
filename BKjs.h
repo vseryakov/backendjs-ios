@@ -147,8 +147,8 @@ typedef NS_OPTIONS(NSUInteger, BKOptions) {
 
 #pragma mark Multipart uploads
 
-+ (void)uploadImage:(NSString*)path name:(NSString*)name image:(UIImage*)image params:(NSDictionary*)params success:(SuccessBlock)success failure:(FailureBlock)failure;
-+ (void)uploadData:(NSString*)path name:(NSString*)name data:(NSData*)data mime:(NSString*)mime params:(NSDictionary*)params success:(SuccessBlock)success failure:(FailureBlock)failure;
++ (void)uploadImage:(NSString*)path name:(NSString*)name image:(UIImage*)image params:(NSDictionary*)params headers:(NSDictionary*)headers success:(SuccessBlock)success failure:(FailureBlock)failure;
++ (void)uploadData:(NSString*)path name:(NSString*)name data:(NSData*)data mime:(NSString*)mime params:(NSDictionary*)params headers:(NSDictionary*)headers success:(SuccessBlock)success failure:(FailureBlock)failure;
 
 #pragma mark Image requests
 
@@ -232,6 +232,8 @@ typedef NS_OPTIONS(NSUInteger, BKOptions) {
 + (NSString*)toString:(id)obj names:(NSArray*)names dflt:(NSString*)dflt;
 + (double)toNumber:(id)obj names:(NSArray*)names dflt:(double)dflt;
 + (NSData*)toJSON:(id)obj;
++ (NSString*)toJSONString:(id)obj;
++ (id)toJSONObject:(NSString*)json;
 
 #pragma mark Generic utilities
 

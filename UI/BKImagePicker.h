@@ -7,6 +7,6 @@
 
 @interface BKImagePickerController : BKViewController
 @property (nonatomic, strong) UICollectionView *photosView;
-@property (nonatomic, assign) BKViewController *pickerDelegate;
+@property (nonatomic, assign) BKViewController *delegate;
 @end
 

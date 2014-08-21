@@ -37,7 +37,7 @@
 
 - (void)getAccount:(NSDictionary*)params success:(SuccessBlock)success failure:(FailureBlock)failure
 {
-    [self getData:@"/users/self" params:nil success:^(id result) {
+    [self sendRequest:@"GET" path:@"/users/self" params:nil success:^(id result) {
         NSDictionary *user = [BKjs toDictionary:result name:@"data"];
         for (id key in user) self.account[key] = user[key];
         self.account[@"icon"] = user[@"profile_picture"];
@@ -57,7 +57,7 @@
 
 - (void)getPhotos:(NSString*)name params:(NSDictionary*)params success:(SuccessBlock)success failure:(FailureBlock)failure;
 {
-    [self getData:@"/users/self/feed" params:params success:^(id result) {
+    [self sendRequest:@"GET" path:@"/users/self/feed" params:params success:^(id result) {
         NSMutableArray *list = [@[] mutableCopy];
         for (NSDictionary *item in result[@"data"]) {
             [list addObject:@{ @"type": self.name,

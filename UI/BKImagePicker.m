@@ -66,7 +66,6 @@
 {
     [self.items removeAllObjects];
     for (id account in self.params[@"accounts"]) {
-        if (![account respondsToSelector:@selector(isOpen)] || ![account isOpen]) continue;
         [self getAlbums:account];
     }
 }
@@ -119,7 +118,7 @@
     [_photosItems removeAllObjects];
     [UIView animateWithDuration:0.3 delay:0 options:0
                      animations:^{ self.photosView.x = 0; }
-                     completion:^(BOOL finsihed) { self.toolbarTitle.text = album[@"name"]; }];
+                     completion:^(BOOL finished) { self.toolbarTitle.text = album[@"name"]; }];
     
     // Photos to be retrieved from the remote accounts
     for (id item in self.params[@"accounts"]) {
@@ -146,8 +145,8 @@
         block(self, self.params);
         [self showPrevious];
     } else
-    if (self.pickerDelegate) {
-        [self.pickerDelegate onImagePicker:self image:item[@"_image"] params:self.params];
+    if (self.delegate) {
+        [self.delegate onImagePicker:self image:item[@"_image"] params:self.params];
         [self showPrevious];
     } else {
         [self showPrevious];

@@ -13,30 +13,43 @@
 {
     self = [super init:name clientId:clientId];
     self.type = @"oauth1";
-    self.baseURL = @"https://api.twitter.com/1.1/";
+    self.baseURL = @"https://api.twitter.com/1.1";
     self.launchURLs = @[ @{ @"url": @"twitter://user?id=%@", @"param": @"id" },
                          @{ @"url": @"http://www.twitter.com/%@", @"param": @"username" } ];
     return self;
 }
 
+- (void)processResponse:(NSHTTPURLResponse*)response error:(NSError*)error json:(id)json failure:(FailureBlock)failure
+{
+    NSInteger code = response.statusCode;
+    NSString *reason = error.description;
+    NSArray *errors = [BKjs toArray:json name:@"errors"];
+    if (errors.count) {
+        code = [errors[0] num:@"code"];
+        reason = [errors[0] str:@"message"];
+        if (code == 89 || code == 215) [self.accessToken removeAllObjects];
+    }
+    if (failure) failure(code, reason);
+}
+
 - (NSMutableURLRequest*)getAuthorizeRequest:(NSDictionary*)params
 {
-    return [self getRequest:@"GET" path:@"https://api.twitter.com/oauth/authorize" params:params];
+    return [BKjs makeRequest:@"GET" path:@"https://api.twitter.com/oauth/authorize" params:params];
 }
 
 - (NSMutableURLRequest*)getAccessTokenRequest:(NSDictionary*)params
 {
-    return [self getRequestOAuth1:@"GET" path:@"https://api.twitter.com/oauth/access_token" params:params];
+    return [self getRequest:@"GET" path:@"https://api.twitter.com/oauth/access_token" params:params];
 }
 
 - (NSMutableURLRequest*)getRequestTokenRequest:(NSDictionary*)params
 {
-    return [self getRequestOAuth1:@"GET" path:@"https://api.twitter.com/oauth/request_token" params:params];
+    return [self getRequest:@"GET" path:@"https://api.twitter.com/oauth/request_token" params:params];
 }
 
 - (void)getAccount:(NSDictionary*)params success:(SuccessBlock)success failure:(FailureBlock)failure
 {
-    [self getData:@"/account/verify_credentials.json" params:params success:^(id user) {
+    [self sendRequest:@"GET" path:@"/account/verify_credentials.json" params:params success:^(id user) {
         NSMutableDictionary *account = [user mutableCopy];
         self.account = account;
         self.account[@"alias"] = [account str:@"name"];
@@ -51,9 +64,10 @@
     NSMutableDictionary *query = [@{ @"status": msg ? msg : @"" } mutableCopy];
     for (id key in params) query[key] = params[key];
     if (image) {
-        [BKjs uploadImage:@"/statuses/update_with_media.json" name:@"media[]" image:image params:query success:success failure:failure];
+        [self setHeaders:@"POST" path:@"/statuses/update_with_media.json" params:query];
+        [BKjs uploadImage:[self getURL:@"/statuses/update_with_media.json"] name:@"media[]" image:image params:query headers:self.headers success:success failure:failure];
     } else {
-        [self postData:@"/statuses/update.json" params:query success:success failure:failure];
+        [self sendRequest:@"POST" path:@"/statuses/update.json" params:query success:success failure:failure];
     }
 }
 

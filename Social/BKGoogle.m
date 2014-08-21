@@ -56,7 +56,7 @@
 
 - (void)getAccount:(NSDictionary*)params success:(SuccessBlock)success failure:(FailureBlock)failure
 {
-    [self getData:@"/plus/v1/people/me" params:[BKjs mergeParams:params params:@{ @"alt": @"json" }]
+    [self sendRequest:@"GET" path:@"/plus/v1/people/me" params:[BKjs mergeParams:params params:@{ @"alt": @"json" }]
           success:^(id result) {
               NSDictionary *user = [result isKindOfClass:[NSDictionary class]] ? result : @{};
               for (id key in user) self.account[key] = user[key];
@@ -68,7 +68,7 @@
 
 - (void)getContacts:(NSDictionary*)params success:(SuccessBlock)success failure:(FailureBlock)failure
 {
-    [self getData:@"/m8/feeds/contacts/default/full" params:[BKjs mergeParams:@{ @"alt": @"json", @"max-results": @(10000) } params:params] success:^(id result) {
+    [self sendRequest:@"GET" path:@"/m8/feeds/contacts/default/full" params:[BKjs mergeParams:@{ @"alt": @"json", @"max-results": @(10000) } params:params] success:^(id result) {
         NSMutableArray *list = [@[] mutableCopy];
         for (NSDictionary *item in result[@"data"]) {
             NSMutableDictionary *rec = [item mutableCopy];
@@ -83,7 +83,7 @@
 {
     NSMutableDictionary *query = [@{ @"message": msg ? msg : @"" } mutableCopy];
     for (id key in params) query[key] = params[key];
-    [self postData:@"/me/feed" params:query success:success failure:failure];
+    [self sendRequest:@"POST" path:@"/me/feed" params:query success:success failure:failure];
 }
 
 @end

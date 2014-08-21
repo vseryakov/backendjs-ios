@@ -12,7 +12,6 @@
 {
     self = [super init:name clientId:clientId];
     self.type = @"oauth2";
-    self.requestTokenName = @"oauth2_access_token";
     self.scope = @"r_emailaddress r_fullprofile r_network r_contactinfo w_messages rw_nus";
     self.baseURL = @"https://api.linkedin.com/v1";
     self.launchURLs = @[ @{ @"url": @"linkedin://profile/%@", @"param": @"id" },
@@ -23,6 +22,12 @@
 - (void)logout
 {
     [super logout];
+}
+
+- (NSDictionary*)getDataQuery:(NSString*)path params:(NSDictionary*)params
+{
+    if (!self.accessToken[@"access_token"]) return params;
+    return [BKjs mergeParams:params params:@{ @"oauth2_access_token": self.accessToken[@"access_token"] }];
 }
 
 -(NSURLRequest*)getAuthorizeRequest:(NSDictionary*)params
@@ -48,7 +53,7 @@
 
 - (void)getAccount:(NSDictionary*)params success:(SuccessBlock)success failure:(FailureBlock)failure
 {
-    [self getData:@"/people/~:(id,first-name,last-name,formatted-name,email-address,picture-url,public-profile-url,headline,industry)"
+    [self sendRequest:@"GET" path:@"/people/~:(id,first-name,last-name,formatted-name,email-address,picture-url,public-profile-url,headline,industry)"
            params:[BKjs mergeParams:params params:@{ @"format": @"json" }]
           success:^(id user) {
               NSMutableDictionary *account = [user mutableCopy];
@@ -61,7 +66,7 @@
 
 - (void)getContacts:(NSDictionary*)params success:(SuccessBlock)success failure:(FailureBlock)failure
 {
-    [self getData:@"/people/~/connections:(id,formatted-name,picture-url,public-profile-url,location,headline,industry)" params:params success:^(id result) {
+    [self sendRequest:@"GET" path:@"/people/~/connections:(id,formatted-name,picture-url,public-profile-url,location,headline,industry)" params:params success:^(id result) {
         NSMutableArray *list = [@[] mutableCopy];
         for (NSDictionary *item in result[@"data"]) {
             NSMutableDictionary *rec = [item mutableCopy];
@@ -90,7 +95,7 @@
     <code>anyone</code>
     </visibility>
     </share>*/
-    [self postData:@"http://api.linkedin.com/v1/people/~/shares" params:query success:success failure:failure];
+    [self sendRequest:@"POST" path:@"http://api.linkedin.com/v1/people/~/shares" params:query success:success failure:failure];
 }
 
 @end

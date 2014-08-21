@@ -657,7 +657,7 @@
 - (void)showImagePickerFromAlbums:(NSDictionary*)params
 {
     BKImagePickerController *picker = [[BKImagePickerController alloc] init];
-    picker.pickerDelegate = self;
+    picker.delegate = self;
     [BKui showViewController:self controller:picker name:@"Albums" mode:@"push" params:params];
 }
 
