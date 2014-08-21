@@ -446,14 +446,12 @@ static NSMutableDictionary *_accounts;
         }
         
         if ([self.oauthSignature isEqual:@"HMAC-SHA1"]) {
-            NSMutableURLRequest *request = [[BKjs get] requestWithMethod:method path:path parameters:params];
             NSString *secretString = [NSString stringWithFormat:@"%@&%@", [BKjs escapeString:self.clientSecret], [BKjs escapeString:secret]];
             NSData *secretData = [secretString dataUsingEncoding:NSUTF8StringEncoding];
             
-            NSString *queryString = [BKjs escapeString:[[[[[request URL] query] componentsSeparatedByString:@"&"] sortedArrayUsingSelector:@selector(compare:)] componentsJoinedByString:@"&"]];
-            NSString *requestString = [NSString stringWithFormat:@"%@&%@&%@", [request HTTPMethod], [BKjs escapeString:[[[request URL] absoluteString] componentsSeparatedByString:@"?"][0]], queryString];
-            NSData *requestData = [requestString dataUsingEncoding:NSUTF8StringEncoding];
-            
+            NSString *str = [NSString stringWithFormat:@"%@&%@&%@", method, [BKjs escapeString:path], [BKjs escapeString:[BKjs makeQuery:params]]];
+            NSData *requestData = [str dataUsingEncoding:NSUTF8StringEncoding];
+
             uint8_t digest[CC_SHA1_DIGEST_LENGTH];
             CCHmacContext cx;
             CCHmacInit(&cx, kCCHmacAlgSHA1, secretData.bytes, secretData.length);
