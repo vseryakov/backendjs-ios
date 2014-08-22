@@ -19,7 +19,8 @@
     self.scroll = [[UIScrollView alloc] initWithFrame:self.bounds];
     [self addSubview:self.scroll];
     
-    self.avatar = [[UIImageView alloc] initWithFrame:CGRectMake(0, 0, 0, 0)];
+    self.avatar = [[UIImageView alloc] initWithFrame:CGRectMake(0, 0, 32, 32)];
+    [BKui setImageBorder:self.avatar color:nil radius:0 border:1];
     self.avatar.hidden = YES;
     [self.scroll addSubview:self.avatar];
     
@@ -29,13 +30,23 @@
     self.source.hidden = YES;
     [self.scroll addSubview:self.source];
     
-    self.header = [BKui makeLabel:CGRectMake(0, 0, 0, 0) text:@"" color:[UIColor blackColor] font:[UIFont boldSystemFontOfSize:13]];
+    self.header = [BKui makeLabel:CGRectMake(0, 0, 0, 0) text:@"" color:[UIColor blackColor] font:[UIFont boldSystemFontOfSize:15]];
     self.header.numberOfLines = 0;
     [self.scroll addSubview:self.header];
     
+    self.line1 = [[UIView alloc] initWithFrame:CGRectMake(0, 0, 0, 0)];
+    self.line1.backgroundColor = [BKui makeColor:@"#EEEEEE"];
+    self.line1.hidden = YES;
+    [self.scroll addSubview:self.line1];
+    
+    self.line2 = [[UIView alloc] initWithFrame:CGRectMake(0, 0, 0, 0)];
+    self.line2.backgroundColor = [BKui makeColor:@"#EEEEEE"];
+    self.line2.hidden = YES;
+    [self.scroll addSubview:self.line2];
+
     SuccessBlock urlBlock = ^(id url) { [BKWebViewController showURL:url completionHandler:nil]; };
     
-    self.msg = [BKui makeTextView:CGRectMake(0, 0, 0, 0) text:@"" color:[UIColor blackColor] font:nil];
+    self.msg = [BKui makeTextView:CGRectMake(0, 0, 0, 0) text:@"" color:[UIColor darkTextColor] font:[UIFont systemFontOfSize:17]];
     self.msg.hidden = YES;
     self.msg.dataDetectorTypes = UIDataDetectorTypeLink;
     self.msg.delegate = self;
@@ -57,7 +68,7 @@
     self.title.lineBreakMode = NSLineBreakByWordWrapping;
     [self.scroll addSubview:self.title];
     
-    self.text = [BKui makeTextView:CGRectMake(0, 0, 0, 0) text:@"" color:[UIColor blackColor] font:[UIFont systemFontOfSize:16]];
+    self.text = [BKui makeTextView:CGRectMake(0, 0, 0, 0) text:@"" color:[UIColor darkTextColor] font:[UIFont systemFontOfSize:16]];
     self.text.hidden = YES;
     self.text.dataDetectorTypes = UIDataDetectorTypeLink;
     self.text.delegate = self;
@@ -79,6 +90,8 @@
             view != self.msg &&
             view != self.icon &&
             view != self.title &&
+            view != self.line1 &&
+            view != self.line2 &&
             view != self.text) {
             [view removeFromSuperview];
         }
@@ -91,8 +104,8 @@
     
     if (params[@"avatar"] || params[@"avatar_id"]) {
         self.avatar.hidden = NO;
-        self.avatar.frame = CGRectMake(x, y, 32, 32);
-        [BKui setImageBorder:self.avatar color:nil radius:0 border:1];
+        self.avatar.x = x;
+        self.avatar.y = y;
         if (params[@"avatar"]) {
             if ([params[@"avatar"] rangeOfString:@"/"].location == NSNotFound) {
                 self.source.image = [UIImage imageNamed:params[@"avatar"]];
@@ -123,20 +136,36 @@
     }
 
     NSString *str = params[@"header"];
-    if (!str && params[@"alias"]) str = [NSString stringWithFormat:@"%@  %@", params[@"alias"], params[@"mtime"] ? [BKjs strftime:[params num:@"mtime"]/1000 format:nil] : @""];
-    if (str) {
+    if (params[@"header"]) {
         self.header.hidden = NO;
-        self.header.text = str;
         self.header.frame = CGRectMake(x, y, self.width - x - 5, 0);
+        self.header.text = params[@"header"];
         [self.header sizeToFit];
         y = self.header.bottom + 5;
+    } else
+    if (params[@"alias"]) {
+        self.header.hidden = NO;
+        self.header.frame = CGRectMake(x, y, self.width - x - 5, 0);
+        NSString *mtime = params[@"mtime"] ? [BKjs strftime:[params num:@"mtime"]/1000 format:nil] : @"";
+        str = [NSString stringWithFormat:@"%@  %@", params[@"alias"], mtime];
+        NSMutableAttributedString* astr = [[NSMutableAttributedString alloc] initWithString:str];
+        [astr addAttribute:NSFontAttributeName value:[UIFont boldSystemFontOfSize:13] range:[str rangeOfString:params[@"alias"]]];
+        [astr addAttribute:NSFontAttributeName value:[UIFont systemFontOfSize:12] range:[str rangeOfString:mtime]];
+        [self.header setAttributedText:astr];
+        [self.header sizeToFit];
+        y = self.header.bottom + 5;
+        
     } else {
         self.header.hidden = YES;
     }
     
+    self.line1.frame = CGRectMake(x, self.header.bottom + 1, self.width - x - 5, 1);
+    self.line1.hidden = self.header.hidden;
+
     if (params[@"msg"]) {
         self.msg.hidden = NO;
-        self.msg.text = params[@"msg"];
+        self.msg.attributedText = [[NSAttributedString alloc] initWithString:params[@"msg"]
+                                                                  attributes:@{ NSFontAttributeName: self.msg.font }];
         self.msg.frame = CGRectMake(x, y, self.width - x - 5, 0);
         [self.msg sizeToFit];
         y = self.msg.bottom + 5;
@@ -169,9 +198,13 @@
         self.title.hidden = YES;
     }
 
+    self.line2.frame = CGRectMake(x, self.title.bottom + 1, self.width - x - 5, 1);
+    self.line2.hidden = self.header.hidden;
+
     if (params[@"text"]) {
         self.text.hidden = NO;
-        self.text.text = params[@"text"];
+        self.text.attributedText = [[NSAttributedString alloc] initWithString:params[@"text"]
+                                                                   attributes:@{ NSFontAttributeName: self.text.font }];
         self.text.frame = CGRectMake(x, y, self.width - x - 5, 0);
         [self.text sizeToFit];
         y = self.text.bottom + 5;

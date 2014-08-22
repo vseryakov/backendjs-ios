@@ -259,6 +259,55 @@ static NSString *SysCtlByName(char *typeSpecifier)
     return [fmt stringFromDate:now];
 }
 
++ (NSString*)toDuration:(double)seconds format:(NSString*)fmt
+{
+    NSString *str = @"";
+    if (seconds > 0) {
+        int d = floor(seconds / 86400);
+        int h = floor((seconds - d * 86400) / 3600);
+        int m = floor((seconds - d * 86400 - h * 3600) / 60);
+        if (d > 0) {
+            str = [NSString stringWithFormat:@"%d day%@", d, d > 1 ? @"s" : @""];
+            if (h > 0) str = [NSString stringWithFormat:@"%@ %d hour%@", str, h, h > 1 ? @"s" : @""];
+            if (m > 0) str = [NSString stringWithFormat:@"%@ %d minute%@", str, m, m > 1 ? @"s" : @""];
+        } else
+        if (h > 0) {
+            str = [NSString stringWithFormat:@"%d hour%@", h, h > 1 ? @"s" : @""];
+            if (m > 0) str = [NSString stringWithFormat:@"%@ %d minute%@", str, m, m > 1 ? @"s" : @""];
+        } else
+        if (m > 0) {
+            str = [NSString stringWithFormat:@"%d minute%@", m, m > 1 ? @"s" : @""];
+        } else {
+            str = [NSString stringWithFormat:@"%d seconds", (int)seconds];
+        }
+        if (fmt && str.length) str = [NSString stringWithFormat:fmt, str];
+    }
+    return str;
+}
+
++ (NSString*)toAge:(double)seconds format:(NSString*)fmt
+{
+    NSString *str = @"";
+    if (seconds > 0) {
+        int d = floor(seconds / 86400);
+        int h = floor((seconds - d * 86400) / 3600);
+        int m = floor((seconds - d * 86400 - h * 3600) / 60);
+        if (d > 0) {
+            str = [NSString stringWithFormat:@"%d day%@", d, d > 1 ? @"s" : @""];
+        } else
+        if (h > 0) {
+            str = [NSString stringWithFormat:@"%d hour%@", h, h > 1 ? @"s" : @""];
+        } else
+        if (m > 0) {
+            str = [NSString stringWithFormat:@"%d minute%@", m, m > 1 ? @"s" : @""];
+        } else {
+            str = [NSString stringWithFormat:@"%d seconds", (int)seconds];
+        }
+        if (fmt && str.length) str = [NSString stringWithFormat:fmt, str];
+    }
+    return str;
+}
+
 + (NSInvocation*)getInvocation:(id)target name:(NSString*)name
 {
     SEL selector = NSSelectorFromString(name);
@@ -386,6 +435,14 @@ static NSString *SysCtlByName(char *typeSpecifier)
     return rc;
 }
 
++ (NSArray*)toArray:(id)obj name:(NSString*)name dflt:(id)dflt
+{
+    if (![obj isKindOfClass:[NSDictionary class]]) return dflt;
+    id rc = obj[name];
+    if (![rc isKindOfClass:[NSArray class]]) return dflt;
+    return rc;
+}
+
 + (NSString*)toString:(id)obj name:(NSString*)name
 {
     if (![obj isKindOfClass:[NSDictionary class]]) return @"";
@@ -407,6 +464,14 @@ static NSString *SysCtlByName(char *typeSpecifier)
     if (![obj isKindOfClass:[NSDictionary class]]) return @{};
     id rc = obj[name];
     if (![rc isKindOfClass:[NSDictionary class]]) return @{};
+    return rc;
+}
+
++ (NSDictionary*)toDictionary:(id)obj name:(NSString*)name dflt:(id)dflt
+{
+    if (![obj isKindOfClass:[NSDictionary class]]) return dflt;
+    id rc = obj[name];
+    if (![rc isKindOfClass:[NSDictionary class]]) return dflt;
     return rc;
 }
 
@@ -838,7 +903,7 @@ static NSString *SysCtlByName(char *typeSpecifier)
            method:@"POST"
            params:params
           success:^(NSDictionary *json) {
-              // Current account sae locally
+              // Current account save locally
               if ([self isEmpty:params name:@"id"] && [json isKindOfClass:[NSDictionary class]]) {
                   for (NSString *key in json) BKjs.account[key] = json[key];
                   if (success) success(BKjs.account);
@@ -910,11 +975,11 @@ static NSString *SysCtlByName(char *typeSpecifier)
 
 + (void)selectReference:(NSDictionary*)params success:(ArrayBlock)success failure:(FailureBlock)failure
 {
-    [BKjs sendQuery:@"/reference/get"
+    [BKjs sendQuery:@"/reference/select"
              method:@"POST"
              params:params
             success:^(NSDictionary *json) {
-                if (success) success([BKjs toArray:json name:@"data"], json[@"next_token"]);
+                if (success) success([BKjs toNumber:json name:@"count"], [BKjs toArray:json name:@"data"], [BKjs toString:json name:@"next_token"]);
             }
             failure:failure];
 }
@@ -956,7 +1021,7 @@ static NSString *SysCtlByName(char *typeSpecifier)
              method:@"POST"
              params:params
             success:^(NSDictionary *json) {
-                if (success) success([BKjs toArray:json name:@"data"], json[@"next_token"]);
+                if (success) success([BKjs toNumber:json name:@"count"], [BKjs toArray:json name:@"data"], [BKjs toString:json name:@"next_token"]);
             }
             failure:failure];
 }
@@ -983,30 +1048,30 @@ static NSString *SysCtlByName(char *typeSpecifier)
 
 + (void)getConversation:(NSDictionary*)params success:(ArrayBlock)success failure:(FailureBlock)failure
 {
-    [BKjs getSentMessages:params success:^(NSArray *list, NSString *token1) {
-        [BKjs getArchivedMessages:params success:^(NSArray *list2, NSString *token2) {
+    [BKjs getSentMessages:params success:^(int count, NSArray *list, NSString *token1) {
+        [BKjs getArchivedMessages:params success:^(int count, NSArray *list2, NSString *token2) {
             NSArray* rc = [list arrayByAddingObjectsFromArray:list2];
             rc = [rc sortedArrayUsingComparator:^NSComparisonResult(id a, id b) {
                 double m1 = [BKjs toNumber:a name:@"mtime"];
                 double m2 = [BKjs toNumber:b name:@"mtime"];
                 return m1 < m2 ? NSOrderedAscending : m1 > m2 ? NSOrderedDescending : NSOrderedSame;
             }];
-            if (success) success(rc, nil);
+            if (success) success((int)rc.count, rc, nil);
         } failure:failure];
     } failure:failure];
 }
 
 + (void)getMessages:(NSDictionary*)params success:(ArrayBlock)success failure:(FailureBlock)failure
 {
-    [BKjs getNewMessages:params success:^(NSArray *list1, NSString *token1) {
-        [BKjs getArchivedMessages:params success:^(NSArray *list2, NSString *token2) {
+    [BKjs getNewMessages:params success:^(int count, NSArray *list1, NSString *token1) {
+        [BKjs getArchivedMessages:params success:^(int count, NSArray *list2, NSString *token2) {
             NSArray* rc = [params isEmpty:@"_archive"] ? [list1 arrayByAddingObjectsFromArray:list2] : list2;
             rc = [rc sortedArrayUsingComparator:^NSComparisonResult(id a, id b) {
                 double m1 = [BKjs toNumber:a name:@"mtime"];
                 double m2 = [BKjs toNumber:b name:@"mtime"];
                 return m1 < m2 ? NSOrderedAscending : m1 > m2 ? NSOrderedDescending : NSOrderedSame;
             }];
-            if (success) success(rc, nil);
+            if (success) success((int)rc.count, rc, nil);
         } failure:failure];
     } failure:failure];
 }
@@ -1017,7 +1082,7 @@ static NSString *SysCtlByName(char *typeSpecifier)
            method:@"POST"
            params:params
           success:^(NSDictionary *json) {
-              if (success) success([BKjs toArray:json name:@"data"], json[@"next_token"]);
+              if (success) success([BKjs toNumber:json name:@"count"], [BKjs toArray:json name:@"data"], [BKjs toString:json name:@"next_token"]);
           }
           failure:failure];
 }
@@ -1028,7 +1093,7 @@ static NSString *SysCtlByName(char *typeSpecifier)
            method:@"POST"
            params:params
           success:^(NSDictionary *json) {
-              if (success) success([BKjs toArray:json name:@"data"], json[@"next_token"]);
+              if (success) success([BKjs toNumber:json name:@"count"], [BKjs toArray:json name:@"data"], [BKjs toString:json name:@"next_token"]);
           }
           failure:failure];
 }
@@ -1039,7 +1104,7 @@ static NSString *SysCtlByName(char *typeSpecifier)
            method:@"POST"
            params:params
           success:^(NSDictionary *json) {
-              if (success) success([BKjs toArray:json name:@"data"], json[@"next_token"]);
+              if (success) success([BKjs toNumber:json name:@"count"], [BKjs toArray:json name:@"data"], [BKjs toString:json name:@"next_token"]);
           }
           failure:failure];
 }
@@ -1149,7 +1214,7 @@ static NSString *SysCtlByName(char *typeSpecifier)
            method:@"POST"
            params:params
             success:^(NSDictionary *json) {
-                if (success) success([BKjs toArray:json name:@"data"], json[@"next_token"]);
+                if (success) success([BKjs toNumber:json name:@"count"], [BKjs toArray:json name:@"data"], [BKjs toString:json name:@"next_token"]);
             } failure:failure];
 }
 

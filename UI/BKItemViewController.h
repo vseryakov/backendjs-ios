@@ -16,6 +16,8 @@
 @property (strong, nonatomic) UIImageView *icon;
 @property (strong, nonatomic) UILabel *title;
 @property (strong, nonatomic) UITextView *text;
+@property (strong, nonatomic) UIView *line1;
+@property (strong, nonatomic) UIView *line2;
 
 - (instancetype)initWithFrame:(CGRect)frame params:(NSDictionary*)params;
 - (void)update:(NSDictionary*)params;

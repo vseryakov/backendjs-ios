@@ -35,13 +35,12 @@
                                 @"display": @"touch" }];
 }
 
-- (NSArray*)getDataItems:(id)result
+- (NSArray*)getItems:(id)result
 {
-    if ([result isKindOfClass:[NSDictionary class]] && [result[@"data"] isKindOfClass:[NSArray class]]) return result[@"data"];
-    return nil;
+    return [BKjs toArray:result name:@"data" dflt:nil];
 }
 
-- (NSString*)getDataNextURL:(id)result
+- (NSString*)getNextURL:(id)result
 {
     return [BKjs toDictionaryString:result name:@"paging" field:@"next"];
 }

@@ -136,7 +136,6 @@
 
 - (void)addInfoView:(NSString*)text;
 - (void)addInfoView:(NSString*)text links:(NSArray*)links handler:(SuccessBlock)handler;
-- (void)updateInfoView;
 
 #pragma mark Items
 

@@ -160,11 +160,6 @@
     self.infoTextView.centerX = self.view.centerX;
 }
 
-- (void)updateInfoView
-{
-    if (self.infoView) self.infoView.hidden = self.tableRows + self.items.count > 0 ? YES : NO;
-}
-
 #pragma mark Toolbar
 
 - (void)addToolbar:(NSString*)title params:(NSDictionary*)params
@@ -270,7 +265,6 @@
     
     if (self.tableRefresh.isRefreshing) [self.tableRefresh endRefreshing];
     [self.tableView reloadData];
-    [self updateInfoView];
 }
 
 - (void)reloadItems:(NSArray*)items
@@ -389,7 +383,6 @@
     for (int i = 0; i < self.items.count; i++) [paths addObject:[NSIndexPath indexPathForRow:i+self.tableRows inSection:0]];
     [self.tableView insertRowsAtIndexPaths:paths withRowAnimation:UITableViewRowAnimationFade];
     [self.tableView endUpdates];
-    [self updateInfoView];
 }
 
 - (void)hideKeyboard

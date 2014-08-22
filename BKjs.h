@@ -54,7 +54,7 @@ typedef void (^GenericBlock)();
 typedef void (^SuccessBlock)(id obj);
 typedef void (^DictionaryBlock)(NSDictionary *obj);
 typedef void (^ListBlock)(NSArray *list);
-typedef void (^ArrayBlock)(NSArray *list, NSString *next);
+typedef void (^ArrayBlock)(int count, NSArray *list, NSString *next);
 typedef void (^ErrorBlock)(NSError *error);
 typedef void (^StringBlock)(NSString *str);
 typedef void (^FinishBlock)(BOOL finished);
@@ -222,8 +222,10 @@ typedef NS_OPTIONS(NSUInteger, BKOptions) {
 + (double)toNumber:(id)obj name:(NSString*)name;
 + (NSString*)toString:(id)obj;
 + (NSDictionary*)toDictionary:(id)obj name:(NSString*)name;
++ (NSDictionary*)toDictionary:(id)obj name:(NSString*)name dflt:(id)dflt;
 + (NSMutableDictionary*)toDictionary:(id)obj params:(NSDictionary*)params;
 + (NSArray*)toArray:(id)obj name:(NSString*)name;
++ (NSArray*)toArray:(id)obj name:(NSString*)name dflt:(id)dflt;
 + (NSString*)toString:(id)obj name:(NSString*)name;
 + (NSArray*)toDictionaryArray:(id)obj name:(NSString*)name field:(NSString*)field;
 + (NSString*)toDictionaryString:(id)obj name:(NSString*)name field:(NSString*)field;
@@ -251,6 +253,9 @@ typedef NS_OPTIONS(NSUInteger, BKOptions) {
 
 // Return formatted date/time from the seconds since Unix epoch
 + (NSString*)strftime:(long long)seconds format:(NSString*)format;
+
++ (NSString*)toDuration:(double)seconds format:(NSString*)format;
++ (NSString*)toAge:(double)seconds format:(NSString*)fmt;
 
 // Return system log records for the current application starting the given seconds agon
 + (NSData*)getSystemLog:(long)secondsAgo;
