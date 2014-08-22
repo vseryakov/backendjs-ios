@@ -28,17 +28,6 @@ static NSMutableDictionary *_accounts;
     for (id key in _accounts) [_accounts[key] refreshToken];
 }
 
-- (void)getAccount:(NSDictionary*)params success:(SuccessBlock)success failure:(FailureBlock)failure { if (failure) failure(-1, @"not implemented"); }
-- (void)getAlbums:(NSDictionary*)params success:(SuccessBlock)success failure:(FailureBlock)failure { if (failure) failure(-1, @"not implemented"); }
-- (void)getPhotos:(NSString*)name params:(NSDictionary*)params success:(SuccessBlock)success failure:(FailureBlock)failure { if (failure) failure(-1, @"not implemented"); }
-- (void)getContacts:(NSDictionary*)params success:(SuccessBlock)success failure:(FailureBlock)failure { if (failure) failure(-1, @"not implemented"); }
-- (void)postMessage:(NSString*)msg image:(UIImage*)image params:(NSDictionary*)params success:(SuccessBlock)success failure:(FailureBlock)failure { if (failure) failure(-1, @"not implemented"); };
-
-- (NSMutableURLRequest*)getAuthorizeRequest:(NSDictionary*)params { return nil; }
-- (NSMutableURLRequest*)getAuthenticateRequest:(NSDictionary*)params { return nil; }
-- (NSMutableURLRequest*)getAccessTokenRequest:(NSDictionary*)params { return nil; }
-- (NSMutableURLRequest*)getRequestTokenRequest:(NSDictionary*)params { return nil; }
-
 - (id)init:(NSString*)name
 {
     return [self init:name clientId:nil];
@@ -116,7 +105,7 @@ static NSMutableDictionary *_accounts;
     return nil;
 }
 
-- (NSString*)getURL:(NSString*)path
+- (NSString*)getURL:(NSString*)path params:(NSDictionary*)params
 {
     return [NSString stringWithFormat:@"%@%@", self.baseURL, path];
 }
@@ -129,12 +118,12 @@ static NSMutableDictionary *_accounts;
     return query;
 }
 
-- (NSArray*)getItems:(id)result
+- (NSArray*)getItems:(id)result params:(NSDictionary*)params
 {
     return nil;
 }
 
-- (NSString*)getNextURL:(id)result
+- (NSString*)getNextURL:(id)result params:(NSDictionary*)params
 {
     return nil;
 }
@@ -161,7 +150,11 @@ static NSMutableDictionary *_accounts;
                 Logger(@"%@: %@", self.name, error ? error : @"login error");
                 if (failure) failure(error ? error.code : -1, error ? error.description : @"login error");
             } else {
-                [self getResult:method path:[self getURL:path] params:[self getQuery:path params:params] success:success failure:failure];
+                [self getResult:method
+                           path:[self getURL:path params:params]
+                         params:[self getQuery:path params:params]
+                        success:success
+                        failure:failure];
             }
         }];
     };
@@ -171,14 +164,18 @@ static NSMutableDictionary *_accounts;
         return;
     }
     
-    [self getResult:method path:[self getURL:path] params:[self getQuery:path params:params] success:success failure:^(NSInteger code, NSString *reason) {
-        // Empty token means we have to relogin
-        if (!self.accessToken.count) {
-            relogin();
-        } else {
-            if (failure) failure(code, reason);
-        }
-    }];
+    [self getResult:method
+               path:[self getURL:path params:params]
+             params:[self getQuery:path params:params]
+            success:success
+            failure:^(NSInteger code, NSString *reason) {
+                // Empty token means we have to relogin
+                if (!self.accessToken.count) {
+                    relogin();
+                } else {
+                    if (failure) failure(code, reason);
+                }
+            }];
 }
 
 - (void)getResult:(NSString*)method path:(NSString*)path params:(NSDictionary*)params success:(SuccessBlock)success failure:(FailureBlock)failure
@@ -194,7 +191,7 @@ static NSMutableDictionary *_accounts;
     NSMutableArray *items = [@[] mutableCopy];
     NSMutableURLRequest *request = [self getRequest:@"GET" path:path params:params];
     [BKjs sendRequest:request success:^(id result) {
-        [self processResult:result items:items success:success failure:^(NSInteger code, NSString *reason) {
+        [self processResult:result params:params items:items success:success failure:^(NSInteger code, NSString *reason) {
             if (failure) failure(code, reason);
         }];
     } failure:^(NSURLRequest *request, NSHTTPURLResponse *response, NSError *error, id json) {
@@ -202,17 +199,17 @@ static NSMutableDictionary *_accounts;
     }];
 }
 
-- (void)processResult:(id)result items:(NSMutableArray*)items success:(SuccessBlock)success failure:(FailureBlock)failure
+- (void)processResult:(id)result params:(NSDictionary*)params items:(NSMutableArray*)items success:(SuccessBlock)success failure:(FailureBlock)failure
 {
     // Perform pagination and collect all items
-    NSArray *list = [self getItems:result];
+    NSArray *list = [self getItems:result params:params];
     if (list) {
         for (id item in list) [items addObject:item];
-        NSString *url = [self getNextURL:result];
+        NSString *url = [self getNextURL:result params:params];
         if (url && url.length) {
             NSMutableURLRequest *request = [self getRequest:@"GET" path:url params:nil];
             [BKjs sendRequest:request success:^(id result) {
-                [self processResult:result items:items success:success failure:failure];
+                [self processResult:result params:params items:items success:success failure:failure];
             } failure:^(NSURLRequest *request, NSHTTPURLResponse *response, NSError *error, id json) {
                 [self processResponse:response error:error json:json failure:failure];
             }];
@@ -470,5 +467,18 @@ static NSMutableDictionary *_accounts;
         self.headers[@"Authorization"] = [NSString stringWithFormat:@"OAuth %@", [items componentsJoinedByString:@", "]];
     }
 }
+
+#pragma mark Methods to override
+
+- (void)getAccount:(NSDictionary*)params success:(SuccessBlock)success failure:(FailureBlock)failure { if (failure) failure(-1, @"not implemented"); }
+- (void)getAlbums:(NSDictionary*)params success:(SuccessBlock)success failure:(FailureBlock)failure { if (failure) failure(-1, @"not implemented"); }
+- (void)getPhotos:(NSDictionary*)album params:(NSDictionary*)params success:(SuccessBlock)success failure:(FailureBlock)failure { if (failure) failure(-1, @"not implemented"); }
+- (void)getContacts:(NSDictionary*)params success:(SuccessBlock)success failure:(FailureBlock)failure { if (failure) failure(-1, @"not implemented"); }
+- (void)postMessage:(NSString*)msg image:(UIImage*)image params:(NSDictionary*)params success:(SuccessBlock)success failure:(FailureBlock)failure { if (failure) failure(-1, @"not implemented"); };
+
+- (NSMutableURLRequest*)getAuthorizeRequest:(NSDictionary*)params { return nil; }
+- (NSMutableURLRequest*)getAuthenticateRequest:(NSDictionary*)params { return nil; }
+- (NSMutableURLRequest*)getAccessTokenRequest:(NSDictionary*)params { return nil; }
+- (NSMutableURLRequest*)getRequestTokenRequest:(NSDictionary*)params { return nil; }
 
 @end;

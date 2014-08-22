@@ -32,7 +32,7 @@
     layout.itemSize = CGSizeMake(w, w);
     
     self.photosView = [[UICollectionView alloc] initWithFrame:self.tableView.frame collectionViewLayout:layout];
-    self.photosView.backgroundColor = self.view.backgroundColor;
+    self.photosView.backgroundColor = [BKui makeColor:self.view.backgroundColor h:1 s:1 b:0.95 a:1];
     self.photosView.showsHorizontalScrollIndicator = NO;
     self.photosView.showsVerticalScrollIndicator = YES;
     [self.photosView registerClass:[UICollectionViewCell class] forCellWithReuseIdentifier:@"cell"];
@@ -54,7 +54,9 @@
     if (self.photosView.x == 0) {
         [UIView animateWithDuration:0.3 delay:0 options:0
                          animations:^{ self.photosView.x = self.view.width; }
-                         completion:^(BOOL finsihed) { self.toolbarTitle.text = @"Albums"; }];
+                         completion:^(BOOL finsihed) {
+                             self.toolbarTitle.text = @"Albums";
+                         }];
     } else {
         [self showPrevious];
     }
@@ -116,16 +118,22 @@
 - (void)getPhotos:(NSDictionary*)album
 {
     [_photosItems removeAllObjects];
+    [self.photosView reloadData];
+
     [UIView animateWithDuration:0.3 delay:0 options:0
-                     animations:^{ self.photosView.x = 0; }
-                     completion:^(BOOL finished) { self.toolbarTitle.text = album[@"name"]; }];
+                     animations:^{
+                         self.photosView.x = 0;
+                     }
+                     completion:^(BOOL finished) {
+                         self.toolbarTitle.text = album[@"name"];
+                     }];
     
     // Photos to be retrieved from the remote accounts
     for (id item in self.params[@"accounts"]) {
         if ([item isKindOfClass:[BKSocialAccount class]]) {
             BKSocialAccount *account = item;
             if ([album[@"type"] isEqual:account.name]) {
-                [account getPhotos:album[@"id"] params:nil success:^(id list) {
+                [account getPhotos:album params:nil success:^(id list) {
                     [_photosItems addObjectsFromArray:list];
                     [self.photosView reloadData];
                     Logger(@"%@: %d", account.name, (int)_photosItems.count);

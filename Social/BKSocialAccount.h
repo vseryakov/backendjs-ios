@@ -53,9 +53,9 @@
 - (void)processResponse:(NSHTTPURLResponse*)response error:(NSError*)error json:(id)json failure:(FailureBlock)failure;
 
 - (NSError*)getError:(NSDictionary*)params;
-- (NSString*)getURL:(NSString*)path;
-- (NSString*)getNextURL:(id)result;
-- (NSArray*)getItems:(id)result;
+- (NSString*)getURL:(NSString*)path params:(NSDictionary*)params;
+- (NSString*)getNextURL:(id)result params:(NSDictionary*)params;
+- (NSArray*)getItems:(id)result params:(NSDictionary*)params;
 - (NSDictionary*)getQuery:(NSString*)path params:(NSDictionary*)params;
 
 // High level methods for API calls
@@ -64,7 +64,7 @@
 // High level API common for all services
 - (void)getAccount:(NSDictionary*)params success:(SuccessBlock)success failure:(FailureBlock)failure;
 - (void)getAlbums:(NSDictionary*)params success:(SuccessBlock)success failure:(FailureBlock)failure;
-- (void)getPhotos:(NSString*)name params:(NSDictionary*)params success:(SuccessBlock)success failure:(FailureBlock)failure;
+- (void)getPhotos:(NSDictionary*)album params:(NSDictionary*)params success:(SuccessBlock)success failure:(FailureBlock)failure;
 - (void)getContacts:(NSDictionary*)params success:(SuccessBlock)success failure:(FailureBlock)failure;
 - (void)postMessage:(NSString*)msg image:(UIImage*)image params:(NSDictionary*)params success:(SuccessBlock)success failure:(FailureBlock)failure;
 

@@ -35,12 +35,12 @@
                                 @"display": @"touch" }];
 }
 
-- (NSArray*)getItems:(id)result
+- (NSArray*)getItems:(id)result params:(NSDictionary*)params
 {
     return [BKjs toArray:result name:@"data" dflt:nil];
 }
 
-- (NSString*)getNextURL:(id)result
+- (NSString*)getNextURL:(id)result params:(NSDictionary*)params
 {
     return [BKjs toDictionaryString:result name:@"paging" field:@"next"];
 }
@@ -75,9 +75,9 @@
           } failure:failure];
 }
 
-- (void)getPhotos:(NSString*)name params:(NSDictionary*)params success:(SuccessBlock)success failure:(FailureBlock)failure;
+- (void)getPhotos:(NSDictionary*)album params:(NSDictionary*)params success:(SuccessBlock)success failure:(FailureBlock)failure;
 {
-    [self sendRequest:@"GET" path:[NSString stringWithFormat:@"/%@/photos",name] params:params success:^(id result) {
+    [self sendRequest:@"GET" path:[NSString stringWithFormat:@"/%@/photos", album[@"id"]] params:params success:^(id result) {
         NSMutableArray *list = [@[] mutableCopy];
         for (NSDictionary *item in result) {
             [list addObject:@{ @"type": self.name,

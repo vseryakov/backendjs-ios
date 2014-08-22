@@ -65,9 +65,19 @@
     for (id key in params) query[key] = params[key];
     if (image) {
         [self setHeaders:@"POST" path:@"/statuses/update_with_media.json" params:query];
-        [BKjs uploadImage:[self getURL:@"/statuses/update_with_media.json"] name:@"media[]" image:image params:query headers:self.headers success:success failure:failure];
+        [BKjs uploadImage:[self getURL:@"/statuses/update_with_media.json" params:params]
+                     name:@"media[]"
+                    image:image
+                   params:query
+                  headers:self.headers
+                  success:success
+                  failure:failure];
     } else {
-        [self sendRequest:@"POST" path:@"/statuses/update.json" params:query success:success failure:failure];
+        [self sendRequest:@"POST"
+                     path:@"/statuses/update.json"
+                   params:query
+                  success:success
+                  failure:failure];
     }
 }
 

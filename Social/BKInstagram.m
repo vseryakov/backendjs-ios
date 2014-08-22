@@ -12,7 +12,7 @@
 - (id)init:(NSString*)name clientId:(NSString*)clientId
 {
     self = [super init:name clientId:clientId];
-    self.scope = @"likes+comments+relationships";
+    self.scope = @"basic";
     self.baseURL = @"https://api.instagram.com/v1";
     self.launchURLs = @[ @{ @"url": @"instagram://user?username=%@", @"param": @"username" },
                          @{ @"url": @"http://instagram.com/%@", @"param": @"username" } ];
@@ -30,8 +30,14 @@
                                 @"display": @"touch" }];
 }
 
-- (NSString*)getNextURL:(id)result
+- (NSArray*)getItems:(id)result params:(NSDictionary*)params
 {
+    return [BKjs toArray:result name:@"data" dflt:nil];
+}
+
+- (NSString*)getNextURL:(id)result params:(NSDictionary*)params
+{
+    if (params && params[@"_1"]) return nil;
     return [BKjs toDictionaryString:result name:@"pagination" field:@"next_url"];
 }
 
@@ -48,25 +54,32 @@
 
 - (void)getAlbums:(NSDictionary*)params success:(SuccessBlock)success failure:(FailureBlock)failure
 {
-    [self getPhotos:@"" params:@{}
+    [self getPhotos:@{}
+             params:@{ @"count": @(1), @"_1": @(1) }
             success:^(NSArray *photos) {
-                NSArray *list = @[ @{ @"id": @"instagram", @"name": @"Instagram Photos", @"type": @"instagram", @"icon": photos.count ? photos[0][@"icon"] : @"", @"photos": photos } ];
+                NSArray *list = @[ @{ @"id": self.name,
+                                      @"name": @"Instagram Photos",
+                                      @"type": self.name,
+                                      @"icon": photos.count ? photos[0][@"icon"] : @"instagram" } ];
                 if (success) success(list);
             } failure:failure];
 }
 
-- (void)getPhotos:(NSString*)name params:(NSDictionary*)params success:(SuccessBlock)success failure:(FailureBlock)failure;
+- (void)getPhotos:(NSDictionary*)album params:(NSDictionary*)params success:(SuccessBlock)success failure:(FailureBlock)failure;
 {
-    [self sendRequest:@"GET" path:@"/users/self/feed" params:params success:^(id result) {
-        NSMutableArray *list = [@[] mutableCopy];
-        for (NSDictionary *item in result[@"data"]) {
-            [list addObject:@{ @"type": self.name,
-                               @"icon": item[@"images"][@"thumbnail"][@"url"],
-                               @"image": item[@"images"][@"low_resolution"][@"url"],
-                               @"photo": item[@"images"][@"standard_resolution"][@"url"] }];
-        }
-        if (success) success(list);
-    } failure:failure];
+    [self sendRequest:@"GET"
+                 path:@"/users/self/media/recent"
+               params:[BKjs mergeParams:@{ @"count": @(100), @"min_timestamp": @(0) } params:params]
+              success:^(NSArray *photos) {
+                  NSMutableArray *list = [@[] mutableCopy];
+                  for (NSDictionary *item in photos) {
+                      [list addObject:@{ @"type": self.name,
+                                         @"icon": item[@"images"][@"thumbnail"][@"url"],
+                                         @"image": item[@"images"][@"low_resolution"][@"url"],
+                                         @"photo": item[@"images"][@"standard_resolution"][@"url"] }];
+                  }
+                  if (success) success(list);
+              } failure:failure];
 }
 
 @end
