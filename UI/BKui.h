@@ -53,6 +53,7 @@
 + (void)makeGloss:(UIView*)view;
 
 + (UIButton*)makeCustomButton:(NSString*)title image:(UIImage*)image;
++ (UIButton*)makeCustomButton:(NSString *)title image:(UIImage*)image action:(SuccessBlock)action;
 
 + (void)setTextLinks:(UITextView*)label text:(NSString*)text links:(NSArray*)links handler:(SuccessBlock)handler;
 + (void)setLabelLink:(UILabel*)label text:(NSString*)text link:(NSString*)link handler:(SuccessBlock)handler;

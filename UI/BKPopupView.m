@@ -23,7 +23,7 @@
     [self.closeButton sizeToFit];
     [self.closeButton addTarget:self action:@selector(onClose:) forControlEvents:UIControlEventTouchUpInside];
     self.closeButton.centerY = 22;
-    self.closeButton.centerX = self.width - 10 - self.closeButton.width/2;
+    self.closeButton.x = 10;
     [self addSubview:self.closeButton];
     
     _bg = [[UIView alloc] initWithFrame:[[UIScreen mainScreen] bounds]];

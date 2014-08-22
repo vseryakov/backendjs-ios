@@ -9,6 +9,7 @@
 #import <sys/sysctl.h>
 #import <Security/Security.h>
 #import <pthread.h>
+#import <stdint.h>
 
 static BKjs *_bkjs;
 static CLLocationManager *_locationManager;
@@ -285,10 +286,12 @@ static NSString *SysCtlByName(char *typeSpecifier)
     return str;
 }
 
-+ (NSString*)toAge:(double)seconds format:(NSString*)fmt
++ (NSString*)toAge:(double)mtime format:(NSString*)fmt
 {
     NSString *str = @"";
-    if (seconds > 0) {
+    if (mtime > 0) {
+        if (mtime > UINT32_MAX) mtime /= 1000;
+        long long seconds = self.now - mtime;
         int d = floor(seconds / 86400);
         int h = floor((seconds - d * 86400) / 3600);
         int m = floor((seconds - d * 86400 - h * 3600) / 60);

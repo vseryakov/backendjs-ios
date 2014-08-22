@@ -81,6 +81,12 @@
     return self;
 }
 
+- (void)setFrame:(CGRect)frame;
+{
+    [super setFrame:frame];
+    self.scroll.frame = self.bounds;
+}
+
 - (void)clean
 {
     for (UIView *view in self.scroll.subviews) {
@@ -199,7 +205,7 @@
     }
 
     self.line2.frame = CGRectMake(x, self.title.bottom + 1, self.width - x - 5, 1);
-    self.line2.hidden = self.header.hidden;
+    self.line2.hidden = self.title.hidden;
 
     if (params[@"text"]) {
         self.text.hidden = NO;

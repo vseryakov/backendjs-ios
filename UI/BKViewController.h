@@ -79,6 +79,9 @@
 // Top menubar view
 @property (strong, nonatomic) BKMenubarView *menubarView;
 
+// Bottom tabbar view
+@property (strong, nonatomic) BKMenubarView *tabbarView;
+
 // View specific activity indicator
 @property (strong, nonatomic) IBOutlet UIActivityIndicatorView *activityView;
 
@@ -115,6 +118,10 @@
 - (void)addToolbar:(NSString*)title params:(NSDictionary*)params;
 - (void)onBack:(id)sender;
 - (void)onNext:(id)sender;
+
+#pragma mark Tabbar
+
+- (void)addTabbar:(NSArray*)items params:(NSDictionary*)params;
 
 #pragma mark Activity
 

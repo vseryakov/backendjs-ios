@@ -183,6 +183,22 @@ static UIActivityIndicatorView *_activity;
     return action;
 }
 
+- (void)onButton:(id)sender
+{
+    SuccessBlock block = objc_getAssociatedObject(sender, @"actionBlock");
+    if (block) block(sender);
+}
+
++ (UIButton*)makeCustomButton:(NSString *)title image:(UIImage*)image action:(SuccessBlock)action
+{
+    UIButton *button = [self makeCustomButton:title image:image];
+    if (action) {
+        objc_setAssociatedObject(button, @"actionBlock", action, OBJC_ASSOCIATION_RETAIN);
+        [button addTarget:[self get] action:@selector(onButton:) forControlEvents:UIControlEventTouchUpInside];
+    }
+    return button;
+}
+
 + (void)showActivity
 {
     UIViewController *root = [BKui rootController];

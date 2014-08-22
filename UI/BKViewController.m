@@ -209,6 +209,16 @@
     if (self.menubarView) [self.menubarView update:params];
 }
 
+#pragma mark Tabbar
+
+- (void)addTabbar:(NSArray*)items params:(NSDictionary*)params
+{
+    self.tabbarView = [[BKMenubarView alloc] init:CGRectMake(0, self.view.height - 40, self.view.width, 40) items:items params:params];
+    self.tabbarView.backgroundColor = [BKui makeColor:self.view.backgroundColor h:1 s:1 b:0.95 a:1];
+    [BKui setViewShadow:self.tabbarView color:nil offset:CGSizeMake(0, 0.5) opacity:0.5 radius:-1];
+    [self.view addSubview:self.tabbarView];
+}
+
 #pragma mark Table
 
 - (void)addTable
