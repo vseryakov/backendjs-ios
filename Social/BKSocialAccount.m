@@ -9,6 +9,34 @@
 
 static NSMutableDictionary *_accounts;
 
+@implementation BKQueryParams
+
+- (instancetype)init:(NSString*)path params:(NSDictionary*)params defaults:(NSDictionary*)defaults
+{
+    self = [super init];
+    self.path = path ? path : @"";
+    self.params = [@{} mutableCopy];
+    for (id key in params) self.params[key] = params[key];
+    [self format:defaults];
+    return self;
+}
+
+- (void)format:(NSDictionary*)defaults
+{
+    for (id key in defaults) {
+        if (!self.params[key]) self.params[key] = defaults[key];
+    }
+    // Collect all params that should be present in the path so we need to remove them from the query
+    NSMutableArray *clear = [@[] mutableCopy];
+    for (id key in self.params) {
+        if ([self.path rangeOfString:[NSString stringWithFormat:@"@%@@", key]].location != NSNotFound) [clear addObject:key];
+    }
+    self.path = [BKjs processTemplate:self.path params:self.params];
+    [self.params removeObjectsForKeys:clear];
+}
+
+@end
+
 @interface BKSocialAccount () <UIWebViewDelegate>
 @property (nonatomic, strong) BKWebViewController *loginView;
 @property (nonatomic, strong) NSString *oauthRealm;
@@ -92,7 +120,7 @@ static NSMutableDictionary *_accounts;
     return NO;
 }
 
-#pragma mark Data access 
+#pragma mark Data access
 
 - (NSError*)getError:(NSDictionary*)params
 {

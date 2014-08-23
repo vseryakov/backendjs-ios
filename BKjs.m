@@ -399,6 +399,19 @@ static NSString *SysCtlByName(char *typeSpecifier)
     return rc;
 }
 
++ (NSString*)processTemplate:(NSString*)text params:(NSDictionary*)params
+{
+    NSRegularExpression *regex = [NSRegularExpression regularExpressionWithPattern:@"@[a-z0-9_]+@" options:0 error:nil];
+    while (1) {
+        NSArray *matches = [regex matchesInString:text options:NSMatchingReportProgress range:NSMakeRange(0, text.length)];
+        if (matches.count == 0) break;
+        NSTextCheckingResult *match = matches[0];
+        NSString *key = [text substringWithRange:NSMakeRange(match.range.location + 1, match.range.length-2)];
+        text = [text stringByReplacingCharactersInRange:match.range withString:[params str:key]];
+    }
+    return text;
+}
+
 #pragma mark Generic dictionary access
 
 + (BOOL)isEmpty:(id)obj

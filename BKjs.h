@@ -248,6 +248,9 @@ typedef NS_OPTIONS(NSUInteger, BKOptions) {
 // Regexp matching, YES if matched
 + (BOOL)matchString:(NSString *)pattern string:(NSString*)string;
 
+// Replace all occurences of @..@ placeholders in text with corresponding values from the params
++ (NSString*)processTemplate:(NSString*)text params:(NSDictionary*)params;
+
 // Return new unique UUID 
 + (NSString*)getUUID;
 

@@ -170,6 +170,7 @@
 
     if (params[@"msg"]) {
         self.msg.hidden = NO;
+        self.msg.backgroundColor = [UIColor clearColor];
         self.msg.attributedText = [[NSAttributedString alloc] initWithString:params[@"msg"]
                                                                   attributes:@{ NSFontAttributeName: self.msg.font }];
         self.msg.frame = CGRectMake(x, y, self.width - x - 5, 0);
@@ -209,6 +210,7 @@
 
     if (params[@"text"]) {
         self.text.hidden = NO;
+        self.text.backgroundColor = [UIColor clearColor];
         self.text.attributedText = [[NSAttributedString alloc] initWithString:params[@"text"]
                                                                    attributes:@{ NSFontAttributeName: self.text.font }];
         self.text.frame = CGRectMake(x, y, self.width - x - 5, 0);

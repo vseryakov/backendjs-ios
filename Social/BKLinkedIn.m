@@ -64,13 +64,19 @@
 
 - (void)getAccount:(NSDictionary*)params success:(SuccessBlock)success failure:(FailureBlock)failure
 {
+    BKQueryParams *query = [[BKQueryParams alloc]
+                            init:@"/people/@id@:@fields@"
+                            params:params
+                            defaults:@{ @"id": @"~",
+                                        @"fields": @"(id,first-name,last-name,formatted-name,email-address,picture-url,public-profile-url,headline,industry)" }];
+    
     [self sendRequest:@"GET"
-                 path:@"/people/~:(id,first-name,last-name,formatted-name,email-address,picture-url,public-profile-url,headline,industry)"
-               params:[BKjs mergeParams:params params:@{ @"format": @"json" }]
+                 path:query.path
+               params:query.params
                  type:nil
               success:^(id user) {
                   NSMutableDictionary *account = [user mutableCopy];
-                  self.account = account;
+                  if (!params || !params[@"id"]) self.account = account;
                   self.account[@"alias"] = user[@"formattedName"];
                   self.account[@"icon"] = user[@"pictureUrl"];
                   if (success) success(account);
@@ -79,9 +85,16 @@
 
 - (void)getContacts:(NSDictionary*)params success:(SuccessBlock)success failure:(FailureBlock)failure
 {
+    BKQueryParams *query = [[BKQueryParams alloc]
+                            init:@"/people/@id@/connections:@fields@"
+                            params:params
+                            defaults:@{ @"id": @"~",
+                                        @"fields": @"(id,formatted-name,picture-url,public-profile-url,location,headline,industry)",
+                                        @"count": @(500) }];
+
     [self sendRequest:@"GET"
-                 path:@"/people/~/connections:(id,formatted-name,picture-url,public-profile-url,location,headline,industry)"
-               params:params
+                 path:query.path
+               params:query.params
                  type:nil
               success:^(id result) {
                   NSMutableArray *list = [@[] mutableCopy];
