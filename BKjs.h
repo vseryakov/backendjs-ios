@@ -54,6 +54,7 @@ typedef void (^GenericBlock)();
 typedef void (^SuccessBlock)(id obj);
 typedef void (^DictionaryBlock)(NSDictionary *obj);
 typedef void (^ListBlock)(NSArray *list);
+typedef void (^ItemsBlock)(NSMutableArray *items, id data);
 typedef void (^ArrayBlock)(int count, NSArray *list, NSString *next);
 typedef void (^ErrorBlock)(NSError *error);
 typedef void (^StringBlock)(NSString *str);
