@@ -617,7 +617,7 @@ static UIActivityIndicatorView *_activity;
 
                 if (ABPersonHasImageData(person)) {
                     UIImage *icon = [UIImage imageWithData:(NSData *)CFBridgingRelease(ABPersonCopyImageDataWithFormat(person, kABPersonImageFormatThumbnail))];
-                    if (icon) item[@"icon"] = icon;
+                    if (icon) item[@"image"] = icon;
                 }
                 
                 ABMultiValueRef phones = ABRecordCopyValue(person, kABPersonPhoneProperty);

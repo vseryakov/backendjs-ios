@@ -105,12 +105,12 @@ static NSMutableDictionary *_accounts;
     return nil;
 }
 
-- (NSString*)getURL:(NSString*)path params:(NSDictionary*)params
+- (NSString*)getURL:(NSString *)method path:(NSString*)path params:(NSDictionary*)params
 {
     return [NSString stringWithFormat:@"%@%@", self.baseURL, path];
 }
 
-- (NSDictionary*)getQuery:(NSString*)path params:(NSDictionary*)params
+- (NSDictionary*)getQuery:(NSString *)method path:(NSString*)path params:(NSDictionary*)params
 {
     if ([self.type isEqual:@"oauth1"] || !self.accessToken[@"access_token"]) return params;
     NSMutableDictionary *query = [params ? params : @{} mutableCopy];
@@ -128,7 +128,7 @@ static NSMutableDictionary *_accounts;
     return nil;
 }
 
-- (NSMutableURLRequest*)getRequest:(NSString*)method path:(NSString*)path params:(NSDictionary*)params
+- (NSMutableURLRequest*)getRequest:(NSString*)method path:(NSString*)path params:(NSDictionary*)params type:(NSString*)type
 {
     [self setHeaders:method path:path params:params];
     if ([self.type isEqual:@"oauth1"]) {
@@ -136,13 +136,14 @@ static NSMutableDictionary *_accounts;
         for (NSString *key in params) {
             if (![key hasPrefix:@"oauth_"]) query[key] = params[key];
         }
-        NSMutableURLRequest *request = [BKjs makeRequest:method path:path params:query headers:self.headers body:nil];
-        return request;
+        params = query;
     }
-    return [BKjs makeRequest:method path:path params:params headers:self.headers body:nil];
+    NSMutableURLRequest *request = [BKjs makeRequest:method path:path params:params type:type];
+    for (NSString* key in self.headers) [request setValue:self.headers[key] forHTTPHeaderField:key];
+    return request;
 }
 
-- (void)sendRequest:(NSString*)method path:(NSString*)path params:(NSDictionary*)params success:(SuccessBlock)success failure:(FailureBlock)failure
+- (void)sendRequest:(NSString*)method path:(NSString*)path params:(NSDictionary*)params type:(NSString*)type success:(SuccessBlock)success failure:(FailureBlock)failure
 {
     GenericBlock relogin = ^() {
         [self login:^(NSError *error) {
@@ -151,8 +152,9 @@ static NSMutableDictionary *_accounts;
                 if (failure) failure(error ? error.code : -1, error ? error.description : @"login error");
             } else {
                 [self getResult:method
-                           path:[self getURL:path params:params]
-                         params:[self getQuery:path params:params]
+                           path:[self getURL:method path:path params:params]
+                         params:[self getQuery:method path:path params:params]
+                           type:type
                         success:success
                         failure:failure];
             }
@@ -165,8 +167,9 @@ static NSMutableDictionary *_accounts;
     }
     
     [self getResult:method
-               path:[self getURL:path params:params]
-             params:[self getQuery:path params:params]
+               path:[self getURL:method path:path params:params]
+             params:[self getQuery:method path:path params:params]
+               type:type
             success:success
             failure:^(NSInteger code, NSString *reason) {
                 // Empty token means we have to relogin
@@ -178,10 +181,10 @@ static NSMutableDictionary *_accounts;
             }];
 }
 
-- (void)getResult:(NSString*)method path:(NSString*)path params:(NSDictionary*)params success:(SuccessBlock)success failure:(FailureBlock)failure
+- (void)getResult:(NSString*)method path:(NSString*)path params:(NSDictionary*)params type:(NSString*)type success:(SuccessBlock)success failure:(FailureBlock)failure
 {
     if ([method isEqual:@"POST"]) {
-        NSMutableURLRequest *request = [self getRequest:@"POST" path:path params:params];
+        NSMutableURLRequest *request = [self getRequest:@"POST" path:path params:params type:type];
         [BKjs sendRequest:request success:success failure:^(NSURLRequest *request, NSHTTPURLResponse *response, NSError *error, id json) {
             [self processResponse:response error:error json:json failure:failure];
         }];
@@ -189,7 +192,7 @@ static NSMutableDictionary *_accounts;
     }
     
     NSMutableArray *items = [@[] mutableCopy];
-    NSMutableURLRequest *request = [self getRequest:@"GET" path:path params:params];
+    NSMutableURLRequest *request = [self getRequest:@"GET" path:path params:params type:type];
     [BKjs sendRequest:request success:^(id result) {
         [self processResult:result params:params items:items success:success failure:^(NSInteger code, NSString *reason) {
             if (failure) failure(code, reason);
@@ -207,7 +210,7 @@ static NSMutableDictionary *_accounts;
         for (id item in list) [items addObject:item];
         NSString *url = [self getNextURL:result params:params];
         if (url && url.length) {
-            NSMutableURLRequest *request = [self getRequest:@"GET" path:url params:nil];
+            NSMutableURLRequest *request = [self getRequest:@"GET" path:url params:nil type:nil];
             [BKjs sendRequest:request success:^(id result) {
                 [self processResult:result params:params items:items success:success failure:failure];
             } failure:^(NSURLRequest *request, NSHTTPURLResponse *response, NSError *error, id json) {
@@ -475,6 +478,7 @@ static NSMutableDictionary *_accounts;
 - (void)getPhotos:(NSDictionary*)album params:(NSDictionary*)params success:(SuccessBlock)success failure:(FailureBlock)failure { if (failure) failure(-1, @"not implemented"); }
 - (void)getContacts:(NSDictionary*)params success:(SuccessBlock)success failure:(FailureBlock)failure { if (failure) failure(-1, @"not implemented"); }
 - (void)postMessage:(NSString*)msg image:(UIImage*)image params:(NSDictionary*)params success:(SuccessBlock)success failure:(FailureBlock)failure { if (failure) failure(-1, @"not implemented"); };
+- (void)sendMessage:(NSString*)subject body:(NSString*)body params:(NSDictionary*)params success:(SuccessBlock)success failure:(FailureBlock)failure{ if (failure) failure(-1, @"not implemented"); };
 
 - (NSMutableURLRequest*)getAuthorizeRequest:(NSDictionary*)params { return nil; }
 - (NSMutableURLRequest*)getAuthenticateRequest:(NSDictionary*)params { return nil; }

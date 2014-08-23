@@ -24,9 +24,18 @@
     [super logout];
 }
 
-- (NSDictionary*)getDataQuery:(NSString*)path params:(NSDictionary*)params
+- (NSString*)getURL:(NSString *)method path:(NSString*)path params:(NSDictionary*)params
 {
-    if (!self.accessToken[@"access_token"]) return params;
+    NSString *url = [super getURL:method path:path params:params];
+    if ([method isEqual:@"POST"] && self.accessToken[@"access_token"]) {
+        return [NSString stringWithFormat:@"%@?oauth2_access_token=%@", url, self.accessToken[@"access_token"]];
+    }
+    return url;
+}
+
+- (NSDictionary*)getQuery:(NSString *)method path:(NSString*)path params:(NSDictionary*)params
+{
+    if (!self.accessToken[@"access_token"] || [method isEqual:@"POST"]) return params;
     return [BKjs mergeParams:params params:@{ @"oauth2_access_token": self.accessToken[@"access_token"] }];
 }
 
@@ -37,7 +46,8 @@
                                 @"client_id": self.clientId,
                                 @"scope": self.scope,
                                 @"state": self.oauthState,
-                                @"redirect_uri": self.redirectURL }];
+                                @"redirect_uri": self.redirectURL }
+                       type:nil];
 }
 
 - (NSMutableURLRequest*)getAccessTokenRequest:(NSDictionary*)params
@@ -47,36 +57,60 @@
                                @"grant_type": @"authorization_code",
                                @"redirect_uri": self.redirectURL,
                                @"client_id": self.clientId,
-                               @"client_secret": self.clientSecret }];
+                               @"client_secret": self.clientSecret }
+                       type:nil];
                                
 }
 
 - (void)getAccount:(NSDictionary*)params success:(SuccessBlock)success failure:(FailureBlock)failure
 {
-    [self sendRequest:@"GET" path:@"/people/~:(id,first-name,last-name,formatted-name,email-address,picture-url,public-profile-url,headline,industry)"
-           params:[BKjs mergeParams:params params:@{ @"format": @"json" }]
-          success:^(id user) {
-              NSMutableDictionary *account = [user mutableCopy];
-              self.account = account;
-              self.account[@"alias"] = user[@"formattedName"];
-              self.account[@"icon"] = user[@"pictureUrl"];
-              if (success) success(account);
-          } failure:failure];
+    [self sendRequest:@"GET"
+                 path:@"/people/~:(id,first-name,last-name,formatted-name,email-address,picture-url,public-profile-url,headline,industry)"
+               params:[BKjs mergeParams:params params:@{ @"format": @"json" }]
+                 type:nil
+              success:^(id user) {
+                  NSMutableDictionary *account = [user mutableCopy];
+                  self.account = account;
+                  self.account[@"alias"] = user[@"formattedName"];
+                  self.account[@"icon"] = user[@"pictureUrl"];
+                  if (success) success(account);
+              } failure:failure];
 }
 
 - (void)getContacts:(NSDictionary*)params success:(SuccessBlock)success failure:(FailureBlock)failure
 {
-    [self sendRequest:@"GET" path:@"/people/~/connections:(id,formatted-name,picture-url,public-profile-url,location,headline,industry)" params:params success:^(id result) {
-        NSMutableArray *list = [@[] mutableCopy];
-        for (NSDictionary *item in result[@"data"]) {
-            NSMutableDictionary *rec = [item mutableCopy];
-            rec[@"type"] = self.name;
-            rec[@"alias"] = item[@"formattedName"];
-            rec[@"icon"] = item[@"pictureUrl"];
-            [list addObject:rec];
-        }
-        if (success) success(list);
-    } failure:failure];
+    [self sendRequest:@"GET"
+                 path:@"/people/~/connections:(id,formatted-name,picture-url,public-profile-url,location,headline,industry)"
+               params:params
+                 type:nil
+              success:^(id result) {
+                  NSMutableArray *list = [@[] mutableCopy];
+                  for (NSDictionary *item in result[@"values"]) {
+                      if (!item[@"formattedName"]) continue;
+                      NSMutableDictionary *rec = [item mutableCopy];
+                      rec[@"type"] = self.name;
+                      rec[@"alias"] = item[@"formattedName"];
+                      rec[@"icon"] = [item str:@"pictureUrl"];
+                      [list addObject:rec];
+                  }
+                  if (success) success(list);
+              } failure:failure];
+}
+
+- (void)sendMessage:(NSString*)subject body:(NSString*)body params:(NSDictionary*)params success:(SuccessBlock)success failure:(FailureBlock)failure;
+{
+    NSMutableDictionary *query = [@{ @"subject": subject ? subject : @"", @"body": body ? body : @"" } mutableCopy];
+    NSMutableArray *to = [@[] mutableCopy];
+    for (NSString *key in [BKjs toArray:params name:@"to"]) {
+        [to addObject:@{ @"person": @{ @"_path": [NSString stringWithFormat:@"/people/%@", key] } }];
+    }
+    query[@"recipients"] = @{ @"values": to };
+    [self sendRequest:@"POST"
+                 path:@"/people/~/mailbox"
+               params:query
+                 type:@"application/json"
+              success:success
+              failure:failure];
 }
 
 - (void)postMessage:(NSString*)msg image:(UIImage*)image params:(NSDictionary*)params success:(SuccessBlock)success failure:(FailureBlock)failure;
@@ -95,7 +129,12 @@
     <code>anyone</code>
     </visibility>
     </share>*/
-    [self sendRequest:@"POST" path:@"http://api.linkedin.com/v1/people/~/shares" params:query success:success failure:failure];
+    [self sendRequest:@"POST"
+                 path:@"/people/~/shares"
+               params:query
+                 type:nil
+              success:success
+              failure:failure];
 }
 
 @end

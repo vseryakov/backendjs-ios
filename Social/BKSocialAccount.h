@@ -42,24 +42,24 @@
 - (void)enableCookies;
 - (void)clearCookies;
 
-- (NSMutableURLRequest*)getRequest:(NSString*)method path:(NSString*)path params:(NSDictionary*)params;
+// High level methods for API calls
+- (NSMutableURLRequest*)getRequest:(NSString*)method path:(NSString*)path params:(NSDictionary*)params type:(NSString*)type;
+- (void)sendRequest:(NSString*)method path:(NSString*)path params:(NSDictionary*)params type:(NSString*)type success:(SuccessBlock)success failure:(FailureBlock)failure;
 - (void)setHeaders:(NSString *)method path:(NSString *)path params:(NSDictionary *)parameters;
 
+// OAUTH methods
 - (NSMutableURLRequest*)getAuthorizeRequest:(NSDictionary*)params;
 - (NSMutableURLRequest*)getAuthenticateRequest:(NSDictionary*)params;
 - (NSMutableURLRequest*)getAccessTokenRequest:(NSDictionary*)params;
 - (NSMutableURLRequest*)getRequestTokenRequest:(NSDictionary*)params;
 
-- (void)processResponse:(NSHTTPURLResponse*)response error:(NSError*)error json:(id)json failure:(FailureBlock)failure;
-
+// API customizations
 - (NSError*)getError:(NSDictionary*)params;
-- (NSString*)getURL:(NSString*)path params:(NSDictionary*)params;
+- (NSString*)getURL:(NSString *)method path:(NSString*)path params:(NSDictionary*)params;
 - (NSString*)getNextURL:(id)result params:(NSDictionary*)params;
 - (NSArray*)getItems:(id)result params:(NSDictionary*)params;
-- (NSDictionary*)getQuery:(NSString*)path params:(NSDictionary*)params;
-
-// High level methods for API calls
-- (void)sendRequest:(NSString*)method path:(NSString*)path params:(NSDictionary*)params success:(SuccessBlock)success failure:(FailureBlock)failure;
+- (NSDictionary*)getQuery:(NSString *)method path:(NSString*)path params:(NSDictionary*)params;
+- (void)processResponse:(NSHTTPURLResponse*)response error:(NSError*)error json:(id)json failure:(FailureBlock)failure;
 
 // High level API common for all services
 - (void)getAccount:(NSDictionary*)params success:(SuccessBlock)success failure:(FailureBlock)failure;
@@ -67,5 +67,6 @@
 - (void)getPhotos:(NSDictionary*)album params:(NSDictionary*)params success:(SuccessBlock)success failure:(FailureBlock)failure;
 - (void)getContacts:(NSDictionary*)params success:(SuccessBlock)success failure:(FailureBlock)failure;
 - (void)postMessage:(NSString*)msg image:(UIImage*)image params:(NSDictionary*)params success:(SuccessBlock)success failure:(FailureBlock)failure;
+- (void)sendMessage:(NSString*)subject body:(NSString*)body params:(NSDictionary*)params success:(SuccessBlock)success failure:(FailureBlock)failure;
 
 @end;

@@ -27,7 +27,8 @@
                                 @"redirect_uri": self.redirectURL,
                                 @"scope": self.scope,
                                 @"response_type": @"token",
-                                @"display": @"touch" }];
+                                @"display": @"touch" }
+                       type:nil];
 }
 
 - (NSArray*)getItems:(id)result params:(NSDictionary*)params
@@ -43,7 +44,7 @@
 
 - (void)getAccount:(NSDictionary*)params success:(SuccessBlock)success failure:(FailureBlock)failure
 {
-    [self sendRequest:@"GET" path:@"/users/self" params:nil success:^(id result) {
+    [self sendRequest:@"GET" path:@"/users/self" params:nil type:nil success:^(id result) {
         NSDictionary *user = [BKjs toDictionary:result name:@"data"];
         for (id key in user) self.account[key] = user[key];
         self.account[@"icon"] = user[@"profile_picture"];
@@ -70,6 +71,7 @@
     [self sendRequest:@"GET"
                  path:@"/users/self/media/recent"
                params:[BKjs mergeParams:@{ @"count": @(100), @"min_timestamp": @(0) } params:params]
+                 type:nil
               success:^(NSArray *photos) {
                   NSMutableArray *list = [@[] mutableCopy];
                   for (NSDictionary *item in photos) {

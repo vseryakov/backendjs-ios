@@ -35,7 +35,7 @@
                                 @"state": self.oauthState,
                                 @"login_hint": @"email",
                                 @"include_granted_scopes": @"true",
-                                @"redirect_uri": self.redirectURL }];
+                                @"redirect_uri": self.redirectURL } type:nil];
 }
 
 - (NSMutableURLRequest*)getAccessTokenRequest:(NSDictionary*)params
@@ -45,7 +45,7 @@
                                @"grant_type": @"authorization_code",
                                @"redirect_uri": self.redirectURL,
                                @"client_id": self.clientId,
-                               @"client_secret": self.clientSecret }];
+                               @"client_secret": self.clientSecret } type:nil];
     
 }
 
@@ -56,7 +56,10 @@
 
 - (void)getAccount:(NSDictionary*)params success:(SuccessBlock)success failure:(FailureBlock)failure
 {
-    [self sendRequest:@"GET" path:@"/plus/v1/people/me" params:[BKjs mergeParams:params params:@{ @"alt": @"json" }]
+    [self sendRequest:@"GET"
+                 path:@"/plus/v1/people/me"
+               params:[BKjs mergeParams:params params:@{ @"alt": @"json" }]
+                 type:nil
           success:^(id result) {
               NSDictionary *user = [result isKindOfClass:[NSDictionary class]] ? result : @{};
               for (id key in user) self.account[key] = user[key];
@@ -68,7 +71,11 @@
 
 - (void)getContacts:(NSDictionary*)params success:(SuccessBlock)success failure:(FailureBlock)failure
 {
-    [self sendRequest:@"GET" path:@"/m8/feeds/contacts/default/full" params:[BKjs mergeParams:@{ @"alt": @"json", @"max-results": @(10000) } params:params] success:^(id result) {
+    [self sendRequest:@"GET"
+                 path:@"/m8/feeds/contacts/default/full"
+               params:[BKjs mergeParams:@{ @"alt": @"json", @"max-results": @(10000) } params:params]
+                 type:nil
+              success:^(id result) {
         NSMutableArray *list = [@[] mutableCopy];
         for (NSDictionary *item in result[@"data"]) {
             NSMutableDictionary *rec = [item mutableCopy];
@@ -83,7 +90,7 @@
 {
     NSMutableDictionary *query = [@{ @"message": msg ? msg : @"" } mutableCopy];
     for (id key in params) query[key] = params[key];
-    [self sendRequest:@"POST" path:@"/me/feed" params:query success:success failure:failure];
+    [self sendRequest:@"POST" path:@"/me/feed" params:query type:nil success:success failure:failure];
 }
 
 @end

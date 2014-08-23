@@ -34,22 +34,22 @@
 
 - (NSMutableURLRequest*)getAuthorizeRequest:(NSDictionary*)params
 {
-    return [BKjs makeRequest:@"GET" path:@"https://api.twitter.com/oauth/authorize" params:params];
+    return [BKjs makeRequest:@"GET" path:@"https://api.twitter.com/oauth/authorize" params:params type:nil];
 }
 
 - (NSMutableURLRequest*)getAccessTokenRequest:(NSDictionary*)params
 {
-    return [self getRequest:@"GET" path:@"https://api.twitter.com/oauth/access_token" params:params];
+    return [self getRequest:@"GET" path:@"https://api.twitter.com/oauth/access_token" params:params type:nil];
 }
 
 - (NSMutableURLRequest*)getRequestTokenRequest:(NSDictionary*)params
 {
-    return [self getRequest:@"GET" path:@"https://api.twitter.com/oauth/request_token" params:params];
+    return [self getRequest:@"GET" path:@"https://api.twitter.com/oauth/request_token" params:params type:nil];
 }
 
 - (void)getAccount:(NSDictionary*)params success:(SuccessBlock)success failure:(FailureBlock)failure
 {
-    [self sendRequest:@"GET" path:@"/account/verify_credentials.json" params:params success:^(id user) {
+    [self sendRequest:@"GET" path:@"/account/verify_credentials.json" params:params type:nil success:^(id user) {
         NSMutableDictionary *account = [user mutableCopy];
         self.account = account;
         self.account[@"alias"] = [account str:@"name"];
@@ -65,7 +65,7 @@
     for (id key in params) query[key] = params[key];
     if (image) {
         [self setHeaders:@"POST" path:@"/statuses/update_with_media.json" params:query];
-        [BKjs uploadImage:[self getURL:@"/statuses/update_with_media.json" params:params]
+        [BKjs uploadImage:[self getURL:@"POST" path:@"/statuses/update_with_media.json" params:params]
                      name:@"media[]"
                     image:image
                    params:query
@@ -76,6 +76,7 @@
         [self sendRequest:@"POST"
                      path:@"/statuses/update.json"
                    params:query
+                     type:nil
                   success:success
                   failure:failure];
     }

@@ -584,7 +584,7 @@ static NSString *SysCtlByName(char *typeSpecifier)
     return [[NSData alloc] initWithBase64EncodedString:string options:0];
 }
 
-+ (NSMutableURLRequest *)makeRequest:(NSString *)method path:(NSString *)path params:(NSDictionary *)params
++ (NSMutableURLRequest *)makeRequest:(NSString *)method path:(NSString *)path params:(NSDictionary *)params type:(NSString*)type
 {
     NSURL *url = [NSURL URLWithString:path relativeToURL:[BKjs get].baseURL];
 	NSMutableURLRequest *request = [[NSMutableURLRequest alloc] initWithURL:url];
@@ -596,8 +596,13 @@ static NSString *SysCtlByName(char *typeSpecifier)
         url = [NSURL URLWithString:[[url absoluteString] stringByAppendingFormat:[path rangeOfString:@"?"].location == NSNotFound ? @"?%@" : @"&%@", [BKjs makeQuery:params]]];
         [request setURL:url];
     } else {
-        [request setValue:@"application/x-www-form-urlencoded; charset=UTF-8" forHTTPHeaderField:@"Content-Type"];
-        [request setHTTPBody:[[BKjs makeQuery:params] dataUsingEncoding:NSUTF8StringEncoding]];
+        if ([type hasPrefix:@"application/json"]) {
+            [request setValue:type forHTTPHeaderField:@"Content-Type"];
+            [request setHTTPBody:[BKjs toJSON:params]];
+        } else {
+            [request setValue:@"application/x-www-form-urlencoded; charset=UTF-8" forHTTPHeaderField:@"Content-Type"];
+            [request setHTTPBody:[[BKjs makeQuery:params] dataUsingEncoding:NSUTF8StringEncoding]];
+        }
     }
 	return request;
 }
@@ -605,7 +610,11 @@ static NSString *SysCtlByName(char *typeSpecifier)
 + (NSMutableURLRequest*)makeRequest:(NSString*)method path:(NSString*)path params:(NSDictionary*)params headers:(NSDictionary*)headers body:(NSData*)body
 {
     if (!method) method = @"GET";
-    NSMutableURLRequest *request = [BKjs makeRequest:method path:path params:params];
+    NSString *type = nil;
+    for (NSString *key in headers) {
+        if ([[key lowercaseString] isEqual:@"content-type"]) type = headers[key];
+    }
+    NSMutableURLRequest *request = [BKjs makeRequest:method path:path params:params type:type];
     for (NSString* key in headers) [request setValue:headers[key] forHTTPHeaderField:key];
     if (body) [request setHTTPBody:body];
     request.timeoutInterval = 30;
@@ -737,7 +746,7 @@ static NSString *SysCtlByName(char *typeSpecifier)
 
 + (void)sendRequest:(NSURLRequest*)request success:(SuccessBlock)success failure:(void (^)(NSURLRequest *request, NSHTTPURLResponse *response, NSError *error, id JSON))failure
 {
-    Logger(@"url=%@", request.URL);
+    Logger(@"%@: %@", request.HTTPMethod, request.URL);
     
     AFJSONRequestOperation *op = [AFJSONRequestOperation JSONRequestOperationWithRequest:request success:^(NSURLRequest *request, NSHTTPURLResponse *response, id json) {
         [self parseServerVersion:response];
@@ -830,7 +839,7 @@ static NSString *SysCtlByName(char *typeSpecifier)
 {
     path = [[BKjs get] getURL:path];
     NSDictionary *headers = [BKjs sign:path method:@"GET" params:params contentType:nil expires:0 checksum:nil];
-    NSMutableURLRequest *request = [BKjs makeRequest:@"GET" path:[[BKjs get] getURL:path] params:params];
+    NSMutableURLRequest *request = [BKjs makeRequest:@"GET" path:[[BKjs get] getURL:path] params:params type:nil];
     for (NSString* key in headers) [request setValue:headers[key] forHTTPHeaderField:key];
     [self sendImageRequest:request options:options success:success failure:failure];
 }

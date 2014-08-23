@@ -32,7 +32,8 @@
                                 @"redirect_uri": self.redirectURL,
                                 @"scope": self.scope,
                                 @"type": @"user_agent",
-                                @"display": @"touch" }];
+                                @"display": @"touch" }
+                       type:nil];
 }
 
 - (NSArray*)getItems:(id)result params:(NSDictionary*)params
@@ -47,81 +48,99 @@
 
 - (void)getAccount:(NSDictionary*)params success:(SuccessBlock)success failure:(FailureBlock)failure
 {
-    [self sendRequest:@"GET" path:@"/me" params:[BKjs mergeParams:params params:@{ @"fields": @"picture.type(large),id,name,email,name,birthday,gender" }]
-          success:^(id result) {
-              NSDictionary *user = [result isKindOfClass:[NSDictionary class]] ? result : @{};
-              for (id key in user) self.account[key] = user[key];
-              self.account[@"alias"] = [user str:@"name"];
-              self.account[@"icon"] = [BKjs toDictionaryString:[BKjs toDictionary:user name:@"picture"] name:@"data" field:@"url"];
-              if (success) success(self.account);
-          } failure:failure];
+    [self sendRequest:@"GET"
+                 path:@"/me"
+               params:[BKjs mergeParams:params params:@{ @"fields": @"picture.type(large),id,name,email,name,birthday,gender" }]
+                 type:nil
+              success:^(id result) {
+                  NSDictionary *user = [result isKindOfClass:[NSDictionary class]] ? result : @{};
+                  for (id key in user) self.account[key] = user[key];
+                  self.account[@"alias"] = [user str:@"name"];
+                  self.account[@"icon"] = [BKjs toDictionaryString:[BKjs toDictionary:user name:@"picture"] name:@"data" field:@"url"];
+                  if (success) success(self.account);
+              } failure:failure];
 }
 
 - (void)getAlbums:(NSDictionary*)params success:(SuccessBlock)success failure:(FailureBlock)failure
 {
-    [self sendRequest:@"GET" path:@"/me" params:[BKjs mergeParams:params params:@{ @"fields": @"albums.fields(name,photos.limit(1).fields(picture),count)" }]
-          success:^(id result) {
-              NSMutableArray *list = [@[] mutableCopy];
-              for (NSDictionary *album in [BKjs toArray:result[@"albums"] name:@"data"]) {
-                  for (NSDictionary *icon in [BKjs toArray:album[@"photos"] name:@"data"]) {
-                      [list addObject:@{ @"type": self.name,
-                                         @"id": [album str:@"id"],
-                                         @"name": [album str:@"name"],
-                                         @"icon": [icon str:@"picture"],
-                                         @"count": [album str:@"count"] }];
+    [self sendRequest:@"GET"
+                 path:@"/me"
+               params:[BKjs mergeParams:params params:@{ @"fields": @"albums.fields(name,photos.limit(1).fields(picture),count)" }]
+                 type:nil
+              success:^(id result) {
+                  NSMutableArray *list = [@[] mutableCopy];
+                  for (NSDictionary *album in [BKjs toArray:result[@"albums"] name:@"data"]) {
+                      for (NSDictionary *icon in [BKjs toArray:album[@"photos"] name:@"data"]) {
+                          [list addObject:@{ @"type": self.name,
+                                             @"id": [album str:@"id"],
+                                             @"name": [album str:@"name"],
+                                             @"icon": [icon str:@"picture"],
+                                             @"count": [album str:@"count"] }];
+                      }
                   }
-              }
-              if (success) success(list);
-          } failure:failure];
+                  if (success) success(list);
+              } failure:failure];
 }
 
 - (void)getPhotos:(NSDictionary*)album params:(NSDictionary*)params success:(SuccessBlock)success failure:(FailureBlock)failure;
 {
-    [self sendRequest:@"GET" path:[NSString stringWithFormat:@"/%@/photos", album[@"id"]] params:params success:^(id result) {
-        NSMutableArray *list = [@[] mutableCopy];
-        for (NSDictionary *item in result) {
-            [list addObject:@{ @"type": self.name,
-                               @"icon": [item str:@"picture"],
-                               @"image": [item str:@"source"] }];
-        }
-        if (success) success(list);
-    } failure:failure];
+    [self sendRequest:@"GET"
+                 path:[NSString stringWithFormat:@"/%@/photos", album[@"id"]]
+               params:params
+                 type:nil
+              success:^(id result) {
+                  NSMutableArray *list = [@[] mutableCopy];
+                  for (NSDictionary *item in result) {
+                      [list addObject:@{ @"type": self.name,
+                                         @"icon": [item str:@"picture"],
+                                         @"image": [item str:@"source"] }];
+                  }
+                  if (success) success(list);
+              } failure:failure];
 }
 
 - (void)getContacts:(NSDictionary*)params success:(SuccessBlock)success failure:(FailureBlock)failure
 {
-    [self sendRequest:@"GET" path:@"/me/friends" params:params success:^(id result) {
-        NSMutableArray *list = [@[] mutableCopy];
-        for (NSDictionary *item in result) {
-            NSMutableDictionary *rec = [item mutableCopy];
-            rec[@"type"] = self.name;
-            rec[@"alias"] = item[@"name"];
-            rec[@"icon"] = [NSString stringWithFormat:@"https://graph.facebook.com/%@/picture?type=small", rec[@"id"]];
-            [list addObject:rec];
-        }
-        if (success) success(list);
-    } failure:failure];
+    [self sendRequest:@"GET"
+                 path:@"/me/friends"
+               params:params
+                 type:nil
+              success:^(id result) {
+                  NSMutableArray *list = [@[] mutableCopy];
+                  for (NSDictionary *item in result) {
+                      NSMutableDictionary *rec = [item mutableCopy];
+                      rec[@"type"] = self.name;
+                      rec[@"alias"] = item[@"name"];
+                      rec[@"icon"] = [NSString stringWithFormat:@"https://graph.facebook.com/%@/picture?type=small", rec[@"id"]];
+                      [list addObject:rec];
+                  }
+                  if (success) success(list);
+              } failure:failure];
 }
 
 -(void)getMutualFriends:(NSString*)name params:(NSDictionary*)params success:(SuccessBlock)success failure:(FailureBlock)failure
 {
-    [self sendRequest:@"GET" path:[NSString stringWithFormat:@"/me/mutualfriends/%@",name] params:params success:^(id result) {
-        NSMutableArray *list = [@[] mutableCopy];
-        for (NSMutableDictionary *item in result) {
-            item[@"type"] = self.name;
-            item[@"alias"] = item[@"name"];
-            item[@"icon"] = [BKjs toDictionaryString:[BKjs toDictionary:item name:@"picture"] name:@"data" field:@"url"];
-            [list addObject:item];
-        }
-        if (success) success(list);
-    } failure:failure];
+    [self sendRequest:@"GET"
+                 path:[NSString stringWithFormat:@"/me/mutualfriends/%@",name]
+               params:params
+                 type:nil
+              success:^(id result) {
+                  NSMutableArray *list = [@[] mutableCopy];
+                  for (NSMutableDictionary *item in result) {
+                      item[@"type"] = self.name;
+                      item[@"alias"] = item[@"name"];
+                      item[@"icon"] = [BKjs toDictionaryString:[BKjs toDictionary:item name:@"picture"] name:@"data" field:@"url"];
+                      [list addObject:item];
+                  }
+                  if (success) success(list);
+              } failure:failure];
 }
 
 - (void)postMessage:(NSString*)msg image:(UIImage*)image params:(NSDictionary*)params success:(SuccessBlock)success failure:(FailureBlock)failure;
 {
     NSMutableDictionary *query = [@{ @"message": msg ? msg : @"" } mutableCopy];
     for (id key in params) query[key] = params[key];
-    [self sendRequest:@"POST" path:@"/me/feed" params:query success:success failure:failure];
+    [self sendRequest:@"POST" path:@"/me/feed" params:query type:nil success:success failure:failure];
 }
      
 @end
