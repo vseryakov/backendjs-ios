@@ -80,6 +80,7 @@
         [account getAlbums:nil success:^(id alist) {
             [self hideActivity];
             for (id item in alist) [self.items addObject:item];
+            Logger(@"%@: %d", account.name, (int)self.items.count);
             [self reloadTable];
         } failure:^(NSInteger code, NSString *reason) {
             [self hideActivity];

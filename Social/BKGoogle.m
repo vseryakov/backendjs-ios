@@ -16,8 +16,8 @@
     self.scope = @"email https://www.googleapis.com/auth/plus.login";
     self.baseURL = @"https://www.googleapis.com";
     self.redirectURL = @"http://localhost";
-    self.launchURLs = @[ @{ @"url": @"fb://profile/%@", @"param": @"id" },
-                         @{ @"url": @"https://www.facebook.com/%@", @"param": @"username" } ];
+    self.launchURLs = @[ @{ @"url": @"google://%@", @"param": @"id" },
+                         @{ @"url": @"https://plus.google.com/%@", @"param": @"id" } ];
     return self;
 }
 
