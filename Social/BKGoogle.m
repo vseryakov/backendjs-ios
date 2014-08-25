@@ -76,15 +76,47 @@
                params:[BKjs mergeParams:@{ @"alt": @"json", @"max-results": @(10000) } params:params]
                  type:nil
               success:^(id result) {
-        NSMutableArray *list = [@[] mutableCopy];
-        for (NSDictionary *item in result[@"data"]) {
-            NSMutableDictionary *rec = [item mutableCopy];
-            rec[@"type"] = self.name;
-            rec[@"google_id"] = rec[@"id"];
-            [list addObject:rec];
-        }
-        if (success) success(list);
-    } failure:failure];
+                  NSMutableArray *list = [@[] mutableCopy];
+                  for (NSDictionary *item in [BKjs toDictionaryArray:result name:@"feed" field:@"entry"]) {
+                      NSMutableDictionary *rec = [@{} mutableCopy];
+                      rec[@"type"] = self.name;
+                      rec[@"id"] = [BKjs toDictionaryString:item name:@"id" field:@"$t"];
+                      rec[@"google_id"] = rec[@"id"];
+                      rec[@"mtime"] = [BKjs toDictionaryString:item name:@"updated" field:@"$t"];
+                      if (item[@"gContact$birthday"]) {
+                          rec[@"birthday"] = [BKjs toDictionaryString:item name:@"gContact$birthday" field:@"when"];
+                      }
+                      if ([item[@"gd$email"] isKindOfClass:[NSArray class]]) {
+                          rec[@"email"] = [@{} mutableCopy];
+                          for (NSDictionary *link in item[@"gd$email"]) {
+                              if (link[@"address"]) rec[@"email"][link[@"address"]] = [[[link str:@"rel"] componentsSeparatedByString:@"#"] lastObject];
+                          }
+                      } else {
+                          rec[@"email"] = [@{} mutableCopy];
+                          rec[@"email"][[BKjs toDictionaryString:item name:@"gd$email" field:@"address"]] = @"email";
+                      }
+                      if ([item[@"gd$phoneNumber"] isKindOfClass:[NSArray class]]) {
+                          rec[@"phone"] = [@{} mutableCopy];
+                          for (NSDictionary *link in item[@"gd$phoneNumber"]) {
+                              if (link[@"$t"]) rec[@"phone"][link[@"$t"]] = [[[link str:@"rel"] componentsSeparatedByString:@"#"] lastObject];
+                          }
+                      } else {
+                          rec[@"phone"] = [@{} mutableCopy];
+                          rec[@"phone"][[BKjs toDictionaryString:item name:@"gd$phoneNumber" field:@"$t"]] = @"phone";
+                      }
+                      for (NSDictionary *link in item[@"link"]) {
+                          if (link[@"rel"] && link[@"gd$etag"] && link[@"href"] && [link[@"rel"] hasSuffix:@"#photo"]) {
+                              rec[@"icon"] = [NSString stringWithFormat:@"%@?access_token=%@", link[@"href"], self.accessToken[@"access_token"]];
+                          }
+                      }
+                      rec[@"alias"] = [BKjs toDictionaryString:item name:@"title" field:@"$t"];
+                      if ([rec isEmpty:@"alias"] && rec[@"email"] && [rec[@"email"] count]) {
+                          rec[@"alias"] = [rec[@"email"] allKeys][0];
+                      }
+                      if (![rec isEmpty:@"alias"]) [list addObject:rec];
+                  }
+                  if (success) success(list);
+              } failure:failure];
 }
 
 - (void)postMessage:(NSString*)msg image:(UIImage*)image params:(NSDictionary*)params success:(SuccessBlock)success failure:(FailureBlock)failure;
