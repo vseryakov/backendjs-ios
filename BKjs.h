@@ -173,7 +173,7 @@ typedef NS_OPTIONS(NSUInteger, BKOptions) {
 + (void)getAccount:(NSDictionary*)params success:(DictionaryBlock)success failure:(FailureBlock)failure;
 + (void)delAccount:(NSDictionary*)params success:(GenericBlock)success failure:(GenericBlock)failure;
 + (void)updateAccount:(NSDictionary*)params success:(GenericBlock)success failure:(FailureBlock)failure;
-+ (void)updateDevice:(NSString*)device success:(GenericBlock)success failure:(FailureBlock)failure;
++ (void)updateDevice:(NSData*)device success:(GenericBlock)success failure:(FailureBlock)failure;
 
 #pragma mark Account icons API
 

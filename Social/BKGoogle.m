@@ -80,6 +80,7 @@
         for (NSDictionary *item in result[@"data"]) {
             NSMutableDictionary *rec = [item mutableCopy];
             rec[@"type"] = self.name;
+            rec[@"google_id"] = rec[@"id"];
             [list addObject:rec];
         }
         if (success) success(list);

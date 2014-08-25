@@ -24,6 +24,7 @@ static NSString* _serverVersion;
 static NSString* _iOSVersion;
 static NSString* _iOSPlatform;
 static NSString *_iOSModel;
+static NSString *_deviceToken;
 
 static int _log_max = 0;
 static NSMutableArray *_log;
@@ -930,8 +931,13 @@ static NSString *SysCtlByName(char *typeSpecifier)
           success:^(NSDictionary *json) {
               // Current account save locally
               if ([self isEmpty:params name:@"id"] && [json isKindOfClass:[NSDictionary class]]) {
-                  for (NSString *key in json) BKjs.account[key] = json[key];
-                  if (success) success(BKjs.account);
+                  for (NSString *key in json) self.account[key] = json[key];
+                  
+                  // Update push notifications device token
+                  if (_deviceToken && ![_deviceToken isEqual:[self.account str:@"device_id"]]) {
+                      [self updateAccount:@{ @"device_id": _deviceToken } success:success failure:failure];
+                  }
+                  if (success) success(self.account);
               } else {
                   if (success) success(json);
               }
@@ -977,11 +983,20 @@ static NSString *SysCtlByName(char *typeSpecifier)
           failure:failure];
 }
 
-+ (void)updateDevice:(NSString*)device success:(GenericBlock)success failure:(FailureBlock)failure
++ (void)updateDevice:(NSData*)device success:(GenericBlock)success failure:(FailureBlock)failure
 {
+    if (!device) return;
+    const char* data = device.bytes;
+    NSMutableString* token = [NSMutableString string];
+    for (int i = 0; i < device.length; i++) {
+        [token appendFormat:@"%02.2hhX", data[i]];
+    }
+    Logger(@"device token: %@", token);
+    _deviceToken = token;
+
     // Update push notifications device token
-    if (device && BKjs.account[@"id"] && ![device isEqual:[BKjs.account str:@"device_id"]]) {
-        [BKjs updateAccount:@{ @"device_id": device } success:success failure:failure];
+    if (self.account[@"id"] && ![_deviceToken isEqual:[self.account str:@"device_id"]]) {
+        [self updateAccount:@{ @"device_id": _deviceToken } success:success failure:failure];
     }
 }
 

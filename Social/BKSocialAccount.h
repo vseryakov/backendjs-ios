@@ -50,6 +50,8 @@
 - (BOOL)launch;
 - (void)enableCookies;
 - (void)clearCookies;
+- (void)saveToken;
+- (void)restoreToken;
 
 // High level methods for API calls
 - (NSMutableURLRequest*)getRequest:(NSString*)method path:(NSString*)path params:(NSDictionary*)params type:(NSString*)type;

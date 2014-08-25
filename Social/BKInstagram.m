@@ -47,8 +47,9 @@
     [self sendRequest:@"GET" path:@"/users/self" params:nil type:nil success:^(id result) {
         NSDictionary *user = [BKjs toDictionary:result name:@"data"];
         for (id key in user) self.account[key] = user[key];
-        self.account[@"icon"] = user[@"profile_picture"];
-        self.account[@"alias"] = user[@"full_name"];
+        self.account[@"icon"] = [user str:@"profile_picture"];
+        self.account[@"alias"] = [user str:@"full_name"];
+        self.account[@"instagram_id"] = [user str:@"id"];
         if (success) success(self.account);
     } failure:failure];
 }

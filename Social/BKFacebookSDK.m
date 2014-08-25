@@ -40,6 +40,11 @@
      }];
 }
 
+- (BOOL)isValid
+{
+    return [[FBSession activeSession] isOpen];
+}
+
 - (void)login:(ErrorBlock)finished
 {
     if ([FBSession activeSession].isOpen) {
@@ -48,7 +53,12 @@
         [FBSession openActiveSessionWithReadPermissions:[self.scope componentsSeparatedByString:@","]
                                            allowLoginUI:YES
                                       completionHandler:^(FBSession *session, FBSessionState status, NSError *error) {
-                                          if (error) Logger(@"%@", error);
+                                          if (!error) {
+                                              self.accessToken[@"accessToken"] = [FBSession activeSession].accessTokenData.accessToken;
+                                              [self saveToken];
+                                          } else {
+                                              Logger(@"%@", error);
+                                          }
                                           finished(error);
                                       }];
     }
@@ -61,13 +71,20 @@
             if (failure) failure(error.code, error.description);
             return;
         }
-        [FBRequestConnection startWithGraphPath:@"/me"
-                                     parameters:@{ @"fields": @"picture.type(large),id,email,name,birthday,gender" }
+        BKQueryParams *query = [[BKQueryParams alloc]
+                                init:@"/@id@"
+                                params:params
+                                defaults:@{ @"id": @"me",
+                                            @"fields": @"picture.type(large),id,email,name,birthday,gender" }];
+
+        [FBRequestConnection startWithGraphPath:query.path
+                                     parameters:query.params
                                      HTTPMethod:@"GET"
                               completionHandler:^(FBRequestConnection *connection, id result, NSError *error) {
                                   if (!error) {
                                       NSDictionary *user = [result isKindOfClass:[NSDictionary class]] ? result : @{};
                                       for (id key in user) self.account[key] = user[key];
+                                      self.account[@"facebook_id"] = [user str:@"id"];
                                       self.account[@"alias"] = [user str:@"name"];
                                       self.account[@"icon"] = [BKjs toDictionaryString:[BKjs toDictionary:user name:@"picture"] name:@"data" field:@"url"];
                                       if (success) success(self.account);
@@ -86,8 +103,14 @@
             if (failure) failure(error.code, error.description);
             return;
         }
-        [FBRequestConnection startWithGraphPath:@"/me"
-                                     parameters:@{ @"fields": @"albums.fields(name,photos.limit(1).fields(picture),count)" }
+        BKQueryParams *query = [[BKQueryParams alloc]
+                                init:@"/@id@"
+                                params:params
+                                defaults:@{ @"id": @"me",
+                                            @"fields": @"albums.fields(name,photos.limit(1).fields(picture),count)" }];
+
+        [FBRequestConnection startWithGraphPath:query.path
+                                     parameters:query.params
                                      HTTPMethod:@"GET"
                               completionHandler:^(FBRequestConnection *connection, id result, NSError *error) {
                                   if (!error) {
@@ -156,50 +179,20 @@
             for (NSDictionary *item in result[@"data"]) {
                 NSMutableDictionary *rec = [item mutableCopy];
                 rec[@"type"] = self.name;
-                rec[@"alias"] = item[@"name"];
+                rec[@"facebook_id"] = [item str:@"id"];
+                rec[@"alias"] = [item str:@"name"];
                 rec[@"icon"] = [NSString stringWithFormat:@"https://graph.facebook.com/%@/picture?type=small", rec[@"id"]];
                 [items addObject:rec];
             }
         };
         
-        [FBRequestConnection startWithGraphPath:@"/me/friends"
-                                     parameters:params
-                                     HTTPMethod:@"GET"
-                              completionHandler:^(FBRequestConnection *connection, id result, NSError *error) {
-                                  if (!error) {
-                                      NSMutableArray *items = [@[] mutableCopy];
-                                      block(items, result);
-                                      if (result[@"paging"] && result[@"paging"][@"next"]) {
-                                          [self getNext:result[@"paging"][@"next"] items:items block:block success:success failure:failure];
-                                      } else {
-                                          if (success) success(items);
-                                      }
-                                  } else {
-                                      Logger(@"%@", error);
-                                      if (failure) failure(error.code, error.description);
-                                  }
-                              }];
-    }];
-}
+        BKQueryParams *query = [[BKQueryParams alloc]
+                                init:@"/@id@/friends"
+                                params:params
+                                defaults:@{ @"id": @"me" }];
 
--(void)getMutualFriends:(NSString*)name params:(NSDictionary*)params success:(SuccessBlock)success failure:(FailureBlock)failure
-{
-    [self login:^(NSError *error) {
-        if (error) {
-            if (failure) failure(error.code, error.description);
-            return;
-        }
-        ItemsBlock block = ^(NSMutableArray *items, id result) {
-            for (NSMutableDictionary *item in result[@"data"]) {
-                item[@"type"] = self.name;
-                item[@"alias"] = item[@"name"];
-                item[@"icon"] = [BKjs toDictionaryString:[BKjs toDictionary:item name:@"picture"] name:@"data" field:@"url"];
-                [items addObject:item];
-            }
-        };
-        
-        [FBRequestConnection startWithGraphPath:[NSString stringWithFormat:@"/me/mutualfriends/%@",name]
-                                     parameters:params
+        [FBRequestConnection startWithGraphPath:query.path
+                                     parameters:query.params
                                      HTTPMethod:@"GET"
                               completionHandler:^(FBRequestConnection *connection, id result, NSError *error) {
                                   if (!error) {

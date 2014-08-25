@@ -48,13 +48,20 @@
 
 - (void)getAccount:(NSDictionary*)params success:(SuccessBlock)success failure:(FailureBlock)failure
 {
+    BKQueryParams *query = [[BKQueryParams alloc]
+                            init:@"/@id@"
+                            params:params
+                            defaults:@{ @"id": @"me",
+                                        @"fields": @"picture.type(large),id,email,name,birthday,gender" }];
+
     [self sendRequest:@"GET"
-                 path:@"/me"
-               params:[BKjs mergeParams:params params:@{ @"fields": @"picture.type(large),id,name,email,name,birthday,gender" }]
+                 path:query.path
+               params:query.params
                  type:nil
               success:^(id result) {
                   NSDictionary *user = [result isKindOfClass:[NSDictionary class]] ? result : @{};
                   for (id key in user) self.account[key] = user[key];
+                  self.account[@"facebook_id"] = [user str:@"id"];
                   self.account[@"alias"] = [user str:@"name"];
                   self.account[@"icon"] = [BKjs toDictionaryString:[BKjs toDictionary:user name:@"picture"] name:@"data" field:@"url"];
                   if (success) success(self.account);
@@ -63,9 +70,15 @@
 
 - (void)getAlbums:(NSDictionary*)params success:(SuccessBlock)success failure:(FailureBlock)failure
 {
+    BKQueryParams *query = [[BKQueryParams alloc]
+                            init:@"/@id@"
+                            params:params
+                            defaults:@{ @"id": @"me",
+                                        @"fields": @"albums.fields(name,photos.limit(1).fields(picture),count)" }];
+
     [self sendRequest:@"GET"
-                 path:@"/me"
-               params:[BKjs mergeParams:params params:@{ @"fields": @"albums.fields(name,photos.limit(1).fields(picture),count)" }]
+                 path:query.path
+               params:query.params
                  type:nil
               success:^(id result) {
                   NSMutableArray *list = [@[] mutableCopy];
@@ -101,36 +114,25 @@
 
 - (void)getContacts:(NSDictionary*)params success:(SuccessBlock)success failure:(FailureBlock)failure
 {
+    BKQueryParams *query = [[BKQueryParams alloc]
+                            init:@"/@id@/friends"
+                            params:params
+                            defaults:@{ @"id": @"me",
+                                        @"fields": @"id,email,name,birthday,gender" }];
+
     [self sendRequest:@"GET"
-                 path:@"/me/friends"
-               params:params
+                 path:query.path
+               params:query.params
                  type:nil
               success:^(id result) {
                   NSMutableArray *list = [@[] mutableCopy];
                   for (NSDictionary *item in result) {
                       NSMutableDictionary *rec = [item mutableCopy];
+                      rec[@"facebook_id"] = [rec str:@"id"];
                       rec[@"type"] = self.name;
-                      rec[@"alias"] = item[@"name"];
+                      rec[@"alias"] = [item str:@"name"];
                       rec[@"icon"] = [NSString stringWithFormat:@"https://graph.facebook.com/%@/picture?type=small", rec[@"id"]];
                       [list addObject:rec];
-                  }
-                  if (success) success(list);
-              } failure:failure];
-}
-
--(void)getMutualFriends:(NSString*)name params:(NSDictionary*)params success:(SuccessBlock)success failure:(FailureBlock)failure
-{
-    [self sendRequest:@"GET"
-                 path:[NSString stringWithFormat:@"/me/mutualfriends/%@",name]
-               params:params
-                 type:nil
-              success:^(id result) {
-                  NSMutableArray *list = [@[] mutableCopy];
-                  for (NSMutableDictionary *item in result) {
-                      item[@"type"] = self.name;
-                      item[@"alias"] = item[@"name"];
-                      item[@"icon"] = [BKjs toDictionaryString:[BKjs toDictionary:item name:@"picture"] name:@"data" field:@"url"];
-                      [list addObject:item];
                   }
                   if (success) success(list);
               } failure:failure];

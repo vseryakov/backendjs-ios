@@ -77,8 +77,9 @@
               success:^(id user) {
                   NSMutableDictionary *account = [user mutableCopy];
                   if (!params || !params[@"id"]) self.account = account;
-                  self.account[@"alias"] = user[@"formattedName"];
-                  self.account[@"icon"] = user[@"pictureUrl"];
+                  self.account[@"linkedin_id"] = [user str:@"id"];
+                  self.account[@"alias"] = [user str:@"formattedName"];
+                  self.account[@"icon"] = [user str:@"pictureUrl"];
                   if (success) success(account);
               } failure:failure];
 }
@@ -99,8 +100,9 @@
               success:^(id result) {
                   NSMutableArray *list = [@[] mutableCopy];
                   for (NSDictionary *item in result[@"values"]) {
-                      if (!item[@"formattedName"]) continue;
+                      if (!item[@"id"] || !item[@"formattedName"]) continue;
                       NSMutableDictionary *rec = [item mutableCopy];
+                      rec[@"linkedin_id"] = rec[@"id"];
                       rec[@"type"] = self.name;
                       rec[@"alias"] = item[@"formattedName"];
                       rec[@"icon"] = [item str:@"pictureUrl"];

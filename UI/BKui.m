@@ -632,11 +632,7 @@ static UIActivityIndicatorView *_activity;
                             str = CFBridgingRelease(ABAddressBookCopyLocalizedLabel(label));
                             CFRelease(label);
                         }
-                        for (int j = 1; ; j++) {
-                            if (!item[@"phone"][str]) break;
-                            str = [NSString stringWithFormat:@"%@%d", str, j];
-                        }
-                        item[@"phone"][str] = val;
+                        item[@"phone"][val] = str;
                     }
                 }
                 if (phones) CFRelease(phones);
@@ -653,11 +649,7 @@ static UIActivityIndicatorView *_activity;
                             str = CFBridgingRelease(ABAddressBookCopyLocalizedLabel(label));
                             CFRelease(label);
                         }
-                        for (int j = 1; ; j++) {
-                            if (!item[@"email"][str]) break;
-                            str = [NSString stringWithFormat:@"%@%d", str, j];
-                        }
-                        item[@"email"][str] = val;
+                        item[@"email"][[val lowercaseString]] = str;
                     }
                 }
                 if (emails) CFRelease(emails);
@@ -680,11 +672,7 @@ static UIActivityIndicatorView *_activity;
                                          [addr str:CFBridgingRelease(kABPersonAddressStateKey)],
                                          [addr str:CFBridgingRelease(kABPersonAddressZIPKey)],
                                          [addr str:CFBridgingRelease(kABPersonAddressCountryKey)]];
-                        for (int j = 1; ; j++) {
-                            if (!item[@"address"][str]) break;
-                            str = [NSString stringWithFormat:@"%@%d", str, j];
-                        }
-                        item[@"address"][str] = val;
+                        item[@"address"][val] = str;
                     }
                 }
                 if (addrs) CFRelease(addrs);
