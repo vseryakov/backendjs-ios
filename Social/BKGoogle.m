@@ -56,9 +56,15 @@
 
 - (void)getAccount:(NSDictionary*)params success:(SuccessBlock)success failure:(FailureBlock)failure
 {
+    BKQueryParams *query = [[BKQueryParams alloc]
+                            init:@"/plus/v1/people/@id@"
+                            params:params
+                            defaults:@{ @"id": @"me",
+                                        @"alt": @"json" }];
+
     [self sendRequest:@"GET"
-                 path:@"/plus/v1/people/me"
-               params:[BKjs mergeParams:params params:@{ @"alt": @"json" }]
+                 path:query.path
+               params:query.params
                  type:nil
           success:^(id result) {
               NSMutableDictionary *account = [[result isKindOfClass:[NSDictionary class]] ? result : @{} mutableCopy];
@@ -72,11 +78,20 @@
 
 - (void)getContacts:(NSDictionary*)params success:(SuccessBlock)success failure:(FailureBlock)failure
 {
+    BKQueryParams *query = [[BKQueryParams alloc]
+                            init:@"/m8/feeds/contacts/@id@/full"
+                            params:params
+                            defaults:@{ @"id": @"default",
+                                        @"alt": @"json",
+                                        @"max-results": @(10000)}];
+    
     [self sendRequest:@"GET"
-                 path:@"/m8/feeds/contacts/default/full"
-               params:[BKjs mergeParams:@{ @"alt": @"json", @"max-results": @(10000) } params:params]
+                 path:query.path
+               params:query.params
                  type:nil
               success:^(id result) {
+                  NSString *aid = params[@"id"];
+                  if (!aid) aid = @"default";
                   NSMutableArray *list = [@[] mutableCopy];
                   for (NSDictionary *item in [BKjs toDictionaryArray:result name:@"feed" field:@"entry"]) {
                       NSMutableDictionary *rec = [@{} mutableCopy];
@@ -107,7 +122,7 @@
                       }
                       for (NSDictionary *link in item[@"link"]) {
                           if (link[@"rel"] && link[@"gd$etag"] && link[@"href"] && [link[@"rel"] hasSuffix:@"#photo"]) {
-                              rec[@"icon"] = [NSString stringWithFormat:@"%@?access_token=%@", link[@"href"], self.accessToken[@"access_token"]];
+                              rec[@"icon"] = [NSString stringWithFormat:@"%@?access_token=%@", [link[@"href"] stringByReplacingOccurrencesOfString:@"www.googleapis.com" withString:@"www.google.com"], self.accessToken[@"access_token"]];
                           }
                       }
                       rec[@"alias"] = [BKjs toDictionaryString:item name:@"title" field:@"$t"];

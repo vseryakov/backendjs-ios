@@ -682,6 +682,7 @@ static UIActivityIndicatorView *_activity;
             CFRelease(book);
             [items sortUsingDescriptors:@[[NSSortDescriptor sortDescriptorWithKey:@"alias" ascending:YES]]];
         }
+        Logger(@"%d contacts", (int)items.count);
         finish(items);
     });
 }

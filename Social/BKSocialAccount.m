@@ -58,49 +58,54 @@ static NSMutableDictionary *_accounts;
 
 + (void)getAlbums:(NSArray*)types items:(NSMutableArray*)items finish:(GenericBlock)finish
 {
+    Logger(@"%@", types);
+    
     if (![types isKindOfClass:[NSArray class]] || !types.count) {
-        finish();
-        return;
+        return finish();
     }
     NSString *type = [types firstObject];
-    types = [types subarrayWithRange:NSMakeRange(1, types.count - 1)];
+    NSArray *tail = [types subarrayWithRange:NSMakeRange(1, types.count - 1)];
     [_accounts[type] getAlbums:nil success:^(id alist) {
         for (id item in alist) [items addObject:item];
-        [self getAlbums:types items:items finish:finish];
+        [self getAlbums:tail items:items finish:finish];
     } failure:^(NSInteger code, NSString *reason) {
-        [self getAlbums:types items:items finish:finish];
+        [self getAlbums:tail items:items finish:finish];
     }];
 }
 
 + (void)getContacts:(NSArray*)types items:(NSMutableArray*)items finish:(GenericBlock)finish
 {
+    Logger(@"%@", types);
+    
     if (![types isKindOfClass:[NSArray class]] || !types.count) {
-        finish();
-        return;
+        return finish();
     }
     NSString *type = [types firstObject];
-    types = [types subarrayWithRange:NSMakeRange(1, types.count - 1)];
+    NSArray *tail = [types subarrayWithRange:NSMakeRange(1, types.count - 1)];
     [_accounts[type] getContacts:nil success:^(id alist) {
         for (id item in alist) [items addObject:item];
-        [self getContacts:types items:items finish:finish];
+        [self getContacts:tail items:items finish:finish];
+        finish();
     } failure:^(NSInteger code, NSString *reason) {
-        [self getContacts:types items:items finish:finish];
+        [self getContacts:tail items:items finish:finish];
+        finish();
     }];
 }
 
 + (void)getFriends:(NSArray*)types items:(NSMutableArray*)items finish:(GenericBlock)finish
 {
+    Logger(@"%@", types);
+    
     if (![types isKindOfClass:[NSArray class]] || !types.count) {
-        finish();
-        return;
+        return finish();
     }
     NSString *type = [types firstObject];
-    types = [types subarrayWithRange:NSMakeRange(1, types.count - 1)];
+    NSArray *tail = [types subarrayWithRange:NSMakeRange(1, types.count - 1)];
     [_accounts[type] getFriends:nil success:^(id alist) {
         for (id item in alist) [items addObject:item];
-        [self getFriends:types items:items finish:finish];
+        [self getFriends:tail items:items finish:finish];
     } failure:^(NSInteger code, NSString *reason) {
-        [self getFriends:types items:items finish:finish];
+        [self getFriends:tail items:items finish:finish];
     }];
 }
 
@@ -175,7 +180,7 @@ static NSMutableDictionary *_accounts;
 {
     if (params && params[@"error"]) {
         return [NSError errorWithDomain:self.name
-                                   code:-1
+                                   code:500
                                userInfo:@{ NSLocalizedDescriptionKey: params[@"error"],
                                            NSLocalizedFailureReasonErrorKey: [params str:@"error_description"] }];
     }
@@ -222,10 +227,12 @@ static NSMutableDictionary *_accounts;
 
 - (void)sendRequest:(NSString*)method path:(NSString*)path params:(NSDictionary*)params type:(NSString*)type success:(SuccessBlock)success failure:(FailureBlock)failure
 {
+    Debug(@"%@: %d: %@: %@", self.name, [self isValid], method, path);
+    
     GenericBlock relogin = ^() {
         [self login:^(NSError *error) {
             if (![self isValid]) {
-                Logger(@"%@: %@", self.name, error ? error : @"login error");
+                Logger(@"Relogin: %@: %@", self.name, error ? error : @"login error");
                 if (failure) failure(error ? error.code : -1, error ? error.description : @"login error");
             } else {
                 [self getResult:method
@@ -239,8 +246,7 @@ static NSMutableDictionary *_accounts;
     };
     
     if (![self isValid]) {
-        relogin();
-        return;
+        return relogin();
     }
     
     [self getResult:method
@@ -249,8 +255,7 @@ static NSMutableDictionary *_accounts;
                type:type
             success:success
             failure:^(NSInteger code, NSString *reason) {
-                // Empty token means we have to relogin
-                if (!self.accessToken.count) {
+                if (code == 401) {
                     relogin();
                 } else {
                     if (failure) failure(code, reason);
@@ -260,6 +265,8 @@ static NSMutableDictionary *_accounts;
 
 - (void)getResult:(NSString*)method path:(NSString*)path params:(NSDictionary*)params type:(NSString*)type success:(SuccessBlock)success failure:(FailureBlock)failure
 {
+    Debug(@"%@: %@: %@", self.name, method, path);
+    
     if ([method isEqual:@"POST"]) {
         NSMutableURLRequest *request = [self getRequest:@"POST" path:path params:params type:type];
         [BKjs sendRequest:request success:success failure:^(NSURLRequest *request, NSHTTPURLResponse *response, NSError *error, id json) {
@@ -287,6 +294,7 @@ static NSMutableDictionary *_accounts;
         for (id item in list) [items addObject:item];
         NSString *url = [self getNextURL:result params:params];
         if (url && url.length) {
+            Debug(@"%@: %@", self.name, url);
             NSMutableURLRequest *request = [self getRequest:@"GET" path:url params:nil type:nil];
             [BKjs sendRequest:request success:^(id result) {
                 [self processResult:result params:params items:items success:success failure:failure];
@@ -303,7 +311,6 @@ static NSMutableDictionary *_accounts;
 
 - (void)processResponse:(NSHTTPURLResponse*)response error:(NSError*)error json:(id)json failure:(FailureBlock)failure
 {
-    if (response.statusCode == 401) [self.accessToken removeAllObjects];
     if (failure) failure(response.statusCode, error.description);
 }
 
@@ -311,7 +318,9 @@ static NSMutableDictionary *_accounts;
 
 - (void)login:(ErrorBlock)finished
 {
+    Logger(@"%@: %@", self.name, self.type);
     [self.accessToken removeAllObjects];
+    
     if ([self.type isEqual:@"oauth1"]) {
         [self authorize1:finished];
     } else
@@ -404,7 +413,7 @@ static NSMutableDictionary *_accounts;
     NSMutableURLRequest *request = [self getAuthorizeRequest:nil];
     [self showWebView:request completionHandler:^(NSURLRequest *request, NSError *error) {
         if (!request) {
-            finished([NSError errorWithDomain:self.name code:-2 userInfo:@{ NSLocalizedDescriptionKey: @"Login cancelled" }]);
+            finished([NSError errorWithDomain:self.name code:500 userInfo:@{ NSLocalizedDescriptionKey: @"Login cancelled" }]);
             return;
         }
         NSDictionary *query = [BKjs parseQueryString:[[request URL] query]];

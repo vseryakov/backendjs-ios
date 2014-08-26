@@ -27,7 +27,7 @@
     if (errors.count) {
         code = [errors[0] num:@"code"];
         reason = [errors[0] str:@"message"];
-        if (code == 89 || code == 215) [self.accessToken removeAllObjects];
+        if (code == 89 || code == 215) code = 401;
     }
     if (failure) failure(code, reason);
 }
