@@ -61,11 +61,12 @@
                params:[BKjs mergeParams:params params:@{ @"alt": @"json" }]
                  type:nil
           success:^(id result) {
-              NSDictionary *user = [result isKindOfClass:[NSDictionary class]] ? result : @{};
-              for (id key in user) self.account[key] = user[key];
-              self.account[@"alias"] = [user str:@[@"nickname", @"displayName"] dflt:nil];
-              self.account[@"icon"] = [BKjs toDictionaryString:user name:@"image" field:@"url"];
-              if (success) success(self.account);
+              NSMutableDictionary *account = [[result isKindOfClass:[NSDictionary class]] ? result : @{} mutableCopy];
+              if (!params || !params[@"id"]) self.account = account;
+              account[@"type"] = self.name;
+              account[@"alias"] = [account str:@[@"nickname", @"displayName"] dflt:nil];
+              account[@"icon"] = [BKjs toDictionaryString:account name:@"image" field:@"url"];
+              if (success) success(account);
           } failure:failure];
 }
 

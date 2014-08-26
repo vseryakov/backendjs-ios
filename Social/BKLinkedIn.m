@@ -77,9 +77,10 @@
               success:^(id user) {
                   NSMutableDictionary *account = [user mutableCopy];
                   if (!params || !params[@"id"]) self.account = account;
-                  self.account[@"linkedin_id"] = [user str:@"id"];
-                  self.account[@"alias"] = [user str:@"formattedName"];
-                  self.account[@"icon"] = [user str:@"pictureUrl"];
+                  account[@"type"] = self.name;
+                  account[@"linkedin_id"] = [account str:@"id"];
+                  account[@"alias"] = [account str:@"formattedName"];
+                  account[@"icon"] = [account str:@"pictureUrl"];
                   if (success) success(account);
               } failure:failure];
 }

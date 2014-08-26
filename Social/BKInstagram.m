@@ -45,12 +45,13 @@
 - (void)getAccount:(NSDictionary*)params success:(SuccessBlock)success failure:(FailureBlock)failure
 {
     [self sendRequest:@"GET" path:@"/users/self" params:nil type:nil success:^(id result) {
-        NSDictionary *user = [BKjs toDictionary:result name:@"data"];
-        for (id key in user) self.account[key] = user[key];
-        self.account[@"icon"] = [user str:@"profile_picture"];
-        self.account[@"alias"] = [user str:@"full_name"];
-        self.account[@"instagram_id"] = [user str:@"id"];
-        if (success) success(self.account);
+        NSMutableDictionary *account = [[BKjs toDictionary:result name:@"data"] mutableCopy];
+        if (!params || !params[@"id"]) self.account = account;
+        account[@"type"] = self.name;
+        account[@"icon"] = [account str:@"profile_picture"];
+        account[@"alias"] = [account str:@"full_name"];
+        account[@"instagram_id"] = [account str:@"id"];
+        if (success) success(account);
     } failure:failure];
 }
 

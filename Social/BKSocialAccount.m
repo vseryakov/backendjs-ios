@@ -56,6 +56,54 @@ static NSMutableDictionary *_accounts;
     for (id key in _accounts) [_accounts[key] refreshToken];
 }
 
++ (void)getAlbums:(NSArray*)types items:(NSMutableArray*)items finish:(GenericBlock)finish
+{
+    if (![types isKindOfClass:[NSArray class]] || !types.count) {
+        finish();
+        return;
+    }
+    NSString *type = [types firstObject];
+    types = [types subarrayWithRange:NSMakeRange(1, types.count - 1)];
+    [_accounts[type] getAlbums:nil success:^(id alist) {
+        for (id item in alist) [items addObject:item];
+        [self getAlbums:types items:items finish:finish];
+    } failure:^(NSInteger code, NSString *reason) {
+        [self getAlbums:types items:items finish:finish];
+    }];
+}
+
++ (void)getContacts:(NSArray*)types items:(NSMutableArray*)items finish:(GenericBlock)finish
+{
+    if (![types isKindOfClass:[NSArray class]] || !types.count) {
+        finish();
+        return;
+    }
+    NSString *type = [types firstObject];
+    types = [types subarrayWithRange:NSMakeRange(1, types.count - 1)];
+    [_accounts[type] getContacts:nil success:^(id alist) {
+        for (id item in alist) [items addObject:item];
+        [self getContacts:types items:items finish:finish];
+    } failure:^(NSInteger code, NSString *reason) {
+        [self getContacts:types items:items finish:finish];
+    }];
+}
+
++ (void)getFriends:(NSArray*)types items:(NSMutableArray*)items finish:(GenericBlock)finish
+{
+    if (![types isKindOfClass:[NSArray class]] || !types.count) {
+        finish();
+        return;
+    }
+    NSString *type = [types firstObject];
+    types = [types subarrayWithRange:NSMakeRange(1, types.count - 1)];
+    [_accounts[type] getFriends:nil success:^(id alist) {
+        for (id item in alist) [items addObject:item];
+        [self getFriends:types items:items finish:finish];
+    } failure:^(NSInteger code, NSString *reason) {
+        [self getFriends:types items:items finish:finish];
+    }];
+}
+
 - (id)init:(NSString*)name
 {
     return [self init:name clientId:nil];
@@ -66,6 +114,7 @@ static NSMutableDictionary *_accounts;
     self = [super init];
     self.name = name;
     self.type = @"web";
+    self.scope = @"";
     self.clientId = clientId ? clientId : [[NSBundle mainBundle] objectForInfoDictionaryKey:[NSString stringWithFormat:@"%@AppID", self.name]];
     self.redirectURL = [NSString stringWithFormat:@"http://%@/oauth/%@", BKjs.appDomain, self.clientId];
     self.oauthSignature = @"HMAC-SHA1";
@@ -354,6 +403,10 @@ static NSMutableDictionary *_accounts;
 {
     NSMutableURLRequest *request = [self getAuthorizeRequest:nil];
     [self showWebView:request completionHandler:^(NSURLRequest *request, NSError *error) {
+        if (!request) {
+            finished([NSError errorWithDomain:self.name code:-2 userInfo:@{ NSLocalizedDescriptionKey: @"Login cancelled" }]);
+            return;
+        }
         NSDictionary *query = [BKjs parseQueryString:[[request URL] query]];
         if (error || !query[@"code"]) {
             finished(error ? error : [NSError errorWithDomain:@"OAUTH" code:500 userInfo:@{ @"message": @"no code" }]);
@@ -392,6 +445,10 @@ static NSMutableDictionary *_accounts;
     [self getRequestToken:^{
         NSMutableURLRequest *request = [self getAuthorizeRequest:@{ @"oauth_token": [self.accessToken str:@"oauth_token"] }];
         [self showWebView:request completionHandler:^(NSURLRequest *request, NSError *error) {
+            if (!request) {
+                finished([NSError errorWithDomain:self.name code:-2 userInfo:@{ NSLocalizedDescriptionKey: @"Login cancelled" }]);
+                return;
+            }
             NSDictionary *query = [BKjs parseQueryString:[[request URL] query]];
             if (query[@"oauth_verifier"]) self.accessToken[@"oauth_verifier"] = query[@"oauth_verifier"];
             [self getAccessToken:^{
@@ -505,6 +562,7 @@ static NSMutableDictionary *_accounts;
 - (void)getAlbums:(NSDictionary*)params success:(SuccessBlock)success failure:(FailureBlock)failure { if (failure) failure(-1, @"not implemented"); }
 - (void)getPhotos:(NSDictionary*)album params:(NSDictionary*)params success:(SuccessBlock)success failure:(FailureBlock)failure { if (failure) failure(-1, @"not implemented"); }
 - (void)getContacts:(NSDictionary*)params success:(SuccessBlock)success failure:(FailureBlock)failure { if (failure) failure(-1, @"not implemented"); }
+- (void)getFriends:(NSDictionary*)params success:(SuccessBlock)success failure:(FailureBlock)failure { if (failure) failure(-1, @"not implemented"); }
 - (void)postMessage:(NSString*)msg image:(UIImage*)image params:(NSDictionary*)params success:(SuccessBlock)success failure:(FailureBlock)failure { if (failure) failure(-1, @"not implemented"); };
 - (void)sendMessage:(NSString*)subject body:(NSString*)body params:(NSDictionary*)params success:(SuccessBlock)success failure:(FailureBlock)failure{ if (failure) failure(-1, @"not implemented"); };
 

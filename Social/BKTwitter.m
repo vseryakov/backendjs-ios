@@ -51,9 +51,10 @@
 {
     [self sendRequest:@"GET" path:@"/account/verify_credentials.json" params:params type:nil success:^(id user) {
         NSMutableDictionary *account = [user mutableCopy];
-        self.account = account;
-        self.account[@"alias"] = [account str:@"name"];
-        self.account[@"icon"] = [account str:@"profile_image_url"];
+        if (!params || !params[@"id"]) self.account = account;
+        account[@"type"] = self.name;
+        account[@"alias"] = [account str:@"name"];
+        account[@"icon"] = [account str:@"profile_image_url"];
         if (success) success(account);
         
     } failure:failure];

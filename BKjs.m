@@ -305,7 +305,7 @@ static NSString *SysCtlByName(char *typeSpecifier)
         if (m > 0) {
             str = [NSString stringWithFormat:@"%d minute%@", m, m > 1 ? @"s" : @""];
         } else {
-            str = [NSString stringWithFormat:@"%d seconds", (int)seconds];
+            str = [NSString stringWithFormat:@"%d seconds", (int)MAX(0, seconds)];
         }
         if (fmt && str.length) str = [NSString stringWithFormat:fmt, str];
     }

@@ -12,7 +12,7 @@
 - (id)init:(NSString*)name clientId:(NSString*)clientId
 {
     self = [super init:name clientId:clientId];
-    self.scope = @"email,user_friends";
+    self.scope = @"email";
     self.baseURL = @"https://graph.facebook.com";
     self.launchURLs = @[ @{ @"url": @"fb://profile/%@", @"param": @"id" },
                          @{ @"url": @"https://www.facebook.com/%@", @"param": @"username" } ];
@@ -59,12 +59,13 @@
                params:query.params
                  type:nil
               success:^(id result) {
-                  NSDictionary *user = [result isKindOfClass:[NSDictionary class]] ? result : @{};
-                  for (id key in user) self.account[key] = user[key];
-                  self.account[@"facebook_id"] = [user str:@"id"];
-                  self.account[@"alias"] = [user str:@"name"];
-                  self.account[@"icon"] = [BKjs toDictionaryString:[BKjs toDictionary:user name:@"picture"] name:@"data" field:@"url"];
-                  if (success) success(self.account);
+                  NSMutableDictionary *account = [[result isKindOfClass:[NSDictionary class]] ? result : @{} mutableCopy];
+                  if (!params || !params[@"id"]) self.account = account;
+                  account[@"type"] = self.name;
+                  account[@"facebook_id"] = [account str:@"id"];
+                  account[@"alias"] = [account str:@"name"];
+                  account[@"icon"] = [BKjs toDictionaryString:[BKjs toDictionary:account name:@"picture"] name:@"data" field:@"url"];
+                  if (success) success(account);
               } failure:failure];
 }
 
@@ -112,7 +113,7 @@
               } failure:failure];
 }
 
-- (void)getContacts:(NSDictionary*)params success:(SuccessBlock)success failure:(FailureBlock)failure
+- (void)getFriends:(NSDictionary*)params success:(SuccessBlock)success failure:(FailureBlock)failure
 {
     BKQueryParams *query = [[BKQueryParams alloc]
                             init:@"/@id@/friends"

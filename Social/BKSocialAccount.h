@@ -20,7 +20,7 @@
 // Social account for third parties
 @interface BKSocialAccount: NSObject
 @property (nonatomic, strong) NSString* name;
-@property (nonatomic, strong) NSString *type;
+@property (nonatomic, strong) NSString* type;
 @property (nonatomic, strong) NSString* scope;
 
 @property (nonatomic, strong) NSString* clientId;
@@ -40,6 +40,9 @@
 
 + (NSMutableDictionary*)accounts;
 + (void)refresh;
++ (void)getContacts:(NSArray*)types items:(NSMutableArray*)items finish:(GenericBlock)finish;
++ (void)getFriends:(NSArray*)types items:(NSMutableArray*)items finish:(GenericBlock)finish;
++ (void)getAlbums:(NSArray*)types items:(NSMutableArray*)items finish:(GenericBlock)finish;
 
 - (id)init:(NSString*)name;
 - (id)init:(NSString*)name clientId:(NSString*)clientId;
@@ -52,6 +55,7 @@
 - (void)clearCookies;
 - (void)saveToken;
 - (void)restoreToken;
+- (void)refreshToken;
 
 // High level methods for API calls
 - (NSMutableURLRequest*)getRequest:(NSString*)method path:(NSString*)path params:(NSDictionary*)params type:(NSString*)type;
@@ -77,6 +81,7 @@
 - (void)getAlbums:(NSDictionary*)params success:(SuccessBlock)success failure:(FailureBlock)failure;
 - (void)getPhotos:(NSDictionary*)album params:(NSDictionary*)params success:(SuccessBlock)success failure:(FailureBlock)failure;
 - (void)getContacts:(NSDictionary*)params success:(SuccessBlock)success failure:(FailureBlock)failure;
+- (void)getFriends:(NSDictionary*)params success:(SuccessBlock)success failure:(FailureBlock)failure;
 - (void)postMessage:(NSString*)msg image:(UIImage*)image params:(NSDictionary*)params success:(SuccessBlock)success failure:(FailureBlock)failure;
 - (void)sendMessage:(NSString*)subject body:(NSString*)body params:(NSDictionary*)params success:(SuccessBlock)success failure:(FailureBlock)failure;
 

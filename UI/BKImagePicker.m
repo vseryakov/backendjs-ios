@@ -66,26 +66,17 @@
 
 - (void)getItems
 {
-    [self.items removeAllObjects];
-    for (id account in self.params[@"accounts"]) {
-        [self getAlbums:account];
-    }
-}
-
-- (void)getAlbums:(id)obj
-{
     [self showActivity];
-    if ([obj isKindOfClass:[BKSocialAccount class]]) {
-        BKSocialAccount *account = obj;
-        [account getAlbums:nil success:^(id alist) {
-            [self hideActivity];
-            for (id item in alist) [self.items addObject:item];
-            Logger(@"%@: %d", account.name, (int)self.items.count);
-            [self reloadTable];
-        } failure:^(NSInteger code, NSString *reason) {
-            [self hideActivity];
-        }];
+
+    [self.items removeAllObjects];
+    NSMutableArray *accounts = [@[] mutableCopy];
+    for (id obj in self.params[@"accounts"]) {
+        if ([obj isKindOfClass:[BKSocialAccount class]]) [accounts addObject:[(BKSocialAccount*)obj name]];
     }
+    [BKSocialAccount getAlbums:accounts items:self.items finish:^{
+        [self hideActivity];
+        [self reloadTable];
+    }];
 }
 
 - (void)onTableSelect:(NSIndexPath *)indexPath selected:(BOOL)selected
