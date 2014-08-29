@@ -24,6 +24,7 @@
 {
     if (!items) return;
     [self.items removeAllObjects];
+    for (id name in self.buttons) [self.buttons[name] removeFromSuperview];
     [self.buttons removeAllObjects];
     
     // Calculate width of every button, if we have specic width given for any button we

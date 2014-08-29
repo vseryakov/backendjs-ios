@@ -58,8 +58,8 @@
 - (void)refreshToken;
 
 // High level methods for API calls
-- (NSMutableURLRequest*)getRequest:(NSString*)method path:(NSString*)path params:(NSDictionary*)params type:(NSString*)type;
-- (void)sendRequest:(NSString*)method path:(NSString*)path params:(NSDictionary*)params type:(NSString*)type success:(SuccessBlock)success failure:(FailureBlock)failure;
+- (NSMutableURLRequest*)getRequest:(NSString*)method path:(NSString*)path params:(NSDictionary*)params type:(NSString*)type body:(NSData*)body;
+- (void)sendRequest:(NSString*)method path:(NSString*)path params:(NSDictionary*)params type:(NSString*)type body:(NSData*)body success:(SuccessBlock)success failure:(FailureBlock)failure;
 - (void)setHeaders:(NSString *)method path:(NSString *)path params:(NSDictionary *)parameters;
 
 // OAUTH methods

@@ -47,7 +47,7 @@
                                 @"scope": self.scope,
                                 @"state": self.oauthState,
                                 @"redirect_uri": self.redirectURL }
-                       type:nil];
+                       type:nil body:nil];
 }
 
 - (NSMutableURLRequest*)getAccessTokenRequest:(NSDictionary*)params
@@ -58,7 +58,7 @@
                                @"redirect_uri": self.redirectURL,
                                @"client_id": self.clientId,
                                @"client_secret": self.clientSecret }
-                       type:nil];
+                       type:nil body:nil];
                                
 }
 
@@ -74,6 +74,7 @@
                  path:query.path
                params:query.params
                  type:nil
+                 body:nil
               success:^(id user) {
                   NSMutableDictionary *account = [user mutableCopy];
                   if (!params || !params[@"id"]) self.account = account;
@@ -98,6 +99,7 @@
                  path:query.path
                params:query.params
                  type:nil
+                 body:nil
               success:^(id result) {
                   NSMutableArray *list = [@[] mutableCopy];
                   for (NSDictionary *item in result[@"values"]) {
@@ -109,6 +111,7 @@
                       rec[@"icon"] = [item str:@"pictureUrl"];
                       [list addObject:rec];
                   }
+                  Logger(@"%d records", (int)list.count);
                   if (success) success(list);
               } failure:failure];
 }
@@ -125,30 +128,20 @@
                  path:@"/people/~/mailbox"
                params:query
                  type:@"application/json"
+                 body:nil
               success:success
               failure:failure];
 }
 
 - (void)postMessage:(NSString*)msg image:(UIImage*)image params:(NSDictionary*)params success:(SuccessBlock)success failure:(FailureBlock)failure;
 {
-    NSMutableDictionary *query = [@{ @"message": msg ? msg : @"" } mutableCopy];
-    for (id key in params) query[key] = params[key];
-    /*<share>
-    <comment>Check out the LinkedIn Share API!</comment>
-    <content>
-    <title>LinkedIn Developers Documentation On Using the Share API</title>
-    <description>Leverage the Share API to maximize engagement on user-generated content on LinkedIn</description>
-    <submitted-url>https://developer.linkedin.com/documents/share-api</submitted-url>
-    <submitted-image-url>http://m3.licdn.com/media/p/3/000/124/1a6/089a29a.png</submitted-image-url>
-    </content>
-    <visibility>
-    <code>anyone</code>
-    </visibility>
-    </share>*/
+    NSString *xml = [NSString stringWithFormat:@"<share><comment>%@</comment><visibility><code>anyone</code></visibility></share>", [BKjs escapeString:msg]];
+
     [self sendRequest:@"POST"
                  path:@"/people/~/shares"
-               params:query
-                 type:nil
+               params:nil
+                 type:@"application/xml"
+                 body:[xml dataUsingEncoding:NSUTF8StringEncoding]
               success:success
               failure:failure];
 }

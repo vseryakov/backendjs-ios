@@ -39,17 +39,17 @@
 
 - (NSMutableURLRequest*)getAccessTokenRequest:(NSDictionary*)params
 {
-    return [self getRequest:@"GET" path:@"https://api.twitter.com/oauth/access_token" params:params type:nil];
+    return [self getRequest:@"GET" path:@"https://api.twitter.com/oauth/access_token" params:params type:nil body:nil];
 }
 
 - (NSMutableURLRequest*)getRequestTokenRequest:(NSDictionary*)params
 {
-    return [self getRequest:@"GET" path:@"https://api.twitter.com/oauth/request_token" params:params type:nil];
+    return [self getRequest:@"GET" path:@"https://api.twitter.com/oauth/request_token" params:params type:nil body:nil];
 }
 
 - (void)getAccount:(NSDictionary*)params success:(SuccessBlock)success failure:(FailureBlock)failure
 {
-    [self sendRequest:@"GET" path:@"/account/verify_credentials.json" params:params type:nil success:^(id user) {
+    [self sendRequest:@"GET" path:@"/account/verify_credentials.json" params:params type:nil body:nil success:^(id user) {
         NSMutableDictionary *account = [user mutableCopy];
         if (!params || !params[@"id"]) self.account = account;
         account[@"type"] = self.name;
@@ -78,6 +78,7 @@
                      path:@"/statuses/update.json"
                    params:query
                      type:nil
+                     body:nil
                   success:success
                   failure:failure];
     }

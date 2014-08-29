@@ -198,10 +198,14 @@
 - (void)addMenubar:(NSArray*)items params:(NSDictionary*)params
 {
     self.navigationController.navigationBarHidden = YES;
-    self.menubarView = [[BKMenubarView alloc] init:CGRectMake(0, 0, self.view.width, 64) items:items params:params];
-    [self.view addSubview:self.menubarView];
-    self.menubarView.backgroundColor = [BKui makeColor:self.view.backgroundColor h:1 s:1 b:0.95 a:1];
-    [BKui setStyle:self.menubarView style:BKui.style[@"menubar"]];
+    if (self.menubarView) {
+        [self.menubarView setMenu:items params:params];
+    } else {
+        self.menubarView = [[BKMenubarView alloc] init:CGRectMake(0, 0, self.view.width, 64) items:items params:params];
+        [self.view addSubview:self.menubarView];
+        self.menubarView.backgroundColor = [BKui makeColor:self.view.backgroundColor h:1 s:1 b:0.95 a:1];
+        [BKui setStyle:self.menubarView style:BKui.style[@"menubar"]];
+    }
 }
 
 - (void)updateMenubar:(NSDictionary*)params
@@ -213,16 +217,21 @@
 
 - (void)addTabbar:(NSArray*)items params:(NSDictionary*)params
 {
-    self.tabbarView = [[BKMenubarView alloc] init:CGRectMake(0, self.view.height - 40, self.view.width, 40) items:items params:params];
-    self.tabbarView.backgroundColor = [BKui makeColor:self.view.backgroundColor h:1 s:1 b:0.95 a:1];
-    [BKui setViewShadow:self.tabbarView color:nil offset:CGSizeMake(0, 0.5) opacity:0.5 radius:-1];
-    [self.view addSubview:self.tabbarView];
+    if (self.tabbarView) {
+        [self.tabbarView setMenu:items params:params];
+    } else {
+        self.tabbarView = [[BKMenubarView alloc] init:CGRectMake(0, self.view.height - 40, self.view.width, 40) items:items params:params];
+        self.tabbarView.backgroundColor = [BKui makeColor:self.view.backgroundColor h:1 s:1 b:0.95 a:1];
+        [BKui setViewShadow:self.tabbarView color:nil offset:CGSizeMake(0, 0.5) opacity:0.5 radius:-1];
+        [self.view addSubview:self.tabbarView];
+    }
 }
 
 #pragma mark Table
 
 - (void)addTable
 {
+    if (self.tableView) return;
     CGRect frame = CGRectMake(0, 64, self.view.width, self.view.height - 64);
     self.tableView = [[UITableView alloc] initWithFrame:frame];
     self.tableView.separatorInset = UIEdgeInsetsZero;

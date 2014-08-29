@@ -28,7 +28,8 @@
                                 @"scope": self.scope,
                                 @"response_type": @"token",
                                 @"display": @"touch" }
-                       type:nil];
+                       type:nil
+                       body:nil];
 }
 
 - (NSArray*)getItems:(id)result params:(NSDictionary*)params
@@ -44,7 +45,7 @@
 
 - (void)getAccount:(NSDictionary*)params success:(SuccessBlock)success failure:(FailureBlock)failure
 {
-    [self sendRequest:@"GET" path:@"/users/self" params:nil type:nil success:^(id result) {
+    [self sendRequest:@"GET" path:@"/users/self" params:nil type:nil body:nil success:^(id result) {
         NSMutableDictionary *account = [[BKjs toDictionary:result name:@"data"] mutableCopy];
         if (!params || !params[@"id"]) self.account = account;
         account[@"type"] = self.name;
@@ -74,6 +75,7 @@
                  path:@"/users/self/media/recent"
                params:[BKjs mergeParams:@{ @"count": @(100), @"min_timestamp": @(0) } params:params]
                  type:nil
+                 body:nil
               success:^(NSArray *photos) {
                   NSMutableArray *list = [@[] mutableCopy];
                   for (NSDictionary *item in photos) {

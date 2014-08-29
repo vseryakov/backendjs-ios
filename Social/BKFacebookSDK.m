@@ -159,7 +159,6 @@
                                      parameters:params
                                      HTTPMethod:@"GET"
                               completionHandler:^(FBRequestConnection *connection, id result, NSError *error) {
-                                  Logger(@"%@: %@", error, result);
                                   if (!error) {
                                       NSMutableArray *items = [@[] mutableCopy];
                                       block(items, result);

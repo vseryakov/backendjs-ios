@@ -33,7 +33,7 @@
                                 @"scope": self.scope,
                                 @"type": @"user_agent",
                                 @"display": @"touch" }
-                       type:nil];
+                       type:nil body:nil];
 }
 
 - (NSArray*)getItems:(id)result params:(NSDictionary*)params
@@ -58,6 +58,7 @@
                  path:query.path
                params:query.params
                  type:nil
+                 body:nil
               success:^(id result) {
                   NSMutableDictionary *account = [[result isKindOfClass:[NSDictionary class]] ? result : @{} mutableCopy];
                   if (!params || !params[@"id"]) self.account = account;
@@ -81,6 +82,7 @@
                  path:query.path
                params:query.params
                  type:nil
+                 body:nil
               success:^(id result) {
                   NSMutableArray *list = [@[] mutableCopy];
                   for (NSDictionary *album in [BKjs toArray:result[@"albums"] name:@"data"]) {
@@ -102,6 +104,7 @@
                  path:[NSString stringWithFormat:@"/%@/photos", album[@"id"]]
                params:params
                  type:nil
+                 body:nil
               success:^(id result) {
                   NSMutableArray *list = [@[] mutableCopy];
                   for (NSDictionary *item in result) {
@@ -125,6 +128,7 @@
                  path:query.path
                params:query.params
                  type:nil
+                 body:nil
               success:^(id result) {
                   NSMutableArray *list = [@[] mutableCopy];
                   for (NSDictionary *item in result) {
@@ -143,7 +147,7 @@
 {
     NSMutableDictionary *query = [@{ @"message": msg ? msg : @"" } mutableCopy];
     for (id key in params) query[key] = params[key];
-    [self sendRequest:@"POST" path:@"/me/feed" params:query type:nil success:success failure:failure];
+    [self sendRequest:@"POST" path:@"/me/feed" params:query type:nil body:nil success:success failure:failure];
 }
      
 @end

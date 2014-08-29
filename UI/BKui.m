@@ -471,6 +471,7 @@ static UIActivityIndicatorView *_activity;
 
 + (UIImage*)makeImageWithTint:(UIImage*)image color:(UIColor*)color
 {
+    if (!image) return nil;
     CGRect drawRect = CGRectMake(0, 0, image.size.width, image.size.height);
     UIGraphicsBeginImageContextWithOptions(image.size, NO, 0);
     CGContextRef context = UIGraphicsGetCurrentContext();
@@ -819,16 +820,17 @@ static UIActivityIndicatorView *_activity;
             if ([key isEqual:@"contentHorizontalAlignment"]) button.contentHorizontalAlignment = num; else
             if ([key isEqual:@"contentVerticalAlignment"]) button.contentVerticalAlignment = num; else
             if ([key isEqual:@"icon"]) [button setImage:[UIImage imageNamed:val] forState:UIControlStateNormal]; else
-            if ([key isEqual:@"icon-tint"]) [button setImage:[BKui makeImageWithTint:[UIImage imageNamed:style[@"icon"]] color:[button tintColor]] forState:UIControlStateNormal]; else
+            if ([key isEqual:@"icon-tint"] && style[@"icon"]) [button setImage:[BKui makeImageWithTint:[UIImage imageNamed:style[@"icon"]] color:[button tintColor]] forState:UIControlStateNormal]; else
             if ([key isEqual:@"icon-disabled"]) [button setImage:[UIImage imageNamed:val] forState:UIControlStateDisabled]; else
             if ([key isEqual:@"icon-highlighted"]) [button setImage:[UIImage imageNamed:val] forState:UIControlStateHighlighted]; else
-            if ([key isEqual:@"icon-highlighted-tint"]) [button setImage:[BKui makeImageWithTint:[UIImage imageNamed:style[@"icon"]] color:[button tintColor]] forState:UIControlStateHighlighted]; else
+            if ([key isEqual:@"icon-highlighted-tint"] && style[@"icon"]) [button setImage:[BKui makeImageWithTint:[UIImage imageNamed:style[@"icon"]] color:[button tintColor]] forState:UIControlStateHighlighted]; else
             if ([key isEqual:@"icon-selected"]) [button setImage:[UIImage imageNamed:val] forState:UIControlStateSelected]; else
             if ([key isEqual:@"icon-selected-highlighted"]) [button setImage:[button imageForState:UIControlStateHighlighted] forState:UIControlStateSelected]; else
             if ([key isEqual:@"image"] && [val isKindOfClass:[UIImage class]]) [button setImage:val forState:UIControlStateNormal]; else
+            if ([key isEqual:@"image-tint"] && style[@"image"]) [button setImage:[BKui makeImageWithTint:style[@"image"] color:[button tintColor]] forState:UIControlStateNormal]; else
             if ([key isEqual:@"image-disabled"] && [val isKindOfClass:[UIImage class]]) [button setImage:val forState:UIControlStateDisabled]; else
             if ([key isEqual:@"image-highlighted"] && [val isKindOfClass:[UIImage class]]) [button setImage:val forState:UIControlStateHighlighted]; else
-            if ([key isEqual:@"image-highlighted-tint"]) [button setImage:[BKui makeImageWithTint:style[@"image"] color:[button tintColor]] forState:UIControlStateHighlighted]; else
+            if ([key isEqual:@"image-highlighted-tint"] && style[@"image"]) [button setImage:[BKui makeImageWithTint:style[@"image"] color:[button tintColor]] forState:UIControlStateHighlighted]; else
             if ([key isEqual:@"image-selected"] && [val isKindOfClass:[UIImage class]]) [button setImage:val forState:UIControlStateSelected]; else
             if ([key isEqual:@"image-selected-highlighted"]) [button setImage:[button imageForState:UIControlStateHighlighted] forState:UIControlStateSelected]; else
             if ([key isEqual:@"title"]) [button setTitle:val forState:UIControlStateNormal]; else

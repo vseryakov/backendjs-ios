@@ -58,7 +58,7 @@ static NSMutableDictionary *_accounts;
 
 + (void)getAlbums:(NSArray*)types items:(NSMutableArray*)items finish:(GenericBlock)finish
 {
-    Logger(@"%@", types);
+    Logger(@"%@: %d", types, (int)items.count);
     
     if (![types isKindOfClass:[NSArray class]] || !types.count) {
         return finish();
@@ -75,7 +75,7 @@ static NSMutableDictionary *_accounts;
 
 + (void)getContacts:(NSArray*)types items:(NSMutableArray*)items finish:(GenericBlock)finish
 {
-    Logger(@"%@", types);
+    Logger(@"%@: %d", types, (int)items.count);
     
     if (![types isKindOfClass:[NSArray class]] || !types.count) {
         return finish();
@@ -85,16 +85,14 @@ static NSMutableDictionary *_accounts;
     [_accounts[type] getContacts:nil success:^(id alist) {
         for (id item in alist) [items addObject:item];
         [self getContacts:tail items:items finish:finish];
-        finish();
     } failure:^(NSInteger code, NSString *reason) {
         [self getContacts:tail items:items finish:finish];
-        finish();
     }];
 }
 
 + (void)getFriends:(NSArray*)types items:(NSMutableArray*)items finish:(GenericBlock)finish
 {
-    Logger(@"%@", types);
+    Logger(@"%@: %d", types, (int)items.count);
     
     if (![types isKindOfClass:[NSArray class]] || !types.count) {
         return finish();
@@ -157,7 +155,7 @@ static NSMutableDictionary *_accounts;
 
 - (void)refreshToken
 {
-    Logger(@"%@: %@", self.name, self.accessToken);
+    Debug(@"%@: %@", self.name, self.accessToken);
 }
 
 // List of objects with "url" and "param" properties
@@ -210,7 +208,7 @@ static NSMutableDictionary *_accounts;
     return nil;
 }
 
-- (NSMutableURLRequest*)getRequest:(NSString*)method path:(NSString*)path params:(NSDictionary*)params type:(NSString*)type
+- (NSMutableURLRequest*)getRequest:(NSString*)method path:(NSString*)path params:(NSDictionary*)params type:(NSString*)type body:(NSData*)body
 {
     [self setHeaders:method path:path params:params];
     if ([self.type isEqual:@"oauth1"]) {
@@ -225,7 +223,7 @@ static NSMutableDictionary *_accounts;
     return request;
 }
 
-- (void)sendRequest:(NSString*)method path:(NSString*)path params:(NSDictionary*)params type:(NSString*)type success:(SuccessBlock)success failure:(FailureBlock)failure
+- (void)sendRequest:(NSString*)method path:(NSString*)path params:(NSDictionary*)params type:(NSString*)type body:(NSData*)body success:(SuccessBlock)success failure:(FailureBlock)failure
 {
     Debug(@"%@: %d: %@: %@", self.name, [self isValid], method, path);
     
@@ -239,6 +237,7 @@ static NSMutableDictionary *_accounts;
                            path:[self getURL:method path:path params:params]
                          params:[self getQuery:method path:path params:params]
                            type:type
+                           body:body
                         success:success
                         failure:failure];
             }
@@ -253,6 +252,7 @@ static NSMutableDictionary *_accounts;
                path:[self getURL:method path:path params:params]
              params:[self getQuery:method path:path params:params]
                type:type
+               body:body
             success:success
             failure:^(NSInteger code, NSString *reason) {
                 if (code == 401) {
@@ -263,12 +263,12 @@ static NSMutableDictionary *_accounts;
             }];
 }
 
-- (void)getResult:(NSString*)method path:(NSString*)path params:(NSDictionary*)params type:(NSString*)type success:(SuccessBlock)success failure:(FailureBlock)failure
+- (void)getResult:(NSString*)method path:(NSString*)path params:(NSDictionary*)params type:(NSString*)type body:(NSData*)body success:(SuccessBlock)success failure:(FailureBlock)failure
 {
     Debug(@"%@: %@: %@", self.name, method, path);
     
     if ([method isEqual:@"POST"]) {
-        NSMutableURLRequest *request = [self getRequest:@"POST" path:path params:params type:type];
+        NSMutableURLRequest *request = [self getRequest:@"POST" path:path params:params type:type body:body];
         [BKjs sendRequest:request success:success failure:^(NSURLRequest *request, NSHTTPURLResponse *response, NSError *error, id json) {
             [self processResponse:response error:error json:json failure:failure];
         }];
@@ -276,7 +276,7 @@ static NSMutableDictionary *_accounts;
     }
     
     NSMutableArray *items = [@[] mutableCopy];
-    NSMutableURLRequest *request = [self getRequest:@"GET" path:path params:params type:type];
+    NSMutableURLRequest *request = [self getRequest:@"GET" path:path params:params type:type body:body];
     [BKjs sendRequest:request success:^(id result) {
         [self processResult:result params:params items:items success:success failure:^(NSInteger code, NSString *reason) {
             if (failure) failure(code, reason);
@@ -295,7 +295,7 @@ static NSMutableDictionary *_accounts;
         NSString *url = [self getNextURL:result params:params];
         if (url && url.length) {
             Debug(@"%@: %@", self.name, url);
-            NSMutableURLRequest *request = [self getRequest:@"GET" path:url params:nil type:nil];
+            NSMutableURLRequest *request = [self getRequest:@"GET" path:url params:nil type:nil body:nil];
             [BKjs sendRequest:request success:^(id result) {
                 [self processResult:result params:params items:items success:success failure:failure];
             } failure:^(NSURLRequest *request, NSHTTPURLResponse *response, NSError *error, id json) {

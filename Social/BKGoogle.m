@@ -35,7 +35,7 @@
                                 @"state": self.oauthState,
                                 @"login_hint": @"email",
                                 @"include_granted_scopes": @"true",
-                                @"redirect_uri": self.redirectURL } type:nil];
+                                @"redirect_uri": self.redirectURL } type:nil body:nil];
 }
 
 - (NSMutableURLRequest*)getAccessTokenRequest:(NSDictionary*)params
@@ -45,7 +45,7 @@
                                @"grant_type": @"authorization_code",
                                @"redirect_uri": self.redirectURL,
                                @"client_id": self.clientId,
-                               @"client_secret": self.clientSecret } type:nil];
+                               @"client_secret": self.clientSecret } type:nil body:nil];
     
 }
 
@@ -66,6 +66,7 @@
                  path:query.path
                params:query.params
                  type:nil
+                 body:nil
           success:^(id result) {
               NSMutableDictionary *account = [[result isKindOfClass:[NSDictionary class]] ? result : @{} mutableCopy];
               if (!params || !params[@"id"]) self.account = account;
@@ -89,6 +90,7 @@
                  path:query.path
                params:query.params
                  type:nil
+                 body:nil
               success:^(id result) {
                   NSString *aid = params[@"id"];
                   if (!aid) aid = @"default";
@@ -131,6 +133,7 @@
                       }
                       if (![rec isEmpty:@"alias"]) [list addObject:rec];
                   }
+                  Logger(@"%d records", (int)list.count);
                   if (success) success(list);
               } failure:failure];
 }
@@ -139,7 +142,7 @@
 {
     NSMutableDictionary *query = [@{ @"message": msg ? msg : @"" } mutableCopy];
     for (id key in params) query[key] = params[key];
-    [self sendRequest:@"POST" path:@"/me/feed" params:query type:nil success:success failure:failure];
+    [self sendRequest:@"POST" path:@"/me/feed" params:query type:nil body:nil success:success failure:failure];
 }
 
 @end
