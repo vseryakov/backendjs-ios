@@ -72,6 +72,15 @@ typedef NS_OPTIONS(NSUInteger, BKOptions) {
     BKCacheModeFlush = 4,
 };
 
+// Preprocess path and query with defaults
+@interface BKQueryParams: NSObject
+@property (nonatomic, strong) NSString* path;
+@property (nonatomic, strong) NSMutableDictionary* params;
+
+- (instancetype)init:(NSString*)path params:(NSDictionary*)params defaults:(NSDictionary*)defaults;
+- (void)format:(NSDictionary*)defaults;
+@end;
+
 @interface BKjs: AFHTTPClient <CLLocationManagerDelegate,UIAlertViewDelegate>
 
 // This method should return fully qualified URL to be retrieved, by default path is unchanged and passed as it it but by
@@ -186,6 +195,7 @@ typedef NS_OPTIONS(NSUInteger, BKOptions) {
 
 + (void)getIcon:(NSString*)path params:(NSDictionary*)params options:(BKOptions)options success:(ImageSuccessBlock)success failure:(FailureBlock)failure;
 + (void)getIcon:(NSString*)url options:(BKOptions)options success:(ImageSuccessBlock)success failure:(FailureBlock)failure;
++ (void)getIconByPrefix:(NSDictionary*)params options:(BKOptions)options success:(ImageSuccessBlock)success failure:(FailureBlock)failure;
 
 #pragma mark Location API
 

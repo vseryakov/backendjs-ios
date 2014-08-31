@@ -245,8 +245,10 @@ static UIActivityIndicatorView *_activity;
 {
     if (!text || !text.length || !link || !link.length) return;
     NSMutableAttributedString* str = [[NSMutableAttributedString alloc] initWithString:text];
-    [str addAttribute:NSLinkAttributeName value:link range:[str.string rangeOfString:link]];
-    [str addAttribute:NSUnderlineStyleAttributeName value:@(NSUnderlineStyleSingle) range:[str.string rangeOfString:link]];
+    NSRange range = [str.string rangeOfString:link];
+    [str addAttribute:NSLinkAttributeName value:link range:range];
+    [str addAttribute:NSFontAttributeName value:[UIFont systemFontOfSize:label.font.pointSize + 2] range:range];
+    [str addAttribute:NSUnderlineStyleAttributeName value:@(NSUnderlineStyleSingle) range:range];
     [label setAttributedText:str];
     label.userInteractionEnabled = YES;
     
@@ -278,6 +280,7 @@ static UIActivityIndicatorView *_activity;
         NSRange range = [str.string rangeOfString:link];
         if (range.location == NSNotFound) continue;
         [str addAttribute:NSLinkAttributeName value:link range:range];
+        [str addAttribute:NSFontAttributeName value:[UIFont systemFontOfSize:label.font.pointSize + 2] range:range];
         [str addAttribute:NSUnderlineStyleAttributeName value:@(NSUnderlineStyleSingle) range:range];
     }
     [label setAttributedText:str];

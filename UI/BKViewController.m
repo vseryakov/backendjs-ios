@@ -584,7 +584,7 @@
     
     if ([self.navigationMode isEqual:@"modal"]) {
         self.transitioningDelegate = self;
-        self.modalPresentationStyle = UIModalPresentationCustom;
+        if (self.transition[@"type"]) self.modalPresentationStyle = UIModalPresentationCustom;
     }
     
     if ([self.navigationMode isEqual:@""]) {
@@ -670,7 +670,7 @@
 {
     BKImagePickerController *picker = [[BKImagePickerController alloc] init];
     picker.delegate = self;
-    [BKui showViewController:self controller:picker name:@"Albums" mode:@"push" params:params];
+    [BKui showViewController:self controller:picker name:@"Albums" mode:@"modal" params:params];
 }
 
 - (void)onImagePicker:(id)picker image:(UIImage*)image params:(NSDictionary*)params

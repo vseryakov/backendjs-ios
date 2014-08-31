@@ -8,15 +8,6 @@
 #import "BKSocialAccount.h"
 #import "BKWebViewController.h"
 
-// Preprocess path and query with defaults
-@interface BKQueryParams: NSObject
-@property (nonatomic, strong) NSString* path;
-@property (nonatomic, strong) NSMutableDictionary* params;
-
-- (instancetype)init:(NSString*)path params:(NSDictionary*)params defaults:(NSDictionary*)defaults;
-- (void)format:(NSDictionary*)defaults;
-@end;
-
 // Social account for third parties
 @interface BKSocialAccount: NSObject
 @property (nonatomic, strong) NSString* name;

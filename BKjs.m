@@ -867,6 +867,16 @@ static NSString *SysCtlByName(char *typeSpecifier)
     [self sendImageRequest:request options:options success:success failure:failure];
 }
 
++ (void)getIconByPrefix:(NSDictionary*)params options:(BKOptions)options success:(ImageSuccessBlock)success failure:(FailureBlock)failure
+{
+    BKQueryParams *query = [[BKQueryParams alloc]
+                            init:@"/image/@prefix@/@id@/@type@"
+                            params:params
+                            defaults:@{ @"prefix": @"account" }];
+
+    [self getIcon:query.path params:query.params options:options success:success failure:failure];
+}
+
 #pragma mark Account Icon API
 
 + (void)getAccountIcons:(NSDictionary*)params success:(ListBlock)success failure:(GenericBlock)failure
@@ -1400,3 +1410,33 @@ static NSString *SysCtlByName(char *typeSpecifier)
 }
 
 @end;
+
+#pragma mark BKQueryParams
+
+@implementation BKQueryParams
+
+- (instancetype)init:(NSString*)path params:(NSDictionary*)params defaults:(NSDictionary*)defaults
+{
+    self = [super init];
+    self.path = path ? path : @"";
+    self.params = [@{} mutableCopy];
+    for (id key in params) self.params[key] = params[key];
+    [self format:defaults];
+    return self;
+}
+
+- (void)format:(NSDictionary*)defaults
+{
+    for (id key in defaults) {
+        if (!self.params[key]) self.params[key] = defaults[key];
+    }
+    // Collect all params that should be present in the path so we need to remove them from the query
+    NSMutableArray *clear = [@[] mutableCopy];
+    for (id key in self.params) {
+        if ([self.path rangeOfString:[NSString stringWithFormat:@"@%@@", key]].location != NSNotFound) [clear addObject:key];
+    }
+    self.path = [BKjs processTemplate:self.path params:self.params];
+    [self.params removeObjectsForKeys:clear];
+}
+
+@end

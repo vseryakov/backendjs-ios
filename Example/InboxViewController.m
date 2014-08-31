@@ -32,7 +32,7 @@
 - (void)getItems
 {
     [self showActivity];
-    [BKjs getMessages:@{ @"_archive": @(1) } success:^(NSArray *list, NSString *next) {
+    [BKjs getMessages:@{ @"_archive": @(1) } success:^(int count, NSArray *list, NSString *next) {
         [self hideActivity];
         BKapp.messageCount = 0;
         self.items = [list mutableCopy];
