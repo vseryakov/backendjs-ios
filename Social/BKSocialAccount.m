@@ -175,7 +175,7 @@ static NSMutableDictionary *_accounts;
     return nil;
 }
 
-- (NSString*)getNextURL:(id)result params:(NSDictionary*)params
+- (NSString*)getNextURL:(NSURLRequest*)request result:(id)result params:(NSDictionary*)params
 {
     return nil;
 }
@@ -250,7 +250,7 @@ static NSMutableDictionary *_accounts;
     NSMutableArray *items = [@[] mutableCopy];
     NSMutableURLRequest *request = [self getRequest:@"GET" path:path params:params type:type body:body];
     [BKjs sendRequest:request success:^(id result) {
-        [self processResult:result params:params items:items success:success failure:^(NSInteger code, NSString *reason) {
+        [self processResult:request result:result params:params items:items success:success failure:^(NSInteger code, NSString *reason) {
             if (failure) failure(code, reason);
         }];
     } failure:^(NSURLRequest *request, NSHTTPURLResponse *response, NSError *error, id json) {
@@ -258,18 +258,18 @@ static NSMutableDictionary *_accounts;
     }];
 }
 
-- (void)processResult:(id)result params:(NSDictionary*)params items:(NSMutableArray*)items success:(SuccessBlock)success failure:(FailureBlock)failure
+- (void)processResult:(NSURLRequest*)request result:(id)result params:(NSDictionary*)params items:(NSMutableArray*)items success:(SuccessBlock)success failure:(FailureBlock)failure
 {
     // Perform pagination and collect all items
     NSArray *list = [self getItems:result params:params];
     if (list) {
         for (id item in list) [items addObject:item];
-        NSString *url = [self getNextURL:result params:params];
+        NSString *url = [self getNextURL:request result:result params:params];
         if (url && url.length) {
             Debug(@"%@: %@", self.name, url);
             NSMutableURLRequest *request = [self getRequest:@"GET" path:url params:nil type:nil body:nil];
             [BKjs sendRequest:request success:^(id result) {
-                [self processResult:result params:params items:items success:success failure:failure];
+                [self processResult:request result:result params:params items:items success:success failure:failure];
             } failure:^(NSURLRequest *request, NSHTTPURLResponse *response, NSError *error, id json) {
                 [self processResponse:response error:error json:json failure:failure];
             }];

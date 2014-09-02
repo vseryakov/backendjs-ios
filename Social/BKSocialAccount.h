@@ -62,7 +62,7 @@
 // API customizations
 - (NSError*)getError:(NSDictionary*)params;
 - (NSString*)getURL:(NSString *)method path:(NSString*)path params:(NSDictionary*)params;
-- (NSString*)getNextURL:(id)result params:(NSDictionary*)params;
+- (NSString*)getNextURL:(NSURLRequest*)request result:(id)result params:(NSDictionary*)params;
 - (NSArray*)getItems:(id)result params:(NSDictionary*)params;
 - (NSDictionary*)getQuery:(NSString *)method path:(NSString*)path params:(NSDictionary*)params;
 - (void)processResponse:(NSHTTPURLResponse*)response error:(NSError*)error json:(id)json failure:(FailureBlock)failure;

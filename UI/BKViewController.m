@@ -577,6 +577,10 @@
     [self.params removeAllObjects];
     for (id key in params) self.params[key] = params[key];
     
+    if (params && params[@"bk:transition"]) {
+        self.transition[@"type"] = params[@"bk:transition"];
+        [self.params removeObjectForKey:@"bk:transition"];
+    }
     if ([self.navigationMode isEqual:@"push"]) {
         self.navigationController.delegate = self;
         owner.navigationController.delegate = self;

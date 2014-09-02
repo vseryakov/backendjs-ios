@@ -37,7 +37,7 @@
     return [BKjs toArray:result name:@"data" dflt:nil];
 }
 
-- (NSString*)getNextURL:(id)result params:(NSDictionary*)params
+- (NSString*)getNextURL:(NSURLRequest*)request result:(id)result params:(NSDictionary*)params
 {
     if (params && params[@"_1"]) return nil;
     return [BKjs toDictionaryString:result name:@"pagination" field:@"next_url"];

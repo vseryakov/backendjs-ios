@@ -7,13 +7,15 @@
 
 #import "BKGoogle.h"
 
-@implementation BKGoogle
+@implementation BKGoogle {
+    NSTimer *_timer;
+}
 
 - (id)init:(NSString*)name clientId:(NSString*)clientId
 {
     self = [super init:name clientId:clientId];
     self.type = @"oauth2";
-    self.scope = @"email https://www.googleapis.com/auth/plus.login";
+    self.scope = @"email https://www.googleapis.com/auth/plus.login https://www.googleapis.com/auth/contacts.readonly";
     self.baseURL = @"https://www.googleapis.com";
     self.redirectURL = @"http://localhost";
     self.launchURLs = @[ @{ @"url": @"google://%@", @"param": @"id" },
@@ -24,6 +26,30 @@
 - (void)logout
 {
     [super logout];
+}
+
+- (void)refreshToken
+{
+    [super refreshToken];
+    
+    if (self.accessToken[@"refresh_token"]) {
+        long long mtime = [self.accessToken num:@"mtime"];
+        long long expires = [self.accessToken num:@"expires_in"];
+        if (mtime && expires && mtime + expires > BKjs.now) {
+            [_timer invalidate];
+            _timer = [NSTimer timerWithTimeInterval:(mtime + expires) - BKjs.now target:self selector:@selector(refreshToken) userInfo:nil repeats:NO];
+            return;
+        }
+        
+        NSMutableURLRequest*request = [self getRequest:@"POST" path:@"https://accounts.google.com/o/oauth2/token"
+                  params:@{ @"grant_type": @"refresh_token",
+                            @"refresh_token": self.accessToken[@"refresh_token"],
+                            @"client_id": self.clientId,
+                            @"client_secret": self.clientSecret } type:nil body:nil];
+        [BKjs sendRequest:request success:^(NSDictionary *json) {
+            for (id key in json) self.accessToken[key] = json[key];
+        } failure:nil];
+    }
 }
 
 -(NSURLRequest*)getAuthorizeRequest:(NSDictionary*)params
@@ -49,8 +75,11 @@
     
 }
 
-- (NSString*)getNextURL:(id)result
+- (NSString*)getNextURL:(NSURLRequest*)request result:(id)result params:(NSDictionary*)params
 {
+    if ([result isKindOfClass:[NSDictionary class]] && result[@"nextPageToken"]) {
+        return [NSString stringWithFormat:@"%@?nextToken=%@", request.URL.path, result[@"nextPageToken"]];
+    }
     return [BKjs toDictionaryString:result name:@"paging" field:@"next"];
 }
 
@@ -98,7 +127,7 @@
                   for (NSDictionary *item in [BKjs toDictionaryArray:result name:@"feed" field:@"entry"]) {
                       NSMutableDictionary *rec = [@{} mutableCopy];
                       rec[@"type"] = self.name;
-                      rec[@"id"] = [BKjs toDictionaryString:item name:@"id" field:@"$t"];
+                      rec[@"id"] = [[[BKjs toDictionaryString:item name:@"id" field:@"$t"] componentsSeparatedByString:@"/"] lastObject];
                       rec[@"google_id"] = rec[@"id"];
                       rec[@"mtime"] = [BKjs toDictionaryString:item name:@"updated" field:@"$t"];
                       if (item[@"gContact$birthday"]) {
@@ -132,6 +161,35 @@
                           rec[@"alias"] = [rec[@"email"] allKeys][0];
                       }
                       if (![rec isEmpty:@"alias"]) [list addObject:rec];
+                  }
+                  Logger(@"%d records", (int)list.count);
+                  if (success) success(list);
+              } failure:failure];
+}
+
+- (void)getFriends:(NSDictionary*)params success:(SuccessBlock)success failure:(FailureBlock)failure
+{
+    BKQueryParams *query = [[BKQueryParams alloc]
+                            init:@"/plus/v1/people/@id@/people/connected"
+                            params:params
+                            defaults:@{ @"id": @"me",
+                                        @"alt": @"json" }];
+    
+    [self sendRequest:@"GET"
+                 path:query.path
+               params:query.params
+                 type:nil
+                 body:nil
+              success:^(id result) {
+                  NSString *aid = params[@"id"];
+                  if (!aid) aid = @"default";
+                  NSMutableArray *list = [@[] mutableCopy];
+                  for (NSDictionary *item in [BKjs toDictionaryArray:result name:@"feed" field:@"entry"]) {
+                      NSMutableDictionary *rec = [item mutableCopy];
+                      rec[@"type"] = self.name;
+                      rec[@"alias"] = [rec str:@[@"nickname", @"displayName"] dflt:nil];
+                      rec[@"icon"] = [BKjs toDictionaryString:rec name:@"image" field:@"url"];
+                      [list addObject:rec];
                   }
                   Logger(@"%d records", (int)list.count);
                   if (success) success(list);

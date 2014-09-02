@@ -54,7 +54,9 @@
                                            allowLoginUI:YES
                                       completionHandler:^(FBSession *session, FBSessionState status, NSError *error) {
                                           if (!error) {
-                                              self.accessToken[@"access_token"] = FBSession.activeSession.accessTokenData.accessToken;
+                                              if (FBSession.activeSession.accessTokenData.accessToken) {
+                                                  self.accessToken[@"access_token"] = FBSession.activeSession.accessTokenData.accessToken;
+                                              }
                                               [self saveToken];
                                           } else {
                                               Logger(@"%@", error);
