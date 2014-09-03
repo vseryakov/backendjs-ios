@@ -102,6 +102,13 @@
             [view removeFromSuperview];
         }
     }
+    self.source.image = nil;
+    self.icon.image = nil;
+    self.avatar.image = nil;
+    self.header.text = @"";
+    self.msg.text =  @"";
+    self.title.text = @"";
+    self.text.text = @"";
 }
 
 - (void)update:(NSDictionary*)params
@@ -112,16 +119,18 @@
         self.avatar.hidden = NO;
         self.avatar.x = x;
         self.avatar.y = y;
+        self.avatar.image = [UIImage imageNamed:[params str:@[@"avatar_none"] dflt:@"avatar_male"]];
+
         if (params[@"avatar"]) {
             if ([params[@"avatar"] rangeOfString:@"/"].location == NSNotFound) {
-                self.source.image = [UIImage imageNamed:params[@"avatar"]];
+                UIImage *img = [UIImage imageNamed:params[@"avatar"]];
+                if (img) self.avatar.image = img;
             } else {
-                self.avatar.image = [UIImage imageNamed:@"avatar_male"];
                 [BKjs getIcon:params[@"avatar"] options:BKCacheModeCache success:^(UIImage *image, NSString *url) { self.avatar.image = image; } failure:nil];
             }
         } else {
             self.avatar.image = [UIImage imageNamed:@"avatar_male"];
-            [BKjs getAccountIcon:@{ @"id": params[@"avatar_id"], @"type": [params str:@"avatar_type"] } options:BKCacheModeCache success:^(UIImage *image, NSString *url) { self.avatar.image = image; } failure:nil];
+            [BKjs getIconByPrefix:@{ @"id": params[@"avatar_id"], @"type": [params str:@[@"avatar_type"] dflt:@"0"] } options:BKCacheModeCache success:^(UIImage *image, NSString *url) { self.avatar.image = image; } failure:nil];
         }
         x = self.avatar.right + 5;
     } else {
