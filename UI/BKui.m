@@ -280,7 +280,7 @@ static UIActivityIndicatorView *_activity;
         NSRange range = [str.string rangeOfString:link];
         if (range.location == NSNotFound) continue;
         [str addAttribute:NSLinkAttributeName value:link range:range];
-        [str addAttribute:NSFontAttributeName value:[UIFont systemFontOfSize:label.font.pointSize + 2] range:range];
+        [str addAttribute:NSFontAttributeName value:[UIFont systemFontOfSize:label.font.pointSize + 1] range:range];
         [str addAttribute:NSUnderlineStyleAttributeName value:@(NSUnderlineStyleSingle) range:range];
     }
     [label setAttributedText:str];
@@ -644,7 +644,7 @@ static UIActivityIndicatorView *_activity;
                 ABMultiValueRef emails = ABRecordCopyValue(person, kABPersonEmailProperty);
                 if (emails && ABMultiValueGetCount(emails) > 0) {
                     item[@"email"] = [@{} mutableCopy];
-                    for (CFIndex i = 0; i < ABMultiValueGetCount(phones); i++) {
+                    for (CFIndex i = 0; i < ABMultiValueGetCount(emails); i++) {
                         NSString *val = CFBridgingRelease(ABMultiValueCopyValueAtIndex(emails, i));
                         if (!val) continue;
                         str = @"email";
@@ -778,7 +778,8 @@ static UIActivityIndicatorView *_activity;
             if ([key isEqual:@"autocorrectionType"]) text.autocorrectionType = num; else
             if ([key isEqual:@"autocapitalizationType"]) text.autocapitalizationType = num; else
             if ([key isEqual:@"spellCheckingType"]) text.spellCheckingType = num; else
-            if ([key isEqual:@"returnKeyTypen"]) text.returnKeyType = num;
+            if ([key isEqual:@"returnKeyTypen"]) text.returnKeyType = num; else
+            if ([key isEqual:@"lineBreakMode"]) text.textContainer.lineBreakMode = num;
         }
 
         if ([view isKindOfClass:[UITableView class]]) {
