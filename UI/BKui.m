@@ -670,13 +670,20 @@ static UIActivityIndicatorView *_activity;
                             str = CFBridgingRelease(ABAddressBookCopyLocalizedLabel(label));
                             CFRelease(label);
                         }
-                        NSString *val = [NSString stringWithFormat:@"%@ %@ %@ %@ %@",
-                                         [addr str:CFBridgingRelease(kABPersonAddressStreetKey)],
-                                         [addr str:CFBridgingRelease(kABPersonAddressCityKey)],
-                                         [addr str:CFBridgingRelease(kABPersonAddressStateKey)],
-                                         [addr str:CFBridgingRelease(kABPersonAddressZIPKey)],
-                                         [addr str:CFBridgingRelease(kABPersonAddressCountryKey)]];
+                        NSString *street = [addr str:CFBridgingRelease(kABPersonAddressStreetKey)];
+                        NSString *city = [addr str:CFBridgingRelease(kABPersonAddressCityKey)];
+                        NSString *zipcode = [addr str:CFBridgingRelease(kABPersonAddressZIPKey)];
+                        NSString *state = [addr str:CFBridgingRelease(kABPersonAddressStateKey)];
+                        NSString *country = [addr str:CFBridgingRelease(kABPersonAddressCountryKey)];
+                        NSString *val = [NSString stringWithFormat:@"%@ %@ %@ %@ %@", street, city, state, zipcode, country];
                         item[@"address"][val] = str;
+                        if (!item[@"street"]) {
+                            item[@"street"] = street;
+                            item[@"city"] = city;
+                            item[@"state"] = state;
+                            item[@"zipcode"] = zipcode;
+                            item[@"country"] = country;
+                        }
                     }
                 }
                 if (addrs) CFRelease(addrs);
@@ -843,6 +850,7 @@ static UIActivityIndicatorView *_activity;
             if ([key isEqual:@"color"] && [val isKindOfClass:[UIColor class]]) [button setTitleColor:val forState:UIControlStateNormal]; else
             if ([key isEqual:@"color-tint"]) [button setTitleColor:[button tintColor] forState:UIControlStateNormal]; else
             if ([key isEqual:@"color-highlighted"] && [val isKindOfClass:[UIColor class]]) [button setTitleColor:val forState:UIControlStateHighlighted]; else
+            if ([key isEqual:@"color-highlighted-tint"]) [button setTitleColor:[button tintColor] forState:UIControlStateHighlighted]; else
             if ([key isEqual:@"color-selected"] && [val isKindOfClass:[UIColor class]]) [button setTitleColor:val forState:UIControlStateSelected]; else
             if ([key isEqual:@"color-selected-highlighted"]) [button setTitleColor:[button titleColorForState:UIControlStateHighlighted] forState:UIControlStateSelected]; else
             if ([key isEqual:@"color-disabled"] && [val isKindOfClass:[UIColor class]]) [button setTitleColor:val forState:UIControlStateDisabled]; else

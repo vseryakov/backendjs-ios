@@ -94,17 +94,17 @@
                 if ([name isEqual:item[@"id"]] || [name isEqual:item[@"title"]] || [name isEqual:item[@"icon"]]) {
                     if (item[@"block"]) {
                         SuccessBlock block = item[@"block"];
-                        block(item[@"params"]);
+                        block(item[@"params"] ? item[@"params"] : item);
                     } else
                     if (item[@"selector"]) {
-                        [BKjs invoke:item[@"delegate"] ? item[@"delegate"] : [BKui rootController] name:item[@"selector"] arg:item[@"params"]];
+                        [BKjs invoke:item[@"delegate"] ? item[@"delegate"] : [BKui rootController] name:item[@"selector"] arg:item[@"params"] ? item[@"params"] : item];
                     } else
                     if (item[@"view"]) {
                         // Replace active button with normal icon to keep tool bar state for drawers
                         if ([BKjs matchString:@"drawer" string:item[@"view"]]) {
                             button.highlighted = NO;
                         }
-                        [BKui showViewController:nil name:item[@"view"] ? item[@"view"] : name params:item[@"params"]];
+                        [BKui showViewController:nil name:item[@"view"] ? item[@"view"] : name params:item[@"params"] ? item[@"params"] : item];
                     }
                     break;
                 }

@@ -84,8 +84,11 @@
 
     // Do not preserve selection
     if (self.tableView && self.tableUnselected) {
-        [self onTableSelect:[self.tableView indexPathForSelectedRow] selected:NO];
-        [self.tableView deselectRowAtIndexPath:[self.tableView indexPathForSelectedRow] animated:NO];
+        NSArray *rows = [self.tableView indexPathsForSelectedRows];
+        for (NSIndexPath *path in rows) {
+            [self onTableSelect:path selected:NO];
+            [self.tableView deselectRowAtIndexPath:path animated:NO];
+        }
     }
     if (self.tableSearchHidden && self.tableSearchable) {
         self.tableView.contentOffset = CGPointMake(0, self.tableView.tableHeaderView.height);
