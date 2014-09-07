@@ -660,7 +660,6 @@ static UIActivityIndicatorView *_activity;
                 
                 ABMultiValueRef addrs = ABRecordCopyValue(person, kABPersonAddressProperty);
                 if (addrs && ABMultiValueGetCount(addrs) > 0) {
-                    item[@"address"] = [@{} mutableCopy];
                     for (CFIndex i = 0; i < ABMultiValueGetCount(addrs); i++) {
                         NSDictionary *addr = CFBridgingRelease(ABMultiValueCopyValueAtIndex(addrs, i));
                         if (!addr) continue;
@@ -675,15 +674,8 @@ static UIActivityIndicatorView *_activity;
                         NSString *zipcode = [addr str:CFBridgingRelease(kABPersonAddressZIPKey)];
                         NSString *state = [addr str:CFBridgingRelease(kABPersonAddressStateKey)];
                         NSString *country = [addr str:CFBridgingRelease(kABPersonAddressCountryKey)];
-                        NSString *val = [NSString stringWithFormat:@"%@ %@ %@ %@ %@", street, city, state, zipcode, country];
-                        item[@"address"][val] = str;
-                        if (!item[@"street"]) {
-                            item[@"street"] = street;
-                            item[@"city"] = city;
-                            item[@"state"] = state;
-                            item[@"zipcode"] = zipcode;
-                            item[@"country"] = country;
-                        }
+                        if (!item[@"address"]) item[@"address"] = [@[] mutableCopy];
+                        [item[@"address"] addObject:@{ @"type": str, @"street": street, @"city": city, @"state": state, @"zipcode": zipcode, @"country": country }];
                     }
                 }
                 if (addrs) CFRelease(addrs);
