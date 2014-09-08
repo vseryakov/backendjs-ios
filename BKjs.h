@@ -72,7 +72,8 @@ typedef NS_OPTIONS(NSUInteger, BKOptions) {
     BKCacheModeFlush = 4,
 };
 
-// Preprocess path and query with defaults
+// Preprocess path and query with defaults, replace all placeholders in the format @name@ with the actual values
+// from the params dictionary by name. All properties which are present in the path will be removed from the params.
 @interface BKQueryParams: NSObject
 @property (nonatomic, strong) NSString* path;
 @property (nonatomic, strong) NSMutableDictionary* params;
@@ -86,8 +87,8 @@ typedef NS_OPTIONS(NSUInteger, BKOptions) {
 // This method should return fully qualified URL to be retrieved, by default path is unchanged and passed as it it but by
 // overriding this method it is possible to use custom url endpoints on the fly. If not used then the base url
 // is used which could be one of the following:
-// - BKBaseURL property string from the app plist
-// - CFBundleIdentifier domain, only first 2 parts are used in reverse order: com.app.name will be http://app.com
+//  - BKBaseURL property string from the app plist
+//  - CFBundleIdentifier domain, only first 2 parts are used in reverse order: com.app.name will be http://app.com
 - (NSString*)getURL:(NSString*)path;
 
 // This needs to be called before using the BKui globally
@@ -117,8 +118,7 @@ typedef NS_OPTIONS(NSUInteger, BKOptions) {
 + (NSString*)iOSPlatform;
 + (NSString*)iOSModel;
 
-// Location updates are enamed by default, this is the location manager which was created and assigned by the
-// BKjs instance
+// Location updates are enamed by default, this is the location manager which was created and assigned by the BKjs instance
 + (CLLocationManager*)locationManager;
 
 // Last updated location
@@ -138,6 +138,7 @@ typedef NS_OPTIONS(NSUInteger, BKOptions) {
 
 // Returns defaults object
 + (NSUserDefaults*)defaults;
+
 // Returns YES if defaults key has been already set or sets it and returns NO
 + (BOOL)checkDefaults:(NSString*)key;
 
@@ -227,7 +228,7 @@ typedef NS_OPTIONS(NSUInteger, BKOptions) {
 + (void)delSentMessage:(NSDictionary*)params success:(SuccessBlock)success failure:(FailureBlock)failure;
 + (void)getMessageIcon:(NSDictionary*)params options:(BKOptions)options success:(ImageSuccessBlock)success failure:(FailureBlock)failure;
 
-#pragma mark Dictionary properties
+#pragma mark Dictionary properties, never return nil
 
 + (double)toNumber:(id)obj;
 + (double)toNumber:(id)obj name:(NSString*)name;
@@ -250,7 +251,7 @@ typedef NS_OPTIONS(NSUInteger, BKOptions) {
 
 #pragma mark Generic utilities
 
-// Return current timestamp in milliseconds since the Epoch.
+// Return current timestamp in seconds since the Epoch.
 + (long long)now;
 
 // Generate a random number for the given range
@@ -267,15 +268,16 @@ typedef NS_OPTIONS(NSUInteger, BKOptions) {
 
 // Return formatted date/time from the seconds since Unix epoch
 + (NSString*)strftime:(long long)seconds format:(NSString*)format;
-
 + (NSString*)toDuration:(double)seconds format:(NSString*)format;
 + (NSString*)toAge:(double)seconds format:(NSString*)fmt;
 
-// Return system log records for the current application starting the given seconds agon
+// Return system log records for the current application starting the given seconds ago
 + (NSData*)getSystemLog:(long)secondsAgo;
 
 // Return an invocation instance for the given selector
 + (NSInvocation*)getInvocation:(id)target name:(NSString*)name;
+
+// Execute a method in the target by name with optional argument
 + (void)invoke:(id)target name:(NSString*)name arg:(id)arg;
 
 // Merge params into the item, only non existent propertis are merged, the item properties are preserved
