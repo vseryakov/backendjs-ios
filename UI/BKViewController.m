@@ -264,6 +264,12 @@
     self.tableSearchBar = [[UISearchBar alloc] initWithFrame:CGRectMake(0, 0, frame.size.width, 44)];
     self.tableSearchBar.placeholder = @"Search";
     self.tableSearchBar.delegate = self;
+    if (self.tableSearchBarVisible) {
+        self.tableSearchBar.y = self.tableView.y;
+        [self.view addSubview:self.tableSearchBar];
+        self.tableView.y = self.tableSearchBar.bottom;
+        self.tableView.height -= self.tableSearchBar.height;
+    } else
     if (self.tableSearchable) {
         self.tableView.tableHeaderView = self.tableSearchBar;
     }

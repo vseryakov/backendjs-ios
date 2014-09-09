@@ -63,6 +63,7 @@
 @property (strong, nonatomic) IBOutlet UISearchBar *tableSearchBar;
 @property (strong, nonatomic) IBOutlet UITextField *tableSearchField;
 @property (strong, nonatomic) NSArray *tableSearchNames;
+@property (nonatomic, assign) BOOL tableSearchBarVisible;
 @property (nonatomic, assign) BOOL tableSearchable;
 @property (nonatomic, assign) BOOL tableSearchHidden;
 

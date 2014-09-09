@@ -203,7 +203,7 @@ static NSMutableDictionary *_accounts;
         [self login:^(NSError *error) {
             if (![self isValid]) {
                 Logger(@"Relogin: %@: %@", self.name, error ? error : @"login error");
-                if (failure) failure(error ? error.code : -1, error ? error.description : @"login error");
+                if (failure) failure(error ? error.code : -1, error ? error.localizedDescription : @"login error");
             } else {
                 [self getResult:method
                            path:[self getURL:method path:path params:params]

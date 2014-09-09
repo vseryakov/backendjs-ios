@@ -97,14 +97,14 @@
                         block(item[@"params"] ? item[@"params"] : item);
                     } else
                     if (item[@"selector"]) {
-                        [BKjs invoke:item[@"delegate"] ? item[@"delegate"] : [BKui rootController] name:item[@"selector"] arg:item[@"params"] ? item[@"params"] : item];
+                        [BKjs invoke:item[@"delegate"] ? item[@"delegate"] : [BKui rootController] name:item[@"selector"] arg:item];
                     } else
                     if (item[@"view"]) {
                         // Replace active button with normal icon to keep tool bar state for drawers
                         if ([BKjs matchString:@"drawer" string:item[@"view"]]) {
                             button.highlighted = NO;
                         }
-                        [BKui showViewController:nil name:item[@"view"] ? item[@"view"] : name params:item[@"params"] ? item[@"params"] : item];
+                        [BKui showViewController:nil name:item[@"view"] ? item[@"view"] : name params:item];
                     }
                     break;
                 }
