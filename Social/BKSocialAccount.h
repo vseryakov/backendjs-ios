@@ -23,6 +23,7 @@
 
 @property (nonatomic, strong) NSMutableDictionary* headers;
 @property (nonatomic, strong) NSMutableDictionary* account;
+@property (nonatomic, strong) NSMutableDictionary* params;
 
 @property (nonatomic, strong) NSMutableDictionary *accessToken;
 
@@ -65,6 +66,7 @@
 - (NSString*)getNextURL:(NSURLRequest*)request result:(id)result params:(NSDictionary*)params;
 - (NSArray*)getItems:(id)result params:(NSDictionary*)params;
 - (NSDictionary*)getQuery:(NSString *)method path:(NSString*)path params:(NSDictionary*)params;
+- (void)getQueryParams:(NSDictionary*)params query:(NSMutableDictionary*)query;
 - (void)processResponse:(NSHTTPURLResponse*)response error:(NSError*)error json:(id)json failure:(FailureBlock)failure;
 
 // High level API common for all services

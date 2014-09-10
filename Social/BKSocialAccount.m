@@ -95,6 +95,7 @@ static NSMutableDictionary *_accounts;
     self.oauthSignature = @"HMAC-SHA1";
     self.account = [@{} mutableCopy];
     self.oauthState = [BKjs getUUID];
+    self.params = [@{} mutableCopy];
     self.headers = [@{} mutableCopy];
     self.accessToken = [@{} mutableCopy];
     [[BKSocialAccount accounts] setObject:self forKey:self.name];
@@ -168,6 +169,17 @@ static NSMutableDictionary *_accounts;
     NSMutableDictionary *query = [params ? params : @{} mutableCopy];
     query[@"access_token"] = self.accessToken[@"access_token"];
     return query;
+}
+
+- (void)getQueryParams:(NSDictionary*)params query:(NSMutableDictionary*)query
+{
+    NSString *prefix = [NSString stringWithFormat:@"%@:", self.name];
+    for (id key in params) {
+        if ([key hasPrefix:prefix]) {
+            NSString *name = [key substringFromIndex:prefix.length];
+            query[name] = params[key];
+        }
+    }
 }
 
 - (NSArray*)getItems:(id)result params:(NSDictionary*)params

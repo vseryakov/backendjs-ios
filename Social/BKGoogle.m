@@ -196,11 +196,4 @@
               } failure:failure];
 }
 
-- (void)postMessage:(NSString*)msg image:(UIImage*)image params:(NSDictionary*)params success:(SuccessBlock)success failure:(FailureBlock)failure;
-{
-    NSMutableDictionary *query = [@{ @"message": msg ? msg : @"" } mutableCopy];
-    for (id key in params) query[key] = params[key];
-    [self sendRequest:@"POST" path:@"/me/feed" params:query type:nil body:nil success:success failure:failure];
-}
-
 @end

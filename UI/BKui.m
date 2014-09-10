@@ -323,16 +323,22 @@ static UIActivityIndicatorView *_activity;
 
 + (void)setPlaceholder:(UITextView*)view text:(NSString*)text
 {
-    UILabel *label = [[UILabel alloc] initWithFrame:CGRectMake(5, 5, view.bounds.size.width, 0)];
-    label.numberOfLines = 0;
-    label.backgroundColor = [UIColor clearColor];
-    label.textColor = [UIColor lightGrayColor];
+    if (!view || !text) return;
+    UILabel *label = (UILabel*)[view viewWithTag:19991];
+    if(!label) {
+        UILabel *label = [[UILabel alloc] initWithFrame:CGRectMake(5, 5, view.width, view.height)];
+        label.textAlignment = NSTextAlignmentLeft;
+        label.lineBreakMode = NSLineBreakByWordWrapping;
+        label.numberOfLines = 0;
+        label.backgroundColor = [UIColor clearColor];
+        label.textColor = [UIColor lightGrayColor];
+        label.tag = 19991;
+        [view addSubview:label];
+    }
     label.text = text;
-    label.hidden = YES;
-    label.tag = 19991;
-    [view addSubview:label];
+    label.width = view.width;
     [label sizeToFit];
-    if (!view.text.length) label.hidden = NO;
+    label.hidden = view.text.length > 0;
 }
 
 + (void)checkPlaceholder:(UITextView*)view
@@ -751,6 +757,12 @@ static UIActivityIndicatorView *_activity;
             if ([key isEqual:@"font"] && [val isKindOfClass:[UIFont class]]) label.font = val;
         }
         
+        if ([view isKindOfClass:[UIImageView class]]) {
+            UIImageView *img = (UIImageView*)view;
+            if ([key isEqual:@"image"] && [val isKindOfClass:[UIImage class]]) img.image = val; else
+            if ([key isEqual:@"icon"]) img.image = [UIImage imageNamed:val];
+        }
+        
         if ([view isKindOfClass:[UITextField class]]) {
             UITextField *text = (UITextField*)view;
             if ([key isEqual:@"text"]) text.text = val; else
@@ -797,6 +809,8 @@ static UIActivityIndicatorView *_activity;
 
         if ([view isKindOfClass:[UITableViewCell class]]) {
             UITableViewCell *cell = (UITableViewCell*)view;
+            if ([key isEqual:@"image"] && [val isKindOfClass:[UIImage class]]) cell.imageView.image = val; else
+            if ([key isEqual:@"icon"]) cell.imageView.image = [UIImage imageNamed:val]; else
             if ([key isEqual:@"title"]) cell.textLabel.text = val; else
             if ([key isEqual:@"subtitle"]) cell.detailTextLabel.text = val; else
             if ([key isEqual:@"textLabel"]) [BKui setStyle:cell.textLabel style:val]; else

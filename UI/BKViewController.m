@@ -167,32 +167,34 @@
 
 - (void)addToolbar:(NSString*)title params:(NSDictionary*)params
 {
-    self.toolbarView = [[UIView alloc] initWithFrame:CGRectMake(0, 0, self.view.width, 64)];
-    self.toolbarView.userInteractionEnabled = YES;
-    self.toolbarView.backgroundColor = [BKui makeColor:self.view.backgroundColor h:1 s:1 b:0.95 a:1];
-    [self.view addSubview:self.toolbarView];
+    if (!self.toolbarView) {
+        self.toolbarView = [[UIView alloc] initWithFrame:CGRectMake(0, 0, self.view.width, 64)];
+        self.toolbarView.userInteractionEnabled = YES;
+        self.toolbarView.backgroundColor = [BKui makeColor:self.view.backgroundColor h:1 s:1 b:0.95 a:1];
+        [self.view addSubview:self.toolbarView];
+        
+        self.toolbarBack = [BKui makeCustomButton:@"Back" image:nil];
+        self.toolbarBack.contentHorizontalAlignment = UIControlContentHorizontalAlignmentLeft;
+        self.toolbarBack.frame = CGRectMake(10, 20, self.toolbarView.height, self.toolbarView.height - 20);
+        [self.toolbarBack addTarget:self action:@selector(onBack:) forControlEvents:UIControlEventTouchUpInside];
+        [self.toolbarView addSubview:self.toolbarBack];
+        
+        self.toolbarTitle = [[UILabel alloc] initWithFrame:CGRectMake(self.toolbarView.height, 20, self.toolbarView.width-self.toolbarView.height*2, self.toolbarView.height - 20)];
+        self.toolbarTitle.textAlignment = NSTextAlignmentCenter;
+        self.toolbarTitle.centerY = self.toolbarView.height/2 + 10;
+        [self.toolbarView addSubview:self.toolbarTitle];
+        
+        self.toolbarNext = [BKui makeCustomButton:@"Next" image:nil];
+        self.toolbarNext.contentHorizontalAlignment = UIControlContentHorizontalAlignmentRight;
+        self.toolbarNext.frame = CGRectMake(self.toolbarView.width - self.toolbarView.height - 10, 20, self.toolbarView.height, self.toolbarView.height - 20);
+        self.toolbarNext.hidden = YES;
+        [self.toolbarNext addTarget:self action:@selector(onNext:) forControlEvents:UIControlEventTouchUpInside];
+        [self.toolbarView addSubview:self.toolbarNext];
+    }
+    self.toolbarTitle.text = title ? title : @"";
     [BKui setStyle:self.toolbarView style:BKui.style[@"toolbar"]];
-   
-    self.toolbarBack = [BKui makeCustomButton:@"Back" image:nil];
-    self.toolbarBack.contentHorizontalAlignment = UIControlContentHorizontalAlignmentLeft;
-    self.toolbarBack.frame = CGRectMake(10, 20, self.toolbarView.height, self.toolbarView.height - 20);
-    [self.toolbarBack addTarget:self action:@selector(onBack:) forControlEvents:UIControlEventTouchUpInside];
-    [self.toolbarView addSubview:self.toolbarBack];
-    [BKui setStyle:self.toolbarBack style:BKui.style[@"toolbar-back"]];
-    
-    self.toolbarTitle = [[UILabel alloc] initWithFrame:CGRectMake(self.toolbarView.height, 20, self.toolbarView.width-self.toolbarView.height*2, self.toolbarView.height - 20)];
-    self.toolbarTitle.textAlignment = NSTextAlignmentCenter;
-    self.toolbarTitle.text = title;
-    self.toolbarTitle.centerY = self.toolbarView.height/2 + 10;
-    [self.toolbarView addSubview:self.toolbarTitle];
     [BKui setStyle:self.toolbarTitle style:BKui.style[@"toolbar-title"]];
-
-    self.toolbarNext = [BKui makeCustomButton:@"Next" image:nil];
-    self.toolbarNext.contentHorizontalAlignment = UIControlContentHorizontalAlignmentRight;
-    self.toolbarNext.frame = CGRectMake(self.toolbarView.width - self.toolbarView.height - 10, 20, self.toolbarView.height, self.toolbarView.height - 20);
-    self.toolbarNext.hidden = YES;
-    [self.toolbarNext addTarget:self action:@selector(onNext:) forControlEvents:UIControlEventTouchUpInside];
-    [self.toolbarView addSubview:self.toolbarNext];
+    [BKui setStyle:self.toolbarBack style:BKui.style[@"toolbar-back"]];
     [BKui setStyle:self.toolbarNext style:BKui.style[@"toolbar-next"]];
 }
 

@@ -62,9 +62,20 @@
 
 - (void)postMessage:(NSString*)msg image:(UIImage*)image params:(NSDictionary*)params success:(SuccessBlock)success failure:(FailureBlock)failure;
 {
-    NSMutableDictionary *query = [@{ @"status": msg ? msg : @"" } mutableCopy];
-    for (id key in params) query[key] = params[key];
+    NSMutableDictionary *query = [@{} mutableCopy];
+    [self getQueryParams:params query:query];
+    
+    if (params && params[@"retweet_id"]) {
+        [self sendRequest:@"POST"
+                     path:[NSString stringWithFormat:@"/statuses/retweet/%@.json", params[@"retweet_id"]]
+                   params:nil
+                     type:nil
+                     body:nil
+                  success:success
+                  failure:failure];
+    } else
     if (image) {
+        if (msg) query[@"status"] = msg;
         [self setHeaders:@"POST" path:@"/statuses/update_with_media.json" params:query];
         [BKjs uploadImage:[self getURL:@"POST" path:@"/statuses/update_with_media.json" params:params]
                      name:@"media[]"
@@ -74,6 +85,7 @@
                   success:success
                   failure:failure];
     } else {
+        if (msg) query[@"status"] = msg;
         [self sendRequest:@"POST"
                      path:@"/statuses/update.json"
                    params:query

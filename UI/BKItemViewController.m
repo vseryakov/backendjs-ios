@@ -24,7 +24,7 @@
     self.avatar.hidden = YES;
     [self.scroll addSubview:self.avatar];
     
-    self.source = [[UIImageView alloc] initWithFrame:CGRectMake(0, 0, 0, 0)];
+    self.source = [[UIImageView alloc] initWithFrame:CGRectMake(0, 0, 12, 12)];
     self.source.contentMode = UIViewContentModeScaleAspectFit;
     self.source.centerX = self.avatar.centerX;
     self.source.hidden = YES;

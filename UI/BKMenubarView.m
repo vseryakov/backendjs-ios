@@ -45,7 +45,7 @@
         if (i) x += len[i - 1];
         
         NSDictionary *obj = [items objectAtIndex:i];
-        NSString *name = [obj str:@[@"id",@"title",@"icon"] dflt:[NSString stringWithFormat:@"%d", i]];
+        NSString *name = [obj str:@[@"name",@"title",@"icon"] dflt:[NSString stringWithFormat:@"%d", i]];
         
         NSMutableDictionary *item = [obj mutableCopy];
         [self.items addObject:item];
@@ -91,7 +91,7 @@
         if (sender == button) {
             // Find additional parameters for given action
             for (NSDictionary *item in self.items) {
-                if ([name isEqual:item[@"id"]] || [name isEqual:item[@"title"]] || [name isEqual:item[@"icon"]]) {
+                if ([name isEqual:item[@"name"]] || [name isEqual:item[@"title"]] || [name isEqual:item[@"icon"]]) {
                     if (item[@"block"]) {
                         SuccessBlock block = item[@"block"];
                         block(item[@"params"] ? item[@"params"] : item);
