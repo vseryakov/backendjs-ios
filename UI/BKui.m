@@ -452,15 +452,13 @@ static UIActivityIndicatorView *_activity;
     UILabel *badge = [BKui makeBadge:[style num:@"count"]
                                 font:style[@"font"]
                                color:style[@"textColor"]
-                             bgColor:style[@"backgroundColor"]
+                             bgColor:style[@"color"]
                          borderColor:style[@"borderColor"]];
     [view addSubview:badge];
     badge.tag = 515151;
-    badge.centerX = view.width - badge.width/2;
-    badge.centerY = badge.height/2;
-    if (style[@"gloss"]) [self makeGloss:badge];
-    if (style[@"x"]) badge.x = [style num:@"x"];
-    if (style[@"y"]) badge.y = [style num:@"y"];
+    badge.y = 0;
+    badge.right = view.width;
+    [BKui setStyle:badge style:style];
     return badge;
 }
 
@@ -714,6 +712,8 @@ static UIActivityIndicatorView *_activity;
         if ([key isEqual:@"frame"]) view.frame = [self toCGRect:style name:@"frame"]; else
         if ([key isEqual:@"x"]) view.x = num; else
         if ([key isEqual:@"y"]) view.y = num; else
+        if ([key isEqual:@"right"]) view.right = num; else
+        if ([key isEqual:@"bottom"]) view.bottom = num; else
         if ([key isEqual:@"width"]) view.width = num; else
         if ([key isEqual:@"height"]) view.height = num; else
         if ([key isEqual:@"centerX"]) view.centerX = num; else
@@ -731,6 +731,7 @@ static UIActivityIndicatorView *_activity;
         if ([key isEqual:@"cornerRadius"]) view.layer.cornerRadius = num; else
         if ([key isEqual:@"corner-radius-eclipse"]) view.layer.cornerRadius = view.width/2; else
         if ([key isEqual:@"borderColor"] && [val isKindOfClass:[UIColor class]]) view.layer.borderColor = [val CGColor]; else
+        if ([key isEqual:@"layerBackgroundColor"] && [val isKindOfClass:[UIColor class]]) view.layer.backgroundColor = [(UIColor*)val CGColor]; else
         if ([key isEqual:@"borderWidth"]) view.layer.borderWidth = num; else
         if ([key isEqual:@"background-image"]) {
             UIImageView *bg = [[UIImageView alloc] initWithImage:val];
@@ -760,7 +761,10 @@ static UIActivityIndicatorView *_activity;
         if ([view isKindOfClass:[UIImageView class]]) {
             UIImageView *img = (UIImageView*)view;
             if ([key isEqual:@"image"] && [val isKindOfClass:[UIImage class]]) img.image = val; else
+            if ([key isEqual:@"image-highlighted"] && [val isKindOfClass:[UIImage class]]) img.highlightedImage = val; else
+            if ([key isEqual:@"highlighted"]) img.highlighted = YES; else
             if ([key isEqual:@"icon"]) img.image = [UIImage imageNamed:val];
+            if ([key isEqual:@"icon-highlighted"]) img.highlightedImage = [UIImage imageNamed:val];
         }
         
         if ([view isKindOfClass:[UITextField class]]) {
@@ -825,6 +829,21 @@ static UIActivityIndicatorView *_activity;
             if ([key isEqual:@"separatorInset"]) cell.separatorInset = [self toEdgeInsets:style name:key]; else
             if ([key isEqual:@"editingAccessoryType"]) cell.editingAccessoryType = num; else
             if ([key isEqual:@"selectionStyle"]) cell.selectionStyle = num;
+            if ([key isEqual:@"separator-top"] && [val isKindOfClass:[NSDictionary class]]) {
+                UIView *line = [[UIView alloc] initWithFrame:CGRectMake(0, 0, cell.width, 1)];
+                line.backgroundColor = [UIColor lightGrayColor];
+                [self setStyle:line style:val];
+                [cell addSubview:line];
+            } else
+            if ([key isEqual:@"separator-bottom"] && [val isKindOfClass:[NSDictionary class]]) {
+                UIView *line = [[UIView alloc] initWithFrame:CGRectMake(0, cell.height-1, cell.width, 1)];
+                line.backgroundColor = [UIColor lightGrayColor];
+                [self setStyle:line style:val];
+                [cell addSubview:line];
+            } else
+            if ([key isEqual:@"badge"] && [val isKindOfClass:[NSDictionary class]]) {
+                [BKui makeBadge:cell style:val];
+            }
         }
         
         if ([view isKindOfClass:[UIButton class]]) {

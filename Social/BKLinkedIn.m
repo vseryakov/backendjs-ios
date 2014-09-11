@@ -135,13 +135,16 @@
 
 - (void)postMessage:(NSString*)msg image:(UIImage*)image params:(NSDictionary*)params success:(SuccessBlock)success failure:(FailureBlock)failure;
 {
-    NSString *xml = [NSString stringWithFormat:@"<share><comment>%@</comment><visibility><code>anyone</code></visibility></share>", [BKjs escapeString:msg]];
-
+    NSMutableDictionary *query = [@{ @"visibility": @{ @"code": @"anyone" } } mutableCopy];
+    if (msg) query[@"comment"] = msg;
+    if (params[@"link"]) {
+        query[@"content"] = [@{ @"title": [params str:@"title"], @"submitted-url": params[@"link"] } mutableCopy];
+    }
     [self sendRequest:@"POST"
                  path:@"/people/~/shares"
-               params:nil
-                 type:@"application/xml"
-                 body:[xml dataUsingEncoding:NSUTF8StringEncoding]
+               params:query
+                 type:@"application/json"
+                 body:nil
               success:success
               failure:failure];
 }

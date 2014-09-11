@@ -59,6 +59,7 @@ typedef void (^ArrayBlock)(int count, NSArray *list, NSString *next);
 typedef void (^ErrorBlock)(NSError *error);
 typedef void (^StringBlock)(NSString *str);
 typedef void (^FinishBlock)(BOOL finished);
+typedef void (^StatusBlock)(id obj, NSInteger code, NSString *reason);
 typedef void (^FailureBlock)(NSInteger code, NSString *reason);
 typedef void (^ImageSuccessBlock)(UIImage *image, NSString *url);
 typedef UIImage* (^ImageProcessBlock)(UIImage *image, NSString *url);

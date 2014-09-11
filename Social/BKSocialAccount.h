@@ -40,6 +40,8 @@
 - (id)init:(NSString*)name clientId:(NSString*)clientId;
 
 - (BOOL)isValid;
+- (BOOL)isAuthenticating;
+- (BOOL)isRunning;
 - (void)logout;
 - (void)login:(ErrorBlock)finished;
 - (BOOL)launch;
@@ -66,7 +68,6 @@
 - (NSString*)getNextURL:(NSURLRequest*)request result:(id)result params:(NSDictionary*)params;
 - (NSArray*)getItems:(id)result params:(NSDictionary*)params;
 - (NSDictionary*)getQuery:(NSString *)method path:(NSString*)path params:(NSDictionary*)params;
-- (void)getQueryParams:(NSDictionary*)params query:(NSMutableDictionary*)query;
 - (void)processResponse:(NSHTTPURLResponse*)response error:(NSError*)error json:(id)json failure:(FailureBlock)failure;
 
 // High level API common for all services

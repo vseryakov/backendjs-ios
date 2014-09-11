@@ -889,7 +889,8 @@
     double height = [self tableView:tableView heightForRowAtIndexPath:indexPath];
     cell.frame = CGRectMake(0, 0, MIN(tableView.width, cell.width), height);
     cell.accessoryType = UITableViewCellAccessoryNone;
-    
+    cell.selectionStyle = UITableViewCellSelectionStyleNone;
+
     // Rounded table, round corners on the first and last cells
     if (self.tableRounded) {
         if (indexPath.row == 0) {

@@ -182,8 +182,6 @@
 
 - (void)onTableCell:(UITableViewCell*)cell indexPath:(NSIndexPath*)indexPath
 {
-    cell.selectionStyle = UITableViewCellSelectionStyleNone;
-    
     NSDictionary *item = [self getItem:indexPath];
     if (!item) return;
     

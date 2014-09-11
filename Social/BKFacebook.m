@@ -146,7 +146,7 @@
 - (void)postMessage:(NSString*)msg image:(UIImage*)image params:(NSDictionary*)params success:(SuccessBlock)success failure:(FailureBlock)failure;
 {
     NSMutableDictionary *query = [@{ @"message": msg ? msg : @"" } mutableCopy];
-    [self getQueryParams:params query:query];
+    if (params[@"link"]) query[@"link"] = params[@"link"];
     [self sendRequest:@"POST" path:@"/me/feed" params:query type:nil body:nil success:success failure:failure];
 }
      

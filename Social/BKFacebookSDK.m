@@ -227,8 +227,13 @@
             if (failure) failure(error.code, error.description);
             return;
         }
+        NSMutableDictionary *query = [@{} mutableCopy];
+        if (msg) query[@"message"] = msg;
+        if (params[@"link"]) query[@"link"] = params[@"link"];
 
-        [FBRequestConnection startForPostStatusUpdate:msg ? msg : @""
+        [FBRequestConnection startWithGraphPath:@"/me/feed"
+                                     parameters:query
+                                     HTTPMethod:@"POST"
                                     completionHandler:^(FBRequestConnection *connection, id result, NSError *error) {
                                         if (!error) {
                                             if (success) success(result);

@@ -15,7 +15,10 @@ static NSMutableDictionary *_accounts;
 @property (nonatomic, strong) NSString *oauthSignature;
 @end
 
-@implementation BKSocialAccount
+@implementation BKSocialAccount {
+    BOOL _running;
+    BOOL _authenticating;
+}
 
 + (NSMutableDictionary*)accounts
 {
@@ -108,6 +111,16 @@ static NSMutableDictionary *_accounts;
     return [NSString stringWithFormat:@"%@: type=%@, open=%d", self.name, self.type, [self isValid]];
 }
 
+- (BOOL)isRunning
+{
+    return _running;
+}
+
+- (BOOL)isAuthenticating
+{
+    return _authenticating;
+}
+
 - (BOOL)isValid
 {
     if ([self.type isEqual:@"oauth1"]) return ![self.accessToken isEmpty:@"oauth_token"];
@@ -171,17 +184,6 @@ static NSMutableDictionary *_accounts;
     return query;
 }
 
-- (void)getQueryParams:(NSDictionary*)params query:(NSMutableDictionary*)query
-{
-    NSString *prefix = [NSString stringWithFormat:@"%@:", self.name];
-    for (id key in params) {
-        if ([key hasPrefix:prefix]) {
-            NSString *name = [key substringFromIndex:prefix.length];
-            query[name] = params[key];
-        }
-    }
-}
-
 - (NSArray*)getItems:(id)result params:(NSDictionary*)params
 {
     return nil;
@@ -214,6 +216,7 @@ static NSMutableDictionary *_accounts;
     GenericBlock relogin = ^() {
         [self login:^(NSError *error) {
             if (![self isValid]) {
+                _running = NO;
                 Logger(@"Relogin: %@: %@", self.name, error ? error : @"login error");
                 if (failure) failure(error ? error.code : -1, error ? error.localizedDescription : @"login error");
             } else {
@@ -222,12 +225,19 @@ static NSMutableDictionary *_accounts;
                          params:[self getQuery:method path:path params:params]
                            type:type
                            body:body
-                        success:success
-                        failure:failure];
+                        success:^(id obj) {
+                            _running = NO;
+                            if (success) success(obj);
+                        }
+                        failure:^(NSInteger code, NSString *reason) {
+                            _running = NO;
+                            if (failure) failure(code, reason);
+                        }];
             }
         }];
     };
     
+    _running = YES;
     if (![self isValid]) {
         return relogin();
     }
@@ -237,11 +247,15 @@ static NSMutableDictionary *_accounts;
              params:[self getQuery:method path:path params:params]
                type:type
                body:body
-            success:success
+            success:^(id obj) {
+                _running = NO;
+                if (success) success(obj);
+            }
             failure:^(NSInteger code, NSString *reason) {
                 if (code == 401) {
                     relogin();
                 } else {
+                    _running = NO;
                     if (failure) failure(code, reason);
                 }
             }];
@@ -304,15 +318,25 @@ static NSMutableDictionary *_accounts;
 {
     Logger(@"%@: %@", self.name, self.type);
     [self.accessToken removeAllObjects];
+    _authenticating = YES;
     
     if ([self.type isEqual:@"oauth1"]) {
-        [self authorize1:finished];
+        [self authorize1:^(NSError *error) {
+            _authenticating = NO;
+            finished(error);
+        }];
     } else
     if ([self.type isEqual:@"oauth2"]) {
-        [self authorize2:finished];
+        [self authorize2:^(NSError *error) {
+            _authenticating = NO;
+            finished(error);
+        }];
     } else {
         NSURLRequest *request = [self getAuthorizeRequest:nil];
-        [self showWebView:request completionHandler:^(NSURLRequest *req, NSError *error) { finished(error); }];
+        [self showWebView:request completionHandler:^(NSURLRequest *req, NSError *error) {
+            _authenticating = NO;
+            finished(error);
+        }];
     }
 }
 
