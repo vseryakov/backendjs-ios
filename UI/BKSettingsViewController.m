@@ -41,6 +41,16 @@
     if (item[@"selector"]) {
         [BKjs invoke:item[@"delegate"] ? item[@"delegate"] : self name:item[@"selector"] arg:item[@"params"]];
     }
+    [self doPostprocess:item];
+}
+
+- (void)doPostprocess:(NSDictionary*)item
+{
+    if (item[@"refresh"]) dispatch_after(dispatch_time(DISPATCH_TIME_NOW, 1 * NSEC_PER_SEC), dispatch_get_main_queue(), ^{ [self getItems]; });
+}
+
+- (void)doPreprocess:(NSDictionary*)item cell:(UITableViewCell*)cell
+{
 }
 
 - (BOOL)isRequired:(id)sender
@@ -70,24 +80,28 @@
 {
     NSDictionary *item = objc_getAssociatedObject(sender, @"item");
     [self updateAccount:item[@"config"] value:[NSNumber numberWithBool:sender.on]];
+    [self doPostprocess:item];
 }
 
 - (IBAction)onSlider:(UISlider*)sender
 {
     NSDictionary *item = objc_getAssociatedObject(sender, @"item");
     [self updateAccount:item[@"config"] value:[NSNumber numberWithFloat:sender.value]];
+    [self doPostprocess:item];
 }
 
 - (IBAction)onText:(UITextField*)sender
 {
     NSDictionary *item = objc_getAssociatedObject(sender, @"item");
     [self updateAccount:item[@"config"] value:sender.text];
+    [self doPostprocess:item];
 }
 
 - (IBAction)onTextView:(UITextView*)sender
 {
     NSDictionary *item = objc_getAssociatedObject(sender, @"item");
     [self updateAccount:item[@"config"] value:sender.text];
+    [self doPostprocess:item];
 }
 
 - (IBAction)onRange:(BKRangeSlider*)sender
@@ -99,6 +113,7 @@
     label.text = [NSString stringWithFormat:@"%0.f", sender.value0];
     label = objc_getAssociatedObject(sender, @"maxLabel");
     label.text = [NSString stringWithFormat:@"%0.f", sender.value1];
+    [self doPostprocess:item];
 }
 
 - (void)onImagePicker:(id)picker image:(UIImage*)image params:(NSDictionary*)params
@@ -111,6 +126,7 @@
     [BKjs putAccountIcon:image params:item[@"params"] success:^{
         [self hideActivity];
         imgView.image = image;
+        [self doPostprocess:item];
         [[NSNotificationCenter defaultCenter] postNotificationName:@"profileUpdated" object:nil];
     } failure:^(NSInteger code, NSString *reason) {
         [self hideActivity];
@@ -125,6 +141,7 @@
             NSDictionary *item = objc_getAssociatedObject(imgView, @"item");
             [BKjs delAccountIcon:item[@"params"] success:^{
                 imgView.image = [BKapp profileAvatar];
+                [self doPostprocess:item];
                 [[NSNotificationCenter defaultCenter] postNotificationName:@"profileUpdated" object:nil];
             } failure:nil];
         }
@@ -292,6 +309,7 @@
         [cell addSubview:img];
         [BKjs getAccountIcon:item[@"params"] options:BKCacheModeCache success:^(UIImage *image, NSString *url) { img.image = image; } failure:nil];
     }
+    [self doPreprocess:item cell:cell];
 }
 
 - (void)onTableSelect:(NSIndexPath *)indexPath selected:(BOOL)selected

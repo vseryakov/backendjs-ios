@@ -88,6 +88,14 @@ static UIActivityIndicatorView *_activity;
     return nil;
 }
 
++ (BOOL)isActiveController:(UIViewController*)owner name:(NSString*)name
+{
+    for (BKViewController *controller in owner.navigationController.childViewControllers) {
+        if ([controller isKindOfClass:[BKViewController class]] && [controller.name hasPrefix:name]) return YES;
+    }
+    return NO;
+}
+
 + (UIViewController*)showViewController:(UIViewController*)owner name:(NSString*)name params:(NSDictionary*)params
 {
     Logger(@"name: %@, params: %@", name, params ? params : @"");
@@ -102,6 +110,7 @@ static UIActivityIndicatorView *_activity;
         title = q[0];
         mode = q[1];
     }
+    
     UIViewController *controller = self.controllers[title];
     if (!controller) controller = [[self get] getViewController:title];
     if (!controller) {
@@ -123,7 +132,12 @@ static UIActivityIndicatorView *_activity;
     }
     BKViewController *view = nil;
     if (!owner) owner = [self rootController];
-    
+
+    if ([mode isEqual:@"push"] && [self isActiveController:owner name:name]) {
+        Logger(@"%@ is already active controller", name);
+        return nil;
+    }
+
     // Pass parameters to the new controller, save caller and controller name for reference
     if ([controller isKindOfClass:[BKViewController class]]) {
         view = (BKViewController*)controller;
@@ -722,6 +736,7 @@ static NSInteger styleSort(id a, id b, void *context)
     if (!view || !style) return;
     if (!_styleKeys) {
         _styleKeys = @{ @"block": @(5),
+                        @"title-right": @(5),
                         @"gloss": @(4),
                         @"fit": @(4),
                         @"vertical": @(4),
@@ -932,6 +947,19 @@ static NSInteger styleSort(id a, id b, void *context)
                 CGFloat h = (button.imageView.height + button.titleLabel.height + [style num:key]);
                 button.imageEdgeInsets = UIEdgeInsetsMake(- (h - button.imageView.height), 0.0f, 0.0f, - button.titleLabel.width);
                 button.titleEdgeInsets = UIEdgeInsetsMake(0.0f, - button.imageView.width, - (h - button.titleLabel.height), 0.0f);
+            } else
+            if ([key isEqual:@"title-right"]) {
+                CGSize textSize = [[button titleForState:UIControlStateNormal] sizeWithAttributes:@{ NSFontAttributeName : button.titleLabel.font }];
+                CGSize imageSize = [[button imageForState:UIControlStateNormal] size];
+                button.titleEdgeInsets = UIEdgeInsetsMake(button.titleEdgeInsets.top,
+                                                        -imageSize.width + button.titleEdgeInsets.left,
+                                                        button.titleEdgeInsets.bottom,
+                                                        imageSize.width - button.titleEdgeInsets.right);
+                
+                button.imageEdgeInsets = UIEdgeInsetsMake(button.imageEdgeInsets.top,
+                                                        textSize.width + button.imageEdgeInsets.left,
+                                                        button.imageEdgeInsets.bottom,
+                                                        -textSize.width + button.imageEdgeInsets.right);
             }
         }
     }
