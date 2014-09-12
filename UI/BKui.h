@@ -58,7 +58,7 @@
 + (UILabel*)makeLabel:(CGRect)frame text:(NSString*)text color:(UIColor*)color font:(UIFont*)font;
 + (UITextView*)makeTextView:(CGRect)frame text:(NSString*)text color:(UIColor*)color font:(UIFont*)font;
 + (UIActionSheet*)makeAction:(NSString *)title actions:(NSArray*)actions finish:(ActionBlock)finish;
-+ (UIImageView*)makeImageAvatar:(UIView*)view frame:(CGRect)frame eclipse:(UIImage*)eclipse;
++ (UIImageView*)makeImageAvatar:(UIView*)view frame:(CGRect)frame color:(UIColor*)color border:(float)border eclipse:(UIImage*)eclipse;
 + (UIImage*)makeImageWithTint:(UIImage*)image color:(UIColor*)color;
 + (UILabel*)makeBadge:(int)value font:(UIFont*)font color:(UIColor*)color bgColor:(UIColor*)bgColor borderColor:(UIColor*)borderColor;
 + (UILabel*)makeBadge:(UIView*)view style:(NSDictionary*)style;
@@ -80,8 +80,9 @@
 // Create placeholder text for the text view
 + (void)setPlaceholder:(UITextView*)view text:(NSString*)text;
 
-// Make placeholder text visible depending if the text view contains any text
+// Make placeholder text visible depending if the text view contains any text, explicit hidden is used
 + (void)checkPlaceholder:(UITextView*)view;
++ (void)showPlaceholder:(UITextView*)view hidden:(BOOL)hidden;
 
 + (void)shakeView:(UIView*)view;
 + (void)jiggleView:(UIView*)view;
@@ -99,6 +100,6 @@
 + (UIImage*)scaleToFill:(UIImage*)image size:(CGSize)size;
 + (UIImage*)cropImage:(UIImage*)image frame:(CGRect)frame;
 + (UIImage*)orientImage:(UIImage*)image;
-+ (UIImage*)captureImage:(UIView *)view;
-
++ (UIImage*)captureScreen:(UIView *)view;
++ (UIImage*)captureView:(UIView *)view;
 @end

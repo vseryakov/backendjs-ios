@@ -284,7 +284,7 @@
         [cell addSubview:text];
     }
     if ([item[@"type"] isEqual:@"photo"]) {
-        UIImageView *img = [BKui makeImageAvatar:cell frame:CGRectMake(cell.width - cell.height, 10, cell.height - 10, cell.height - 10) eclipse:[UIImage imageNamed:@"avatar_eclipse"]];
+        UIImageView *img = [BKui makeImageAvatar:cell frame:CGRectMake(cell.width - cell.height, 10, cell.height - 10, cell.height - 10) color:nil border:1 eclipse:nil];
         img.image = item[@"placeholder"] ? [UIImage imageNamed:item[@"placeholder"]] : [(AppDelegate*)BKjs.appDelegate profileAvatar];
         img.userInteractionEnabled = YES;
         img.tag = 999;

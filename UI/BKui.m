@@ -288,19 +288,32 @@ static UIActivityIndicatorView *_activity;
     if (!label.delegate) label.delegate = [self get];
 }
 
-+ (UIImageView*)makeImageAvatar:(UIView*)view frame:(CGRect)frame eclipse:(UIImage*)eclipse
++ (UIImageView*)makeImageAvatar:(UIView*)view frame:(CGRect)frame color:(UIColor*)color border:(float)border eclipse:(UIImage*)eclipse
 {
     if (eclipse) {
         UIImageView *avatar = [[UIImageView alloc] initWithImage:eclipse];
         avatar.frame = frame;
         [view addSubview:avatar];
+        if (!border) border = 3;
     }
-    UIImageView *img = [[UIImageView alloc] initWithFrame:CGRectInset(frame, 3, 3)];
+    UIImageView *img = [[UIImageView alloc] initWithFrame:CGRectInset(frame, border, border)];
     img.contentMode = UIViewContentModeScaleAspectFill;
-    img.layer.cornerRadius = img.width/2;
-    img.layer.masksToBounds = YES;
+    if (eclipse) {
+        img.layer.cornerRadius = img.width/2;
+        img.layer.masksToBounds = YES;
+    } else {
+        [self setImageBorder:img color:color radius:0 border:border];
+    }
     [view addSubview:img];
     return img;
+}
+
++ (void)setImageBorder:(UIView*)view color:(UIColor*)color radius:(float)radius border:(int)border
+{
+    view.layer.masksToBounds = YES;
+    view.layer.cornerRadius = radius ? radius : view.frame.size.width/2;
+    view.layer.borderColor = color ? color.CGColor : [UIColor lightGrayColor].CGColor;
+    view.layer.borderWidth = border;
 }
 
 + (void)setViewShadow:(UIView*)view color:(UIColor*)color offset:(CGSize)offset opacity:(float)opacity radius:(float)radius
@@ -325,7 +338,7 @@ static UIActivityIndicatorView *_activity;
 {
     if (!view || !text) return;
     UILabel *label = (UILabel*)[view viewWithTag:19991];
-    if(!label) {
+    if (!label) {
         UILabel *label = [[UILabel alloc] initWithFrame:CGRectMake(5, 5, view.width, view.height)];
         label.textAlignment = NSTextAlignmentLeft;
         label.lineBreakMode = NSLineBreakByWordWrapping;
@@ -344,8 +357,13 @@ static UIActivityIndicatorView *_activity;
 + (void)checkPlaceholder:(UITextView*)view
 {
     UILabel *label = (UILabel*)[view viewWithTag:19991];
-    if(!label) return;
-    label.hidden = view.text.length > 0;
+    if (label) label.hidden = view.text.length > 0;
+}
+
++ (void)showPlaceholder:(UITextView*)view hidden:(BOOL)hidden
+{
+    UILabel *label = (UILabel*)[view viewWithTag:19991];
+    if (label) label.hidden = hidden;
 }
 
 + (void)setLabelAttributes:(UILabel*)label color:(UIColor*)color font:(UIFont*)font range:(NSRange)range
@@ -357,14 +375,6 @@ static UIActivityIndicatorView *_activity;
     if (color) [attr addAttributes:@{NSForegroundColorAttributeName: color} range:range];
     if (font) [attr addAttributes:@{NSFontAttributeName: font} range:range];
     label.attributedText = attr;
-}
-
-+ (void)setImageBorder:(UIView*)view color:(UIColor*)color radius:(float)radius border:(int)border
-{
-    view.layer.masksToBounds = YES;
-    view.layer.cornerRadius = radius ? radius : view.frame.size.width/2;
-    view.layer.borderColor = color ? color.CGColor : [UIColor lightGrayColor].CGColor;
-    view.layer.borderWidth = border;
 }
 
 + (void)addImageWithBorderAndShadow:(UIView*)view image:(UIImageView*)image color:(UIColor*)color radius:(float)radius
@@ -696,15 +706,42 @@ static UIActivityIndicatorView *_activity;
 
 #pragma mark UI styles
 
+static NSDictionary *_styleKeys;
+
+static NSInteger styleSort(id a, id b, void *context)
+{
+    int v1 = [_styleKeys[a] intValue];
+    int v2 = [_styleKeys[b] intValue];
+    if (v1 < v2) return NSOrderedAscending;
+    if (v1 > v2) return NSOrderedDescending;
+    return NSOrderedSame;
+}
+
 + (void)setStyle:(UIView*)view style:(NSDictionary*)style
 {
     if (!view || !style) return;
+    if (!_styleKeys) {
+        _styleKeys = @{ @"block": @(5),
+                        @"gloss": @(4),
+                        @"fit": @(4),
+                        @"vertical": @(4),
+                        @"separator-top": @(4),
+                        @"separator-bottom": @(4),
+                        @"badge": @(4),
+                        @"background-image-inset": @(4),
+                        @"background-image": @(3),
+                        @"corner-radius-eclipse": @(2),
+                        @"contentEdgeInsets": @(1),
+                        @"titleEdgeInsets": @(1),
+                        @"imageEdgeInsets": @(1),
+                        @"textContainerInset": @(1),
+                        @"frameInset": @(1),
+                        @"centerX": @(1),
+                        @"centerY": @(1) };
+    }
     
-    NSArray *keys = [[style allKeys] sortedArrayUsingSelector:@selector(compare:)];
-    for (NSString *k in keys) {
-        NSString *key = k;
-        NSRange loc = [key rangeOfString:@"@"];
-        if (loc.location != NSNotFound) key = [key substringFromIndex:loc.location + 1];
+    NSArray *keys = [[style allKeys] sortedArrayUsingFunction:styleSort context:nil];
+    for (NSString *key in keys) {
         id val = style[key];
         double num = [style num:key];
         if ([key isEqual:@"hidden"]) view.hidden = YES; else
@@ -718,7 +755,7 @@ static UIActivityIndicatorView *_activity;
         if ([key isEqual:@"height"]) view.height = num; else
         if ([key isEqual:@"centerX"]) view.centerX = num; else
         if ([key isEqual:@"centerY"]) view.centerY = num; else
-        if ([key isEqual:@"frameInset"]) view.frame = CGRectInset(view.frame, [val num:@"x"], [val num:@"y"]);
+        if ([key isEqual:@"frameInset"] && [val isKindOfClass:[NSDictionary class]]) view.frame = CGRectInset(view.frame, [val num:@"x"], [val num:@"y"]);
         if ([key isEqual:@"backgroundColor"] && [val isKindOfClass:[UIColor class]]) view.backgroundColor = val; else
         if ([key isEqual:@"tintColor"] && [val isKindOfClass:[UIColor class]]) view.backgroundColor = val; else
         if ([key isEqual:@"alpha"]) view.alpha = num; else
@@ -733,9 +770,13 @@ static UIActivityIndicatorView *_activity;
         if ([key isEqual:@"borderColor"] && [val isKindOfClass:[UIColor class]]) view.layer.borderColor = [val CGColor]; else
         if ([key isEqual:@"layerBackgroundColor"] && [val isKindOfClass:[UIColor class]]) view.layer.backgroundColor = [(UIColor*)val CGColor]; else
         if ([key isEqual:@"borderWidth"]) view.layer.borderWidth = num; else
+        if ([key isEqual:@"background-image-inset"] && [val isKindOfClass:[NSDictionary class]]) {
+            UIView *bg = [view viewWithTag:9192930];
+            if (bg) bg.frame = CGRectInset(view.bounds, [val num:@"x"], [val num:@"y"]);
+        } else
         if ([key isEqual:@"background-image"]) {
             UIImageView *bg = [[UIImageView alloc] initWithImage:val];
-            bg.frame = view.bounds;
+            bg.tag = 9192930;
             [view addSubview:bg];
             [view sendSubviewToBack:bg];
         } else
@@ -1009,9 +1050,23 @@ static UIActivityIndicatorView *_activity;
     return newImage;
 }
 
-+ (UIImage *)captureImage:(UIView *)view
++ (UIImage *)captureScreen:(UIView *)view
 {
     CGSize size = [UIScreen mainScreen].bounds.size;
+    UIGraphicsBeginImageContextWithOptions(size, NO, 0.0);
+    CGContextRef ctx = UIGraphicsGetCurrentContext();
+    CGContextSetFillColorWithColor(ctx, [UIColor blackColor].CGColor);
+    CGContextFillRect(ctx, (CGRect){CGPointZero, size});
+    
+    [view.layer renderInContext:UIGraphicsGetCurrentContext()];
+    UIImage *img = UIGraphicsGetImageFromCurrentImageContext();
+    UIGraphicsEndImageContext();
+    return img;
+}
+
++ (UIImage *)captureView:(UIView *)view
+{
+    CGSize size = view.bounds.size;
     UIGraphicsBeginImageContextWithOptions(size, NO, 0.0);
     CGContextRef ctx = UIGraphicsGetCurrentContext();
     CGContextSetFillColorWithColor(ctx, [UIColor blackColor].CGColor);

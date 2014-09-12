@@ -34,8 +34,8 @@
                  if (success) success(items);
              }
          } else {
-             Logger(@"getPages: %@", error);
-             if (failure) failure(error.code, error.description);
+             Logger(@"%@", error);
+             if (failure) failure(error.code, [FBErrorUtility userMessageForError:error]);
          }
      }];
 }
@@ -99,7 +99,7 @@
                                       if (success) success(account);
                                   } else {
                                       Logger(@"%@", error);
-                                      if (failure) failure(error.code, error.description);
+                                      if (failure) failure(error.code, [FBErrorUtility userMessageForError:error]);
                                   }
                               }];
     }];
@@ -135,7 +135,8 @@
                                       }
                                       if (success) success(list);
                                   } else {
-                                      if (failure) failure(error.code, error.description);
+                                      Logger(@"%@", error);
+                                      if (failure) failure(error.code, [FBErrorUtility userMessageForError:error]);
                                   }
                               }];
     }];
@@ -171,7 +172,7 @@
                                       }
                                   } else {
                                       Logger(@"%@", error);
-                                      if (failure) failure(error.code, error.description);
+                                      if (failure) failure(error.code, [FBErrorUtility userMessageForError:error]);
                                   }
                               }];
     }];
@@ -214,7 +215,7 @@
                                       }
                                   } else {
                                       Logger(@"%@", error);
-                                      if (failure) failure(error.code, error.description);
+                                      if (failure) failure(error.code, [FBErrorUtility userMessageForError:error]);
                                   }
                               }];
     }];
@@ -230,6 +231,8 @@
         NSMutableDictionary *query = [@{} mutableCopy];
         if (msg) query[@"message"] = msg;
         if (params[@"link"]) query[@"link"] = params[@"link"];
+        if (params[@"tags"]) query[@"tags"] = params[@"tags"];
+        if (params[@"place"]) query[@"place"] = params[@"place"];
 
         [FBRequestConnection startWithGraphPath:@"/me/feed"
                                      parameters:query
@@ -239,7 +242,7 @@
                                             if (success) success(result);
                                         } else {
                                             Logger(@"%@", error);
-                                            if (failure) failure(error.code, error.description);
+                                            if (failure) failure(error.code, [FBErrorUtility userMessageForError:error]);
                                         }
                                     }];
     }];

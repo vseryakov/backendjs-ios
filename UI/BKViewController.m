@@ -516,7 +516,7 @@
     CGRect frame = self.view.frame;
     
     // Screen capture the current content of the navigation view (along with the navigation bar, if any)
-    UIImage *image = [BKui captureImage:owner.view.window];
+    UIImage *image = [BKui captureScreen:owner.view.window];
     
     // Sliding button with the screenshot
     self.drawerView = [UIButton buttonWithType:UIButtonTypeCustom];
