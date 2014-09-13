@@ -651,7 +651,20 @@ static NSString *SysCtlByName(char *typeSpecifier)
 // Build full URL and check
 - (NSString*)getURL:(NSString*)path
 {
+    if (!path) return @"";
+    if ([[self.baseURL scheme] isEqual:@"https"]) {
+        if ([path hasPrefix:@"/image/"] ||
+            [path hasPrefix:@"/icon/"] ||
+            [path hasPrefix:@"/account/get/icon"]) {
+            return [NSString stringWithFormat:@"%@%@", [[self.baseURL absoluteString] stringByReplacingOccurrencesOfString:@"https://" withString:@"http://"], path];
+        }
+    }
     return path;
+}
+
++ (NSString*)getAbsoluteURL:(NSString*)path
+{
+    return [[NSURL URLWithString:[[BKjs get] getURL:path] relativeToURL:[BKjs get].baseURL] absoluteString];
 }
 
 + (void)parseServerVersion:(NSHTTPURLResponse*)response

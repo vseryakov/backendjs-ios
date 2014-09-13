@@ -526,12 +526,12 @@ static UIActivityIndicatorView *_activity;
         sscanf(str, "#%2x%2x%2x", &r, &g, &b);
         return [UIColor colorWithRed:(r / 255.0) green:(g / 255.0) blue:(b / 255.0) alpha:1.0];
     } else
-        if (color && color.length == 4) {
-            const char *str = [color UTF8String];
-            sscanf(str, "#%x%x%x", &r, &g, &b);
-            return [UIColor colorWithRed:(r / 255.0) green:(g / 255.0) blue:(b / 255.0) alpha:1.0];
-        }
-    return nil;
+    if (color && color.length == 4) {
+        const char *str = [color UTF8String];
+        sscanf(str, "#%x%x%x", &r, &g, &b);
+        return [UIColor colorWithRed:(r / 255.0) green:(g / 255.0) blue:(b / 255.0) alpha:1.0];
+    }
+    return [UIColor whiteColor];
 }
 
 + (UIColor *)makeColor:(UIColor*)color h:(double)h s:(double)s b:(double)b a:(double)a
@@ -951,15 +951,8 @@ static NSInteger styleSort(id a, id b, void *context)
             if ([key isEqual:@"title-right"]) {
                 CGSize textSize = [[button titleForState:UIControlStateNormal] sizeWithAttributes:@{ NSFontAttributeName : button.titleLabel.font }];
                 CGSize imageSize = [[button imageForState:UIControlStateNormal] size];
-                button.titleEdgeInsets = UIEdgeInsetsMake(button.titleEdgeInsets.top,
-                                                        -imageSize.width + button.titleEdgeInsets.left,
-                                                        button.titleEdgeInsets.bottom,
-                                                        imageSize.width - button.titleEdgeInsets.right);
-                
-                button.imageEdgeInsets = UIEdgeInsetsMake(button.imageEdgeInsets.top,
-                                                        textSize.width + button.imageEdgeInsets.left,
-                                                        button.imageEdgeInsets.bottom,
-                                                        -textSize.width + button.imageEdgeInsets.right);
+                button.titleEdgeInsets = UIEdgeInsetsMake(button.titleEdgeInsets.top, -imageSize.width + button.titleEdgeInsets.left, button.titleEdgeInsets.bottom, imageSize.width - button.titleEdgeInsets.right);
+                button.imageEdgeInsets = UIEdgeInsetsMake(button.imageEdgeInsets.top, textSize.width + button.imageEdgeInsets.left, button.imageEdgeInsets.bottom, -textSize.width + button.imageEdgeInsets.right);
             }
         }
     }

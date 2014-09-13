@@ -519,6 +519,7 @@
     UIImage *image = [BKui captureScreen:owner.view.window];
     
     // Sliding button with the screenshot
+    if (self.drawerView) [self.drawerView removeFromSuperview];
     self.drawerView = [UIButton buttonWithType:UIButtonTypeCustom];
     self.drawerView.exclusiveTouch = YES;
     if (frame.origin.y > 0) {
