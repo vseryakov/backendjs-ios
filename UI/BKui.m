@@ -304,7 +304,7 @@ static UIActivityIndicatorView *_activity;
 
 + (UIImageView*)makeImageAvatar:(UIView*)view frame:(CGRect)frame color:(UIColor*)color border:(float)border eclipse:(UIImage*)eclipse
 {
-    if (eclipse) {
+    if ([eclipse isKindOfClass:[UIImage class]]) {
         UIImageView *avatar = [[UIImageView alloc] initWithImage:eclipse];
         avatar.frame = frame;
         [view addSubview:avatar];
@@ -312,7 +312,7 @@ static UIActivityIndicatorView *_activity;
     }
     UIImageView *img = [[UIImageView alloc] initWithFrame:CGRectInset(frame, border, border)];
     img.contentMode = UIViewContentModeScaleAspectFill;
-    if (eclipse) {
+    if ([eclipse isKindOfClass:[UIImage class]]) {
         img.layer.cornerRadius = img.width/2;
         img.layer.masksToBounds = YES;
     } else {
@@ -873,12 +873,15 @@ static NSInteger styleSort(id a, id b, void *context)
             if ([key isEqual:@"icon"]) cell.imageView.image = [UIImage imageNamed:val]; else
             if ([key isEqual:@"title"]) cell.textLabel.text = val; else
             if ([key isEqual:@"subtitle"]) cell.detailTextLabel.text = val; else
+            if ([key isEqual:@"title-color"] && [val isKindOfClass:[UIColor class]]) cell.textLabel.textColor = val; else
+            if ([key isEqual:@"subtitle-color"] && [val isKindOfClass:[UIColor class]]) cell.detailTextLabel.textColor = val; else
             if ([key isEqual:@"textLabel"]) [BKui setStyle:cell.textLabel style:val]; else
             if ([key isEqual:@"detailTextLabel"]) [BKui setStyle:cell.detailTextLabel style:val]; else
             if ([key isEqual:@"imageView"]) [BKui setStyle:cell.imageView style:val]; else
             if ([key isEqual:@"contentView"]) [BKui setStyle:cell.contentView style:val]; else
             if ([key isEqual:@"backgroundView"]) [BKui setStyle:cell.backgroundView style:val]; else
             if ([key isEqual:@"accessoryView"]) [BKui setStyle:cell.accessoryView style:val]; else
+            if ([key isEqual:@"accessory-view"] && [val isKindOfClass:[UIView class]]) cell.accessoryView = val; else
             if ([key isEqual:@"indentationLevel"]) cell.indentationLevel = num; else
             if ([key isEqual:@"indentationWidth"]) cell.indentationWidth = num; else
             if ([key isEqual:@"accessoryType"]) cell.accessoryType = num; else

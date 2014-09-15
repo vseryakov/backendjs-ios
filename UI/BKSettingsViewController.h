@@ -7,6 +7,9 @@
 
 @interface BKSettingsViewController : BKViewController
 
+// Cell title width in percentage, default is 0.5 (50%)
+@property (nonatomic, assign) float titleLength;
+
 - (void)updateAccount:(NSString*)name value:(id)value;
 - (void)doAction:(NSDictionary*)item;
 - (BOOL)isRequired:(id)sender;

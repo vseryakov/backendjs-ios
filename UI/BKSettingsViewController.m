@@ -204,6 +204,8 @@
     
     [BKui setStyle:cell style:item];
     
+    int x = cell.width * (self.titleLength ? self.titleLength : 0.5);
+    
     if ([item[@"type"] isEqual:@"view"]) {
         objc_setAssociatedObject(cell, @"item", item, OBJC_ASSOCIATION_RETAIN_NONATOMIC);
         [cell addGestureRecognizer:[[UITapGestureRecognizer alloc] initWithTarget:self action:@selector(onView:)]];
@@ -278,7 +280,7 @@
         [cell addSubview:button];
     }
     if ([item[@"type"] isEqual:@"textfield"]) {
-        UITextField *text = [[UITextField alloc] initWithFrame:CGRectMake(cell.width/2, 10, cell.width/2 - 5, cell.height - 20)];
+        UITextField *text = [[UITextField alloc] initWithFrame:CGRectMake(x, 10, cell.width - x - 5, cell.height - 20)];
         objc_setAssociatedObject(text, @"item", item, OBJC_ASSOCIATION_RETAIN_NONATOMIC);
         [BKui setViewBorder:text color:nil width:1 radius:3];
         text.text = [BKjs.account str:item[@"config"]];
@@ -290,7 +292,7 @@
         [cell addSubview:text];
     }
     if ([item[@"type"] isEqual:@"textarea"]) {
-        UITextView *text = [[UITextView alloc] initWithFrame:CGRectMake(cell.width/2, 10, cell.width/2 - 5, cell.height - 20)];
+        UITextView *text = [[UITextView alloc] initWithFrame:CGRectMake(x, 10, cell.width - x  - 5, cell.height - 20)];
         objc_setAssociatedObject(text, @"item", item, OBJC_ASSOCIATION_RETAIN_NONATOMIC);
         [BKui setViewBorder:text color:nil width:1 radius:3];
         text.text = [BKjs.account str:item[@"config"]];
@@ -301,12 +303,13 @@
         [cell addSubview:text];
     }
     if ([item[@"type"] isEqual:@"photo"]) {
-        UIImageView *img = [BKui makeImageAvatar:cell frame:CGRectMake(cell.width - cell.height, 10, cell.height - 10, cell.height - 10) color:nil border:1 eclipse:nil];
+        UIImageView *img = [BKui makeImageAvatar:cell frame:CGRectMake(cell.width - cell.height, 10, cell.height - 20, cell.height - 20) color:item[@"border-color"] border:[item num:@"border-width"] eclipse:item[@"eclipse-image"]];
         img.image = item[@"placeholder"] ? [UIImage imageNamed:item[@"placeholder"]] : [(AppDelegate*)BKjs.appDelegate profileAvatar];
         img.userInteractionEnabled = YES;
         img.tag = 999;
         objc_setAssociatedObject(img, @"item", item, OBJC_ASSOCIATION_RETAIN_NONATOMIC);
         [cell addSubview:img];
+        [BKui setStyle:img style:item[@"photo"]];
         [BKjs getAccountIcon:item[@"params"] options:BKCacheModeCache success:^(UIImage *image, NSString *url) { img.image = image; } failure:nil];
     }
     [self doPreprocess:item cell:cell];
