@@ -118,7 +118,7 @@
 
 - (void)dealloc
 {
-    [[NSNotificationCenter defaultCenter] removeObserver:self name:nil object:nil];
+    [self unsubscribe];
 }
 
 - (void)addInfoView:(NSString*)text
@@ -697,6 +697,11 @@
 {
 }
 
+- (void)unsubscribe
+{
+    [[NSNotificationCenter defaultCenter] removeObserver:self name:nil object:nil];
+}
+
 # pragma mark - UIViewDelegate methods
 
 - (UIStatusBarStyle)preferredStatusBarStyle
@@ -1004,56 +1009,60 @@
 
 -(void)setX:(CGFloat)x
 {
-    CGRect r        = self.frame;
-    r.origin.x      = x;
-    self.frame      = r;
+    CGRect r = self.frame;
+    r.origin.x = x;
+    self.frame = r;
 }
 
 -(void)setY:(CGFloat)y
 {
-    CGRect r        = self.frame;
-    r.origin.y      = y;
-    self.frame      = r;
+    CGRect r = self.frame;
+    r.origin.y = y;
+    self.frame = r;
 }
 
 -(void)setWidth:(CGFloat)width
 {
-    CGRect r        = self.frame;
-    r.size.width    = width;
-    self.frame      = r;
+    CGRect r = self.frame;
+    r.size.width = width;
+    self.frame = r;
 }
 
 -(void)setHeight:(CGFloat)height
 {
-    CGRect r        = self.frame;
-    r.size.height   = height;
-    self.frame      = r;
+    CGRect r = self.frame;
+    r.size.height = height;
+    self.frame = r;
 }
 
 -(void)setOrigin:(CGPoint)origin
 {
-    self.x          = origin.x;
-    self.y          = origin.y;
+    CGRect r = self.frame;
+    r.origin.x = origin.x;
+    r.origin.y = origin.y;
+    self.frame = r;
 }
 
 -(void)setSize:(CGSize)size
 {
-    self.width      = size.width;
-    self.height     = size.height;
+    CGRect r = self.frame;
+    r.size.width = size.width;
+    r.size.height = size.height;
+    self.frame = r;
 }
 
 -(void)setRight:(CGFloat)right
 {
-    CGRect frame = self.frame;
-    frame.origin.x = right - frame.size.width;
-    self.frame = frame;
+    CGRect r = self.frame;
+    r.origin.x = right - r.size.width;
+    self.frame = r;
 }
 
 -(void)setBottom:(CGFloat)bottom
 {
-    CGRect frame = self.frame;
-    frame.origin.y = bottom - frame.size.height;
-    self.frame = frame;
+    CGRect r = self.frame;
+    r.origin.y = bottom - r.size.height;
+    self.frame = r;
 }
 
 -(void)setCenterX:(CGFloat)centerX

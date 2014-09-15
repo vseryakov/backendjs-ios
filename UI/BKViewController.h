@@ -91,8 +91,9 @@
 @property (strong, nonatomic) IBOutlet UIButton *drawerView;
 @property (nonatomic, strong) UIPanGestureRecognizer *drawerPanGesture;
 
-// Subscribe to notifications
+// (Un)Subscribe to notifications
 - (void)subscribe;
+- (void)unsubscribe;
 
 #pragma mark Navigation
 

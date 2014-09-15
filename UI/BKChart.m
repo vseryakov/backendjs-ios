@@ -163,6 +163,7 @@
         max = MAX(max, [_yValues[i] floatValue]);
         min = MIN(min, [_yValues[i] floatValue]);
     }
+    if (min == max) max++;
     
     float chartHeight = self.frame.size.height - chartMargin - bottomMargin;
     float yLabelWidth = [[NSString stringWithFormat:@"%0.f", max] length] * fontSize;
