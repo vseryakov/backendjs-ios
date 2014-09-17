@@ -752,7 +752,8 @@ static NSInteger styleSort(id a, id b, void *context)
                         @"textContainerInset": @(1),
                         @"frameInset": @(1),
                         @"centerX": @(1),
-                        @"centerY": @(1) };
+                        @"centerY": @(1),
+                        @"tintColor": @(-1) };
     }
     
     NSArray *keys = [[style allKeys] sortedArrayUsingFunction:styleSort context:nil];
@@ -920,14 +921,22 @@ static NSInteger styleSort(id a, id b, void *context)
             if ([key isEqual:@"icon-highlighted"]) [button setImage:[UIImage imageNamed:val] forState:UIControlStateHighlighted]; else
             if ([key isEqual:@"icon-highlighted-tint"] && style[@"icon"]) [button setImage:[BKui makeImageWithTint:[UIImage imageNamed:style[@"icon"]] color:[button tintColor]] forState:UIControlStateHighlighted]; else
             if ([key isEqual:@"icon-selected"]) [button setImage:[UIImage imageNamed:val] forState:UIControlStateSelected]; else
-            if ([key isEqual:@"icon-selected-highlighted"]) [button setImage:[button imageForState:UIControlStateHighlighted] forState:UIControlStateSelected]; else
+            if ([key isEqual:@"icon-selected-tint"] && style[@"icon"]) [button setImage:[BKui makeImageWithTint:[UIImage imageNamed:style[@"icon"]] color:[button tintColor]] forState:UIControlStateSelected]; else
+            if ([key isEqual:@"background-icon"]) [button setBackgroundImage:[UIImage imageNamed:val] forState:UIControlStateNormal]; else
+            if ([key isEqual:@"background-icon-disabled"]) [button setBackgroundImage:[UIImage imageNamed:val] forState:UIControlStateDisabled]; else
+            if ([key isEqual:@"background-icon-highlighted"]) [button setBackgroundImage:[UIImage imageNamed:val] forState:UIControlStateHighlighted]; else
+            if ([key isEqual:@"background-icon-selected"]) [button setBackgroundImage:[UIImage imageNamed:val] forState:UIControlStateSelected]; else
             if ([key isEqual:@"image"] && [val isKindOfClass:[UIImage class]]) [button setImage:val forState:UIControlStateNormal]; else
             if ([key isEqual:@"image-tint"] && style[@"image"]) [button setImage:[BKui makeImageWithTint:style[@"image"] color:[button tintColor]] forState:UIControlStateNormal]; else
             if ([key isEqual:@"image-disabled"] && [val isKindOfClass:[UIImage class]]) [button setImage:val forState:UIControlStateDisabled]; else
             if ([key isEqual:@"image-highlighted"] && [val isKindOfClass:[UIImage class]]) [button setImage:val forState:UIControlStateHighlighted]; else
             if ([key isEqual:@"image-highlighted-tint"] && style[@"image"]) [button setImage:[BKui makeImageWithTint:style[@"image"] color:[button tintColor]] forState:UIControlStateHighlighted]; else
             if ([key isEqual:@"image-selected"] && [val isKindOfClass:[UIImage class]]) [button setImage:val forState:UIControlStateSelected]; else
-            if ([key isEqual:@"image-selected-highlighted"]) [button setImage:[button imageForState:UIControlStateHighlighted] forState:UIControlStateSelected]; else
+            if ([key isEqual:@"image-selected-tint"] && style[@"image"]) [button setImage:[BKui makeImageWithTint:style[@"image"] color:[button tintColor]] forState:UIControlStateSelected]; else
+            if ([key isEqual:@"background-image"] && [val isKindOfClass:[UIImage class]]) [button setBackgroundImage:val forState:UIControlStateNormal]; else
+            if ([key isEqual:@"background-image-disabled"] && [val isKindOfClass:[UIImage class]]) [button setBackgroundImage:val forState:UIControlStateDisabled]; else
+            if ([key isEqual:@"background-image-highlighted"] && [val isKindOfClass:[UIImage class]]) [button setBackgroundImage:val forState:UIControlStateHighlighted]; else
+            if ([key isEqual:@"background-image-selected"] && [val isKindOfClass:[UIImage class]]) [button setBackgroundImage:val forState:UIControlStateSelected]; else
             if ([key isEqual:@"title"]) [button setTitle:val forState:UIControlStateNormal]; else
             if ([key isEqual:@"title-highlighted"]) [button setTitle:val forState:UIControlStateHighlighted]; else
             if ([key isEqual:@"title-disabled"]) [button setTitle:val forState:UIControlStateDisabled]; else
@@ -936,7 +945,7 @@ static NSInteger styleSort(id a, id b, void *context)
             if ([key isEqual:@"color-highlighted"] && [val isKindOfClass:[UIColor class]]) [button setTitleColor:val forState:UIControlStateHighlighted]; else
             if ([key isEqual:@"color-highlighted-tint"]) [button setTitleColor:[button tintColor] forState:UIControlStateHighlighted]; else
             if ([key isEqual:@"color-selected"] && [val isKindOfClass:[UIColor class]]) [button setTitleColor:val forState:UIControlStateSelected]; else
-            if ([key isEqual:@"color-selected-highlighted"]) [button setTitleColor:[button titleColorForState:UIControlStateHighlighted] forState:UIControlStateSelected]; else
+            if ([key isEqual:@"color-selected-tint"]) [button setTitleColor:[button tintColor] forState:UIControlStateSelected]; else
             if ([key isEqual:@"color-disabled"] && [val isKindOfClass:[UIColor class]]) [button setTitleColor:val forState:UIControlStateDisabled]; else
             if ([key isEqual:@"font"] && [val isKindOfClass:[UIFont class]]) [button.titleLabel setFont:val]; else
             if ([key isEqual:@"contentEdgeInsets"]) button.contentEdgeInsets = [self toEdgeInsets:style name:key]; else

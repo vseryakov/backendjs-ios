@@ -192,13 +192,18 @@
     if (params[@"icon"]) {
         self.icon.hidden = NO;
         self.icon.frame = CGRectMake(x, y, self.width - x - 5, self.width/2);
-        [BKjs getIcon:params[@"icon"] options:BKCacheModeCache success:^(UIImage *image, NSString *url) { self.icon.image = image; } failure:nil];
+        [BKjs getIcon:params[@"icon"] options:BKCacheModeCache success:^(UIImage *image, NSString *url) {
+            self.icon.contentMode = image.size.width < self.icon.width && image.size.height < self.icon.height ? UIViewContentModeCenter : UIViewContentModeScaleAspectFit;
+            self.icon.image = image;
+        } failure:nil];
         y = self.icon.bottom + 5;
     } else
     if (params[@"image"] && [params[@"image"] isKindOfClass:[UIImage class]]) {
+        UIImage *image = params[@"image"];
+        self.icon.contentMode = image.size.width < self.icon.width && image.size.height < self.icon.height ? UIViewContentModeCenter : UIViewContentModeScaleAspectFit;
         self.icon.hidden = NO;
         self.icon.frame = CGRectMake(x, y, self.width - x - 5, self.width/2);
-        self.icon.image = params[@"image"];
+        self.icon.image = image;
         y = self.icon.bottom + 5;
     } else {
         self.icon.hidden = YES;
