@@ -150,7 +150,6 @@
         self.source.hidden = YES;
     }
 
-    NSString *str = params[@"header"];
     if (params[@"header"]) {
         self.header.hidden = NO;
         self.header.frame = CGRectMake(x, y, self.width - x - 5, 0);
@@ -162,7 +161,7 @@
         self.header.hidden = NO;
         self.header.frame = CGRectMake(x, y, self.width - x - 5, 0);
         NSString *mtime = params[@"mtime"] ? [BKjs strftime:[params num:@"mtime"]/1000 format:nil] : @"";
-        str = [NSString stringWithFormat:@"%@  %@", params[@"alias"], mtime];
+        NSString *str = [NSString stringWithFormat:@"%@  %@", params[@"alias"], mtime];
         NSMutableAttributedString* astr = [[NSMutableAttributedString alloc] initWithString:str];
         [astr addAttribute:NSFontAttributeName value:[UIFont boldSystemFontOfSize:13] range:[str rangeOfString:params[@"alias"]]];
         [astr addAttribute:NSFontAttributeName value:[UIFont systemFontOfSize:12] range:[str rangeOfString:mtime]];

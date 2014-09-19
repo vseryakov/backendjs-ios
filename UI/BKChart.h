@@ -29,6 +29,8 @@
 @end
 
 @interface BKLineChart : UIView
+@property (strong, nonatomic) NSNumber *yMin;
+@property (strong, nonatomic) NSNumber *yMax;
 @property (strong, nonatomic) NSArray *xLabels;
 @property (strong, nonatomic) NSArray *yValues;
 @property (nonatomic) float lineWidth;

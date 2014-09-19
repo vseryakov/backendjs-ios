@@ -91,7 +91,8 @@
 @property (strong, nonatomic) IBOutlet UIButton *drawerView;
 @property (nonatomic, strong) UIPanGestureRecognizer *drawerPanGesture;
 
-// (Un)Subscribe to notifications
+// (Un)Subscribe to notifications, if the subscribeAlways is YES it will subscribe/unsubscribe once and be kept until deallocated.
+@property (nonatomic, assign) BOOL subscribeAlways;
 - (void)subscribe;
 - (void)unsubscribe;
 

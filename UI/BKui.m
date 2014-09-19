@@ -23,11 +23,14 @@ static UIActivityIndicatorView *_activity;
 + (instancetype)get
 {
     static dispatch_once_t _bkOnce;
+    dispatch_once(&_bkOnce, ^{ _BKui = [BKui new]; });
+    return _BKui;
+}
+
++ (UIActivityIndicatorView*)activityIndicator
+{
+    static dispatch_once_t _bkOnce;
     dispatch_once(&_bkOnce, ^{
-        _BKui = [BKui new];
-        _controllers = [@{} mutableCopy];
-        _style = [@{} mutableCopy];
-        
         _activity = [[UIActivityIndicatorView alloc] initWithActivityIndicatorStyle:UIActivityIndicatorViewStyleWhite];
         _activity.hidesWhenStopped = YES;
         _activity.hidden = YES;
@@ -36,21 +39,20 @@ static UIActivityIndicatorView *_activity;
         _activity.layer.masksToBounds = YES;
         _activity.layer.cornerRadius = 8;
     });
-    return _BKui;
-}
-
-- (void)configure
-{
-    
+    return _activity;
 }
 
 + (NSMutableDictionary*)style
 {
+    static dispatch_once_t _bkOnce;
+    dispatch_once(&_bkOnce, ^{ _style = [@{} mutableCopy]; });
     return _style;
 }
 
 + (NSMutableDictionary*)controllers
 {
+    static dispatch_once_t _bkOnce;
+    dispatch_once(&_bkOnce, ^{ _controllers = [@{} mutableCopy]; });
     return _controllers;
 }
 
@@ -98,7 +100,7 @@ static UIActivityIndicatorView *_activity;
 
 + (UIViewController*)showViewController:(UIViewController*)owner name:(NSString*)name params:(NSDictionary*)params
 {
-    Logger(@"name: %@, params: %@", name, params ? params : @"");
+    Logger(@"%@: name: %@, params: %@", owner, name, params ? params : @"");
 
     if (!name) return nil;
     NSString *title = name;
@@ -124,14 +126,14 @@ static UIActivityIndicatorView *_activity;
 
 + (UIViewController*)showViewController:(UIViewController*)owner controller:(UIViewController*)controller name:(NSString*)name mode:(NSString*)mode params:(NSDictionary*)params
 {
-    Debug(@"name: %@, mode: %@, params: %@", name, mode, params ? params : @"");
-    
     if (!controller) {
         Logger(@"Error: name: %@, mode: %@, no controller provided", name, mode);
         return nil;
     }
     BKViewController *view = nil;
     if (!owner) owner = [self rootController];
+
+    Logger(@"%@: name: %@, mode: %@, params: %@", owner, name, mode, params ? params : @"");
 
     if ([mode isEqual:@"push"] && [self isActiveController:owner name:name]) {
         Logger(@"%@ is already active controller", name);
@@ -221,17 +223,17 @@ static UIActivityIndicatorView *_activity;
 
 + (void)showActivityInView:(UIView*)view
 {
-    if (_activity.superview) return;
-    [view addSubview:_activity];
-    _activity.center = view.center;
-    _activity.hidden = NO;
-    [_activity startAnimating];
+    if (self.activityIndicator.superview) return;
+    [view addSubview:self.activityIndicator];
+    self.activityIndicator.center = view.center;
+    self.activityIndicator.hidden = NO;
+    [self.activityIndicator startAnimating];
 }
 
 + (void)hideActivity
 {
-    [_activity stopAnimating];
-    [_activity removeFromSuperview];
+    [self.activityIndicator stopAnimating];
+    [self.activityIndicator removeFromSuperview];
 }
 
 #pragma mark UI components
@@ -952,6 +954,7 @@ static NSInteger styleSort(id a, id b, void *context)
             if ([key isEqual:@"imageEdgeInsets"]) button.imageEdgeInsets = [self toEdgeInsets:style name:key]; else
             if ([key isEqual:@"titleEdgeInsets"]) button.titleEdgeInsets = [self toEdgeInsets:style name:key]; else
             if ([key isEqual:@"lineBreakMode"]) button.titleLabel.lineBreakMode = [self toLineBreak:style name:key]; else
+            if ([key isEqual:@"numberOfLines"]) button.titleLabel.numberOfLines = num; else
             if ([key isEqual:@"imageContentMode"]) button.imageView.contentMode = num; else
             if ([key isEqual:@"fit"]) [button sizeToFit]; else
             if ([key isEqual:@"vertical"]) {
@@ -961,10 +964,11 @@ static NSInteger styleSort(id a, id b, void *context)
                 button.titleEdgeInsets = UIEdgeInsetsMake(0.0f, - button.imageView.width, - (h - button.titleLabel.height), 0.0f);
             } else
             if ([key isEqual:@"title-right"]) {
-                CGSize textSize = [[button titleForState:UIControlStateNormal] sizeWithAttributes:@{ NSFontAttributeName : button.titleLabel.font }];
+                // Place icon on the right side after the title
+                CGRect textSize = [button.titleLabel textRectForBounds:button.bounds limitedToNumberOfLines:1];
                 CGSize imageSize = [[button imageForState:UIControlStateNormal] size];
                 button.titleEdgeInsets = UIEdgeInsetsMake(button.titleEdgeInsets.top, -imageSize.width + button.titleEdgeInsets.left, button.titleEdgeInsets.bottom, imageSize.width - button.titleEdgeInsets.right);
-                button.imageEdgeInsets = UIEdgeInsetsMake(button.imageEdgeInsets.top, textSize.width + button.imageEdgeInsets.left, button.imageEdgeInsets.bottom, -textSize.width + button.imageEdgeInsets.right);
+                button.imageEdgeInsets = UIEdgeInsetsMake(button.imageEdgeInsets.top, textSize.size.width + button.imageEdgeInsets.left, button.imageEdgeInsets.bottom, -textSize.size.width + button.imageEdgeInsets.right);
             }
         }
     }
@@ -972,6 +976,7 @@ static NSInteger styleSort(id a, id b, void *context)
 
 + (int)toLineBreak:(NSDictionary*)style name:(NSString*)name
 {
+    if (![style[name] isKindOfClass:[NSString class]]) return [style num:name];
     NSString *str = [style str:name];
     return [str isEqual:@"middle"] ? NSLineBreakByTruncatingMiddle :
            [str isEqual:@"word"] ? NSLineBreakByWordWrapping :

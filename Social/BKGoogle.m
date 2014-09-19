@@ -121,8 +121,6 @@
                  type:nil
                  body:nil
               success:^(id result) {
-                  NSString *aid = params[@"id"];
-                  if (!aid) aid = @"default";
                   NSMutableArray *list = [@[] mutableCopy];
                   for (NSDictionary *item in [BKjs toDictionaryArray:result name:@"feed" field:@"entry"]) {
                       NSMutableDictionary *rec = [@{} mutableCopy];
@@ -181,8 +179,6 @@
                  type:nil
                  body:nil
               success:^(id result) {
-                  NSString *aid = params[@"id"];
-                  if (!aid) aid = @"default";
                   NSMutableArray *list = [@[] mutableCopy];
                   for (NSDictionary *item in [BKjs toDictionaryArray:result name:@"feed" field:@"entry"]) {
                       NSMutableDictionary *rec = [item mutableCopy];

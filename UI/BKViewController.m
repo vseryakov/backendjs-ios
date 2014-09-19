@@ -73,7 +73,6 @@
     self.navigationController.navigationBarHidden = YES;
     self.extendedLayoutIncludesOpaqueBars = YES;
     [self setNeedsStatusBarAppearanceUpdate];
-    [self subscribe];
 }
 
 - (void)viewWillAppear:(BOOL)animated
@@ -81,7 +80,7 @@
     [super viewWillAppear:animated];
     self.navigationController.navigationBarHidden = YES;
     self.navigationController.interactivePopGestureRecognizer.delegate = self;
-
+    
     // Do not preserve selection
     if (self.tableView && self.tableUnselected) {
         NSArray *rows = [self.tableView indexPathsForSelectedRows];
@@ -101,6 +100,7 @@
     [super viewDidAppear:animated];
     self.activityView.center = self.view.center;
     [self.view bringSubviewToFront:self.activityView];
+    if (!self.subscribeAlways) [self subscribe];
 }
 
 - (void)viewWillDisappear:(BOOL)animated
@@ -114,6 +114,7 @@
 {
     [super viewDidDisappear:animated];
     self.navigationController.delegate = nil;
+    if (!self.subscribeAlways) [self unsubscribe];
 }
 
 - (void)dealloc
@@ -250,7 +251,8 @@
     self.tableView.showsHorizontalScrollIndicator = NO;
     self.tableView.showsVerticalScrollIndicator = YES;
     self.tableView.keyboardDismissMode = UIScrollViewKeyboardDismissModeOnDrag;
-
+    self.tableView.rowHeight = 44;
+    
     if (self.tableRounded) {
         self.tableView.backgroundColor = [UIColor clearColor];
     }

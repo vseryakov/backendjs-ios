@@ -13,11 +13,10 @@
 // Return a ViewController by name, this method is supposed to be overriden for custom controllers
 - (UIViewController*)getViewController:(NSString*)name;
 
-// This needs to be called before using the BKui globally
-- (void)configure;
-
-// Retirj or set the global UI object
+// Return global UI object
 + (BKui*)get;
+
+// Set new instance of the global BKui object, possibly inherited with customizations
 + (void)set:(BKui*)obj;
 
 // Styles for UI components
@@ -25,6 +24,9 @@
 
 // Map of View Controllers to be uses by ShowViewController method
 + (NSMutableDictionary*)controllers;
+
+// Global activity indicator
++ (UIActivityIndicatorView*)activityIndicator;
 
 #pragma mark UIkit utilities
 

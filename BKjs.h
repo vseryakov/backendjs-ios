@@ -92,9 +92,6 @@ typedef NS_OPTIONS(NSUInteger, BKOptions) {
 //  - CFBundleIdentifier domain, only first 2 parts are used in reverse order: com.app.name will be http://app.com
 - (NSString*)getURL:(NSString*)path;
 
-// This needs to be called before using the BKui globally
-- (void)configure;
-
 #pragma mark Class methods
 
 // Return global instance

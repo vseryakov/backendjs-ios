@@ -158,7 +158,7 @@
     chartLine.strokeColor = [_lineColor CGColor];
     [self.layer addSublayer:chartLine];
     
-    float max = 5, min = INT_MAX;
+    float max = self.yMax ? [self.yMax floatValue] : 5, min = self.yMin ? [self.yMin floatValue] : INT_MAX;
     for (int i = 0; i < _yValues.count; i++) {
         max = MAX(max, [_yValues[i] floatValue]);
         min = MIN(min, [_yValues[i] floatValue]);
@@ -168,7 +168,6 @@
     float chartHeight = self.frame.size.height - chartMargin - bottomMargin;
     float yLabelWidth = [[NSString stringWithFormat:@"%0.f", max] length] * fontSize;
     float xLabelWidth = (self.frame.size.width - chartMargin*2 - yLabelWidth)/[_xLabels count];
-    float yLabelStep = (max - min) / (chartHeight / (fontSize*2));
     
     for (int index = 0; index < _xLabels.count; index++) {
         UILabel *label = [[UILabel alloc] initWithFrame:CGRectMake(chartMargin + yLabelWidth + index * xLabelWidth, self.frame.size.height - bottomMargin - chartMargin + fontSize/2, xLabelWidth, bottomMargin)];
@@ -181,12 +180,15 @@
         label.text = _xLabels[index];
         [self addSubview:label];
     }
-	for (int index = 0; index < _yValues.count; index++) {
-        float scale = (yLabelStep * index) / (max - min);
-        float y = chartHeight - scale * chartHeight;
+    
+    float yLabelStep = fontSize*3;
+    int yCount = chartHeight / yLabelStep;
+    float yValueStep = (max - min) / yCount;
+	for (int index = 0; index <= yCount; index++) {
+        float y = chartHeight - yLabelStep * index;
         // Keep edges within chart area
-        if (scale == 1) y = chartMargin;
-        if (scale == 0) y = self.frame.size.height - bottomMargin - fontSize;
+        if (y < chartMargin) y = chartMargin;
+        if (y > chartHeight) y = chartHeight;
 		UILabel *label = [[UILabel alloc] initWithFrame:CGRectMake(chartMargin, y, yLabelWidth, bottomMargin)];
         label.lineBreakMode = NSLineBreakByWordWrapping;
         label.minimumScaleFactor = fontSize*0.5;
@@ -194,7 +196,7 @@
         label.font = [UIFont systemFontOfSize:fontSize];
         label.textAlignment = NSTextAlignmentRight;
         label.textColor = self.axisColor;
-		label.text = [NSString stringWithFormat:@"%1.f", yLabelStep * index + min];
+		label.text = [NSString stringWithFormat:@"%1.f", yValueStep * index + min];
 		[self addSubview:label];
 	}
     
