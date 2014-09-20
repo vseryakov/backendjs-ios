@@ -42,10 +42,9 @@ void BKLog(NSString *format, ...)
     NSLogv(format, ap);
     NSString *str = CFBridgingRelease(CFStringCreateWithFormatAndArguments(NULL, NULL, (CFStringRef)format, ap));
     va_end(ap);
-    if (!str || !str.length) return;
     
     pthread_mutex_lock(&_log_lock);
-    [_log addObject:str];
+    if (str && str.length) [_log addObject:str];
     if (_log.count > _log_max) {
         str = [_log componentsJoinedByString:@"\n"];
         [_log removeAllObjects];
@@ -55,10 +54,11 @@ void BKLog(NSString *format, ...)
     pthread_mutex_unlock(&_log_lock);
     if (!str || !str.length) return;
     
-    [BKjs sendJSON:@"/log"
+    [BKjs sendJSON:@"/system/log"
             method:@"POST"
             params:@{ @"log": str,
-                      @"id": [BKjs.account str:@"alias"] }
+                      @"id": [BKjs.account str:@"id"],
+                      @"alias": [BKjs.account str:@"alias"] }
            success:nil
            failure:nil];
 }
@@ -191,7 +191,7 @@ static NSString *SysCtlByName(char *typeSpecifier)
 
 + (NSString*)appDomain
 {
-    NSString *bundle = [[[NSBundle mainBundle] infoDictionary] objectForKey:@"CFBundleIdentifier"];
+    NSString *bundle = [[NSBundle mainBundle] bundleIdentifier];
     NSArray *domain = [bundle componentsSeparatedByString:@"."];
     if (domain.count > 1) return [NSString stringWithFormat:@"%@.%@", domain[1], domain[0]];
     return bundle;
@@ -350,19 +350,6 @@ static NSString *SysCtlByName(char *typeSpecifier)
     [NSTimer scheduledTimerWithTimeInterval:seconds target:[BKjs get] selector:@selector(onTimer:) userInfo:@{ @"block": [block copy],  @"params": params ? params : @{} } repeats:NO];
 }
 
-+ (void)initDefaultsFromSettings
-{
-    NSMutableDictionary *defaults = [@{} mutableCopy];
-    NSArray *preferences = [[NSDictionary dictionaryWithContentsOfFile:[[[NSBundle mainBundle] pathForResource:@"Settings" ofType:@"bundle"] stringByAppendingPathComponent:@"Root.plist"]] objectForKey:@"PreferenceSpecifiers"];
-    for (NSDictionary *item in preferences) {
-        NSString *key = item[@"Key"];
-        NSString *val = item[@"DefaultValue"];
-        if (key && val) defaults[key] = val;
-    }
-    [[NSUserDefaults standardUserDefaults] registerDefaults:defaults];
-    [[NSUserDefaults standardUserDefaults] synchronize];
-}
-
 + (NSData*)getSystemLog:(long)secondsAgo
 {
     NSMutableData *data = [NSMutableData dataWithLength:0];
@@ -371,7 +358,7 @@ static NSString *SysCtlByName(char *typeSpecifier)
     sprintf(mtime, "%lu", time(0) - secondsAgo);
     
     aslmsg m, q = asl_new(ASL_TYPE_QUERY);
-    NSString *app = [[[NSBundle mainBundle] infoDictionary] objectForKey:@"CFBundleDisplayName"];
+    NSString *app = [self appName];
     asl_set_query(q, ASL_KEY_SENDER, [app cStringUsingEncoding:NSASCIIStringEncoding], ASL_QUERY_OP_EQUAL);
     asl_set_query(q, ASL_KEY_TIME, mtime, ASL_QUERY_OP_GREATER | ASL_QUERY_OP_NUMERIC);
     aslresponse r = asl_search(NULL, q);
@@ -839,9 +826,7 @@ static NSString *SysCtlByName(char *typeSpecifier)
     
     AFImageRequestOperation *op = [AFImageRequestOperation
                                    imageRequestOperationWithRequest:request
-                                   imageProcessingBlock:^UIImage *(UIImage *image) {
-                                       return image;
-                                   }
+                                   imageProcessingBlock:nil
                                    success:^(NSURLRequest *request, NSHTTPURLResponse *response, UIImage *image) {
                                        if (options & (BKCacheModeCache|BKCacheModeFresh)) {
                                            [[BKjs get] cacheImage:request.URL.absoluteString image:image];

@@ -17,8 +17,7 @@
 
 @interface BKViewController () <UIViewControllerTransitioningDelegate,UINavigationControllerDelegate,
                                 UIGestureRecognizerDelegate,UITableViewDelegate,UITableViewDataSource,
-                                UITextFieldDelegate,UITextViewDelegate,UISearchBarDelegate,
-                                UIActionSheetDelegate>
+                                UITextFieldDelegate,UITextViewDelegate,UISearchBarDelegate>
 @property (nonatomic, strong) UIPercentDrivenInteractiveTransition *interactionController;
 @end
 
@@ -595,20 +594,16 @@
         self.transition[@"type"] = params[@"bk:transition"];
         [self.params removeObjectForKey:@"bk:transition"];
     }
-    if ([self.navigationMode isEqual:@"push"]) {
+    if ([@[@"", @"push"] containsObject:self.navigationMode]) {
         self.navigationController.delegate = self;
         owner.navigationController.delegate = self;
     }
     
-    if ([self.navigationMode isEqual:@"modal"]) {
-        self.transitioningDelegate = self;
+    if ([@[@"modal"] containsObject:self.navigationMode]) {
         if (self.transition[@"type"]) self.modalPresentationStyle = UIModalPresentationCustom;
     }
     
-    if ([self.navigationMode isEqual:@""]) {
-        owner.navigationController.delegate = self;
-        self.navigationController.delegate = self;
-    }
+    Logger(@"%@: mode=%@, type=%@", self.name, self.navigationMode, self.transition[@"type"]);
 }
 
 - (void)prepareForHide:(NSDictionary*)params
@@ -715,20 +710,21 @@
 
 - (BKTransitionAnimation*)getAnimation:(BOOL)present
 {
+    Logger(@"%@: %@", self.name, self.transition);
     if ([self.transition isEmpty:@"type"]) return nil;
-    return [[BKTransitionAnimation alloc] init:present params:self.transition];
+    return [[BKTransitionAnimation alloc] init:present mode:self.navigationMode params:self.transition];
 }
 
 - (id<UIViewControllerAnimatedTransitioning>)navigationController:(UINavigationController *)navigationController animationControllerForOperation:(UINavigationControllerOperation)operation fromViewController:(UIViewController *)fromVC toViewController:(UIViewController *)toVC
 {
     if (operation == UINavigationControllerOperationNone) return nil;
-    BKViewController *view = operation == UINavigationControllerOperationPush ? (BKViewController*)toVC : (BKViewController*)fromVC;
+    BKViewController *view = operation == UINavigationControllerOperationPop && [self.navigationMode isEqual:@"push"] ? (BKViewController*)fromVC : (BKViewController*)toVC;
     return [view getAnimation:operation == UINavigationControllerOperationPush];
 }
 
 - (void)navigationController:(UINavigationController *)navigationController didShowViewController:(UIViewController *)viewController animated:(BOOL)animated
 {
-    navigationController.delegate = nil;
+    //navigationController.delegate = nil;
 }
 
 - (id <UIViewControllerInteractiveTransitioning>)navigationController:(UINavigationController*)navigationController interactionControllerForAnimationController:(id <UIViewControllerAnimatedTransitioning>)animationController

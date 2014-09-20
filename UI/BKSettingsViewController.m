@@ -136,8 +136,8 @@
 
 - (void)onPhoto:(UIImageView*)imgView
 {
-    UIActionSheet *action = [BKui makeAction:@"Choose profile picture" actions:@[@"Social Network Albums",@"Photo Library",@"Camera",@"Delete picture"] finish:^(UIActionSheet *view, NSString *button) {
-        if ([button isEqual:@"Delete picture"]) {
+    UIAlertController *alert = [BKui makeAction:@"Choose profile picture" actions:@[@"Cancel",@"Social Network Albums",@"Photo Library",@"Camera",@"Delete picture"] finish:^(UIAlertAction *action) {
+        if ([action.title isEqual:@"Delete picture"]) {
             NSDictionary *item = objc_getAssociatedObject(imgView, @"item");
             [BKjs delAccountIcon:item[@"params"] success:^{
                 imgView.image = [BKapp profileAvatar];
@@ -145,17 +145,17 @@
                 [[NSNotificationCenter defaultCenter] postNotificationName:@"profileUpdated" object:nil];
             } failure:nil];
         }
-        if ([button isEqual:@"Social Network Albums"]) {
+        if ([action.title isEqual:@"Social Network Albums"]) {
             [self showImagePickerFromAlbums:@{ @"accounts": [BKapp connectedAccounts:NO], @"_imageView": imgView }];
         }
-        if ([button isEqual:@"Photo Library"]) {
+        if ([action.title isEqual:@"Photo Library"]) {
             [self showImagePickerFromLibrary:self params:@{ @"_imageView": imgView }];
         }
-        if ([button isEqual:@"Camera"]) {
+        if ([action.title isEqual:@"Camera"]) {
             [self showImagePickerFromCamera:self params:@{ @"_imageView": imgView }];
         }
     }];
-    [action showInView:self.view];
+    [self presentViewController:alert animated:YES completion:nil];
 }
 
 #pragma mark UITextFieldDelegate

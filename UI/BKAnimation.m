@@ -7,10 +7,11 @@
 
 @implementation BKTransitionAnimation
 
-- (id)init:(BOOL)presenting params:(NSDictionary *)params
+- (id)init:(BOOL)presenting mode:(NSString*)mode params:(NSDictionary *)params
 {
     self = [super init];
     self.presenting = presenting;
+    self.mode = mode ? mode : @"";
     self.type = params[@"type"];
     self.duration = [params num:@[@"duration"] dflt:0.7];
     self.damping = [params num:@[@"damping"] dflt:1];
@@ -68,7 +69,7 @@
                              [transitionContext completeTransition:!transitionContext.transitionWasCancelled];
                          }];
     } else {
-        [containerView insertSubview:toVC.view belowSubview:fromVC.view];
+        if (![self.mode isEqual:@"modal"]) [containerView insertSubview:toVC.view belowSubview:fromVC.view];
         [UIView animateWithDuration:self.duration
                               delay:self.delay
              usingSpringWithDamping:self.damping

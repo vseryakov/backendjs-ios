@@ -42,11 +42,9 @@
 
 #define BKScreenWidth       [UIScreen mainScreen].bounds.size.width
 #define BKScreenHeight      [UIScreen mainScreen].bounds.size.height
-#define BKScreenTall        [UIScreen mainScreen].bounds.size.height > 480
-
 #define BKapp               ((AppDelegate*)BKjs.appDelegate)
 
-// Logger that periodically flushes log lines tot he backend using /log API call
+// Logger that periodically flushes log lines to the backend using /log API call (it must be registered in the app)
 void BKLog(NSString *format, ...);
 
 // Block types for the callbacks
@@ -63,8 +61,7 @@ typedef void (^StatusBlock)(id obj, NSInteger code, NSString *reason);
 typedef void (^FailureBlock)(NSInteger code, NSString *reason);
 typedef void (^ImageSuccessBlock)(UIImage *image, NSString *url);
 typedef UIImage* (^ImageProcessBlock)(UIImage *image, NSString *url);
-typedef void (^AlertBlock)(UIAlertView *view, NSString *button);
-typedef void (^ActionBlock)(UIActionSheet *view, NSString *button);
+typedef void (^AlertBlock)(UIAlertAction *action);
 typedef void (^ControllerBlock)(UIViewController *controller, NSDictionary *item);
 
 typedef NS_OPTIONS(NSUInteger, BKOptions) {

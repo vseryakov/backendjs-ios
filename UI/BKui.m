@@ -15,7 +15,7 @@ static NSMutableDictionary *_style;
 static NSMutableDictionary *_controllers;
 static UIActivityIndicatorView *_activity;
 
-@interface BKui () <UIActionSheetDelegate,UIAlertViewDelegate,UITextViewDelegate>
+@interface BKui () <UITextViewDelegate>
 @end
 
 @implementation BKui
@@ -100,7 +100,7 @@ static UIActivityIndicatorView *_activity;
 
 + (UIViewController*)showViewController:(UIViewController*)owner name:(NSString*)name params:(NSDictionary*)params
 {
-    Logger(@"%@: name: %@, params: %@", owner, name, params ? params : @"");
+    Logger(@"%@: %@", owner, name);
 
     if (!name) return nil;
     NSString *title = name;
@@ -127,7 +127,7 @@ static UIActivityIndicatorView *_activity;
 + (UIViewController*)showViewController:(UIViewController*)owner controller:(UIViewController*)controller name:(NSString*)name mode:(NSString*)mode params:(NSDictionary*)params
 {
     if (!controller) {
-        Logger(@"Error: name: %@, mode: %@, no controller provided", name, mode);
+        Logger(@"Error: %@: name: %@, mode: %@, no controller provided", owner, name, mode);
         return nil;
     }
     BKViewController *view = nil;
@@ -160,43 +160,33 @@ static UIActivityIndicatorView *_activity;
     return controller;
 }
 
-+ (void)showAlert:(NSString *)title text:(NSString *)text delegate:(id)delegate cancelButtonText:(NSString*)cancel otherButtonTitles:(NSArray*)otherButtonTitles tag:(int)tag
-{
-    UIAlertView* alert = [[UIAlertView alloc] initWithTitle:title message:text delegate:delegate cancelButtonTitle:cancel otherButtonTitles:nil];
-    for (NSString *buttonTitle in otherButtonTitles) [alert addButtonWithTitle:buttonTitle];
-    alert.tag = tag;
-    [alert show];
-}
-
 + (void)showAlert:(NSString*)title text:(NSString*)text finish:(AlertBlock)finish
 {
-    UIAlertView *alertView = [[UIAlertView alloc] initWithTitle:title message:text delegate:[self get] cancelButtonTitle:@"OK" otherButtonTitles:nil];
-    if (finish) objc_setAssociatedObject(alertView, @"alertBlock", finish, OBJC_ASSOCIATION_RETAIN);
-    [alertView show];
+    UIAlertController* alert = [UIAlertController alertControllerWithTitle:title message:text preferredStyle:UIAlertControllerStyleAlert];
+    [alert addAction:[UIAlertAction actionWithTitle:@"OK" style:UIAlertActionStyleDefault handler:finish]];
+    [[self rootController] presentViewController:alert animated:YES completion:nil];
 }
 
 + (void)showConfirm:(NSString*)title text:(NSString*)text buttons:(NSArray*)buttons finish:(AlertBlock)finish
 {
-    UIAlertView *alertView = [[UIAlertView alloc] initWithTitle:title message:text delegate:[self get] cancelButtonTitle:nil otherButtonTitles:nil];
-    for (NSString *key in buttons) [alertView addButtonWithTitle:key];
-    if (finish) objc_setAssociatedObject(alertView, @"alertBlock", finish, OBJC_ASSOCIATION_RETAIN);
-    [alertView show];
+    UIAlertController* alert = [UIAlertController alertControllerWithTitle:title message:text preferredStyle:UIAlertControllerStyleAlert];
+    for (NSString *key in buttons) [alert addAction:[UIAlertAction actionWithTitle:key style:UIAlertActionStyleDefault handler:finish]];
+    [[self rootController] presentViewController:alert animated:YES completion:nil];
 }
 
 + (void)showConfirm:(NSString*)title text:(NSString*)text ok:(NSString*)ok cancel:(NSString*)cancel finish:(AlertBlock)finish
 {
-    UIAlertView *alertView = [[UIAlertView alloc] initWithTitle:title message:text delegate:[self get] cancelButtonTitle:cancel ? cancel : @"Cancel" otherButtonTitles:ok ? ok : @"OK",nil];
-    if (finish) objc_setAssociatedObject(alertView, @"alertBlock", finish, OBJC_ASSOCIATION_RETAIN);
-    [alertView show];
+    UIAlertController* alert = [UIAlertController alertControllerWithTitle:title message:text preferredStyle:UIAlertControllerStyleAlert];
+    [alert addAction:[UIAlertAction actionWithTitle:cancel ? cancel : @"Cancel" style:UIAlertActionStyleCancel handler:finish]];
+    [alert addAction:[UIAlertAction actionWithTitle:ok ? ok : @"Ok" style:UIAlertActionStyleDefault handler:finish]];
+    [[self rootController] presentViewController:alert animated:YES completion:nil];
 }
 
-+ (UIActionSheet*)makeAction:(NSString *)title actions:(NSArray*)actions finish:(ActionBlock)finish
++ (UIAlertController*)makeAction:(NSString *)title actions:(NSArray*)actions finish:(AlertBlock)finish
 {
-    UIActionSheet *action = [[UIActionSheet alloc] initWithTitle:title delegate:[self get] cancelButtonTitle:@"Cancel" destructiveButtonTitle:nil otherButtonTitles:nil];
-    for (NSString *button in actions) [action addButtonWithTitle:button];
-    action.actionSheetStyle = UIActionSheetStyleBlackOpaque;
-    if (finish) objc_setAssociatedObject(action, @"actionBlock", finish, OBJC_ASSOCIATION_RETAIN);
-    return action;
+    UIAlertController* alert = [UIAlertController alertControllerWithTitle:title message:nil preferredStyle:UIAlertControllerStyleActionSheet];
+    for (NSString *key in actions) [alert addAction:[UIAlertAction actionWithTitle:key style:UIAlertActionStyleDefault handler:finish]];
+    return alert;
 }
 
 - (void)onButton:(id)sender
@@ -1140,24 +1130,6 @@ static NSInteger styleSort(id a, id b, void *context)
         return NO;
     }
     return YES;
-}
-
-#pragma mark - UIActionSheet methods
-
-- (void)actionSheet:(UIActionSheet *)actionSheet clickedButtonAtIndex:(NSInteger)buttonIndex
-{
-    NSString *action = [actionSheet buttonTitleAtIndex:buttonIndex];
-    ActionBlock block = objc_getAssociatedObject(actionSheet, @"actionBlock");
-    if (block) block(actionSheet, action);
-}
-
-# pragma mark - UIAlertViewDelegate methods
-
-- (void)alertView:(UIAlertView *)alertView didDismissWithButtonIndex:(NSInteger)index
-{
-    NSString *title = [alertView buttonTitleAtIndex:index];
-    AlertBlock block = objc_getAssociatedObject(alertView, @"alertBlock");
-    if (block) block(alertView, title);
 }
 
 @end;
