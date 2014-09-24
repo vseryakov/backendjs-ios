@@ -79,8 +79,7 @@ static UIActivityIndicatorView *_activity;
 
 + (UIViewController*)rootController
 {
-    UIViewController *root = [UIApplication sharedApplication].keyWindow.rootViewController;
-    UIViewController *next = nil;
+    UIViewController *next, *root = [UIApplication sharedApplication].keyWindow.rootViewController;
     while ((next = [BKui rootController:root]) != nil) root = next;
     return root;
 }
@@ -132,6 +131,7 @@ static UIActivityIndicatorView *_activity;
     }
     BKViewController *view = nil;
     if (!owner) owner = [self rootController];
+    if (!owner) owner = [UIApplication sharedApplication].keyWindow.rootViewController;
 
     Logger(@"%@: name: %@, mode: %@, params: %@", owner, name, mode, params ? params : @"");
 
