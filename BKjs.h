@@ -61,7 +61,7 @@ typedef void (^StatusBlock)(id obj, NSInteger code, NSString *reason);
 typedef void (^FailureBlock)(NSInteger code, NSString *reason);
 typedef void (^ImageSuccessBlock)(UIImage *image, NSString *url);
 typedef UIImage* (^ImageProcessBlock)(UIImage *image, NSString *url);
-typedef void (^AlertBlock)(UIAlertAction *action);
+typedef void (^AlertBlock)(NSString *action);
 typedef void (^ControllerBlock)(UIViewController *controller, NSDictionary *item);
 
 typedef NS_OPTIONS(NSUInteger, BKOptions) {

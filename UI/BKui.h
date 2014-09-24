@@ -48,6 +48,7 @@
 + (void)showAlert:(NSString*)title text:(NSString*)text finish:(AlertBlock)finish;
 + (void)showConfirm:(NSString*)title text:(NSString*)text ok:(NSString*)ok cancel:(NSString*)cancel finish:(AlertBlock)finish;
 + (void)showConfirm:(NSString*)title text:(NSString*)text buttons:(NSArray*)buttons finish:(AlertBlock)finish;
++ (void)showAction:(UIViewController*)owner title:(NSString *)title actions:(NSArray*)actions finish:(AlertBlock)finish;
 
 // Activity indicator
 + (void)showActivity;
@@ -59,7 +60,6 @@
 + (UIColor *)makeColor:(UIColor*)color h:(double)h s:(double)s b:(double)b a:(double)a;
 + (UILabel*)makeLabel:(CGRect)frame text:(NSString*)text color:(UIColor*)color font:(UIFont*)font;
 + (UITextView*)makeTextView:(CGRect)frame text:(NSString*)text color:(UIColor*)color font:(UIFont*)font;
-+ (UIAlertController*)makeAction:(NSString *)title actions:(NSArray*)actions finish:(AlertBlock)finish;
 + (UIImageView*)makeImageAvatar:(UIView*)view frame:(CGRect)frame color:(UIColor*)color border:(float)border eclipse:(UIImage*)eclipse;
 + (UIImage*)makeImageWithTint:(UIImage*)image color:(UIColor*)color;
 + (UILabel*)makeBadge:(int)value font:(UIFont*)font color:(UIColor*)color bgColor:(UIColor*)bgColor borderColor:(UIColor*)borderColor;

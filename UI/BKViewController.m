@@ -252,7 +252,7 @@
     self.tableView.keyboardDismissMode = UIScrollViewKeyboardDismissModeOnDrag;
     self.tableView.rowHeight = 44;
     
-    if (self.tableRounded) {
+    if (self.tableRounded || self.tableTransparent) {
         self.tableView.backgroundColor = [UIColor clearColor];
     }
     
@@ -906,6 +906,13 @@
     }
     [self onTableCell:cell indexPath:indexPath];
     return cell;
+}
+
+- (void)tableView:(UITableView *)tableView willDisplayCell:(UITableViewCell *)cell forRowAtIndexPath:(NSIndexPath *)indexPath
+{
+    if (self.tableTransparent) {
+        cell.backgroundColor = [UIColor clearColor];
+    }
 }
 
 - (NSString *)tableView:(UITableView *)tableView titleForHeaderInSection:(NSInteger)section

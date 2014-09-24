@@ -362,7 +362,7 @@ static NSString *SysCtlByName(char *typeSpecifier)
     asl_set_query(q, ASL_KEY_SENDER, [app cStringUsingEncoding:NSASCIIStringEncoding], ASL_QUERY_OP_EQUAL);
     asl_set_query(q, ASL_KEY_TIME, mtime, ASL_QUERY_OP_GREATER | ASL_QUERY_OP_NUMERIC);
     aslresponse r = asl_search(NULL, q);
-    while ((m = asl_next(r))) {
+    while ((m = aslresponse_next(r))) {
         const char *val = asl_get(m, ASL_KEY_TIME);
         if (val) [data appendBytes:val length:strlen(val)];
         [data appendBytes:" " length:1];
@@ -370,7 +370,7 @@ static NSString *SysCtlByName(char *typeSpecifier)
         if (val) [data appendBytes:val length:strlen(val)];
         [data appendBytes:"\n" length:1];
     }
-    asl_free(r);
+    aslresponse_free(r);
     return data;
 }
 
