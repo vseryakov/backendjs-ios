@@ -220,6 +220,7 @@
         UIView *dot = [[UIView alloc] initWithFrame:CGRectMake(point.x - 3, point.y - 3, 6, 6)];
         dot.backgroundColor = _lineColor;
         dot.layer.cornerRadius = 3;
+        [BKui setViewShadow:dot color:nil offset:CGSizeMake(0, 3) opacity:0.3 radius:3];
         [self addSubview:dot];
         
 //        CAKeyframeAnimation *dotAnim = [CAKeyframeAnimation animationWithKeyPath:@"transform.scale"];

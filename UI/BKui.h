@@ -30,10 +30,15 @@
 
 #pragma mark UIkit utilities
 
+// Main key window and navigation controller
++ (UIWindow*)keyWindow;
++ (UINavigationController*)navigationController;
+
+// Create new window and push the controller to the stack
++ (UIWindow*)makeWindow:(UIViewController*)controller;
+
 // Current top view controller
 + (UIViewController*)rootController;
-+ (UIViewController*)rootController:(UIViewController*)controller;
-+ (BOOL)isActiveController:(UIViewController*)owner name:(NSString*)name;
 
 // Show a view controller by name, look into the controllers dictionay by name or check if a storyboard exists and has
 // the view controller with the given name.

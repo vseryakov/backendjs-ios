@@ -138,6 +138,7 @@
 
 - (void)addTable;
 - (void)reloadTable;
+- (void)unselectTable;
 - (void)restoreTablePosition;
 - (void)saveTablePosition:(NSNumber*)pos;
 - (void)hideKeyboard;

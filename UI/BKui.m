@@ -14,6 +14,8 @@ static BKui *_BKui;
 static NSMutableDictionary *_style;
 static NSMutableDictionary *_controllers;
 static UIActivityIndicatorView *_activity;
+static UIWindow *_window;
+static UINavigationController *_navigation;
 
 @interface BKui () <UITextViewDelegate,UIActionSheetDelegate,UIAlertViewDelegate>
 @end
@@ -65,6 +67,30 @@ static UIActivityIndicatorView *_activity;
 
 #pragma mark UIView and controllers
 
++ (UIWindow*)makeWindow:(UIViewController*)controller
+{
+    self.keyWindow.rootViewController = self.navigationController;
+    if (controller) [self.navigationController setViewControllers:@[ controller ]];
+    return self.keyWindow;
+}
+
++ (UIWindow*)keyWindow
+{
+    static dispatch_once_t _bkOnce;
+    dispatch_once(&_bkOnce, ^{
+        _window = [[UIWindow alloc] initWithFrame:[[UIScreen mainScreen] bounds]];
+        [_window makeKeyAndVisible];
+    });
+    return _window;
+}
+
++ (UINavigationController*)navigationController
+{
+    static dispatch_once_t _bkOnce;
+    dispatch_once(&_bkOnce, ^{ _navigation = [[UINavigationController alloc] init]; });
+    return _navigation;
+}
+
 + (UIViewController*)rootController:(UIViewController*)controller
 {
     UIViewController *root = controller;
@@ -87,14 +113,6 @@ static UIActivityIndicatorView *_activity;
 - (UIViewController*)getViewController:(NSString*)name
 {
     return nil;
-}
-
-+ (BOOL)isActiveController:(UIViewController*)owner name:(NSString*)name
-{
-    for (BKViewController *controller in owner.navigationController.childViewControllers) {
-        if ([controller isKindOfClass:[BKViewController class]] && [controller.name hasPrefix:name]) return YES;
-    }
-    return NO;
 }
 
 + (UIViewController*)showViewController:(UIViewController*)owner name:(NSString*)name params:(NSDictionary*)params
@@ -129,33 +147,34 @@ static UIActivityIndicatorView *_activity;
         Logger(@"Error: %@: name: %@, mode: %@, no controller provided", owner, name, mode);
         return nil;
     }
-    BKViewController *view = nil;
     if (!owner) owner = [self rootController];
-    if (!owner) owner = [UIApplication sharedApplication].keyWindow.rootViewController;
 
-    Logger(@"%@: name: %@, mode: %@, params: %@", owner, name, mode, params ? params : @"");
+    Logger(@"%@: name: %@, mode: %@, params: %@", owner, name, mode ? mode : @"", params ? params : @"");
 
-    if ([mode isEqual:@"push"] && [self isActiveController:owner name:name]) {
-        Logger(@"%@ is already active controller", name);
-        return nil;
-    }
-
-    // Pass parameters to the new controller, save caller and controller name for reference
+    BKViewController *view = nil;
     if ([controller isKindOfClass:[BKViewController class]]) {
         view = (BKViewController*)controller;
         [view prepareForShow:owner name:name mode:mode params:params];
     }
+
+    UINavigationController *nav = owner && owner.navigationController ? owner.navigationController : self.navigationController;
     
     if ([mode hasPrefix:@"modal"]) {
         [owner presentViewController:controller animated:YES completion:nil];
     } else
     if ([mode hasPrefix:@"push"]) {
-        [owner.navigationController pushViewController:controller animated:YES];
+        for (BKViewController *child in nav.childViewControllers) {
+            if ([child isKindOfClass:[BKViewController class]] && [child.name hasPrefix:name]) {
+                Logger(@"%@ is already active controller", name);
+                return nil;
+            }
+        }
+        [nav pushViewController:controller animated:YES];
     } else
     if ([mode hasPrefix:@"drawer"]) {
         if (view) [view showDrawer:owner];
     } else {
-        [owner.navigationController setViewControllers:@[controller] animated:YES];
+        [nav setViewControllers:@[controller] animated:YES];
     }
     return controller;
 }

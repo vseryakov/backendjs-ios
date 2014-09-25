@@ -48,7 +48,6 @@
     self.tableSearchHidden = YES;
     self.tableRefreshable = NO;
     self.drawerPanning = YES;
-    self.transitioningDelegate = self;
     return self;
 }
 
@@ -81,13 +80,7 @@
     self.navigationController.interactivePopGestureRecognizer.delegate = self;
     
     // Do not preserve selection
-    if (self.tableView && self.tableUnselected) {
-        NSArray *rows = [self.tableView indexPathsForSelectedRows];
-        for (NSIndexPath *path in rows) {
-            [self onTableSelect:path selected:NO];
-            [self.tableView deselectRowAtIndexPath:path animated:NO];
-        }
-    }
+    if (self.tableUnselected) [self unselectTable];
     if (self.tableSearchHidden && self.tableSearchable) {
         self.tableView.contentOffset = CGPointMake(0, self.tableView.tableHeaderView.height);
     }
@@ -251,6 +244,7 @@
     self.tableView.showsVerticalScrollIndicator = YES;
     self.tableView.keyboardDismissMode = UIScrollViewKeyboardDismissModeOnDrag;
     self.tableView.rowHeight = 44;
+    if ([self.tableView respondsToSelector:@selector(setLayoutMargins:)]) [self.tableView setLayoutMargins:UIEdgeInsetsZero];
     
     if (self.tableRounded || self.tableTransparent) {
         self.tableView.backgroundColor = [UIColor clearColor];
@@ -303,6 +297,16 @@
     self.itemsAll = [items mutableCopy];
     [self.items removeAllObjects];
     [self reloadTable];
+}
+
+- (void)unselectTable
+{
+    if (!self.tableView) return;
+    NSArray *rows = [self.tableView indexPathsForSelectedRows];
+    for (NSIndexPath *path in rows) {
+        [self onTableSelect:path selected:NO];
+        [self.tableView deselectRowAtIndexPath:path animated:NO];
+    }
 }
 
 - (void)clearItems
@@ -594,13 +598,19 @@
         self.transition[@"type"] = params[@"bk:transition"];
         [self.params removeObjectForKey:@"bk:transition"];
     }
+    
     if ([@[@"", @"push"] containsObject:self.navigationMode]) {
         self.navigationController.delegate = self;
-        owner.navigationController.delegate = self;
+        self.transitioningDelegate = nil;
     }
     
     if ([@[@"modal"] containsObject:self.navigationMode]) {
-        if (self.transition[@"type"]) self.modalPresentationStyle = UIModalPresentationCustom;
+        self.navigationController.delegate = nil;
+        self.transitioningDelegate = nil;
+        if (self.transition[@"type"]) {
+            self.transitioningDelegate = self;
+            self.modalPresentationStyle = UIModalPresentationCustom;
+        }
     }
     
     Logger(@"%@: mode=%@, type=%@", self.name, self.navigationMode, self.transition[@"type"]);
@@ -724,7 +734,7 @@
 
 - (void)navigationController:(UINavigationController *)navigationController didShowViewController:(UIViewController *)viewController animated:(BOOL)animated
 {
-    //navigationController.delegate = nil;
+    navigationController.delegate = nil;
 }
 
 - (id <UIViewControllerInteractiveTransitioning>)navigationController:(UINavigationController*)navigationController interactionControllerForAnimationController:(id <UIViewControllerAnimatedTransitioning>)animationController
@@ -892,8 +902,10 @@
     
     double height = [self tableView:tableView heightForRowAtIndexPath:indexPath];
     cell.frame = CGRectMake(0, 0, MIN(tableView.width, cell.width), height);
+    cell.separatorInset = UIEdgeInsetsZero;
     cell.accessoryType = UITableViewCellAccessoryNone;
     cell.selectionStyle = UITableViewCellSelectionStyleNone;
+    if ([cell respondsToSelector:@selector(setLayoutMargins:)]) [cell setLayoutMargins:UIEdgeInsetsZero];
 
     // Rounded table, round corners on the first and last cells
     if (self.tableRounded) {
