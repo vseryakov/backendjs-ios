@@ -8,6 +8,7 @@
 @interface BKMenubarView: UIView
 @property (strong, nonatomic) NSMutableArray *items;
 @property (strong, nonatomic) NSMutableDictionary *buttons;
+@property (nonatomic) UIEdgeInsets contentInsets;
 
 - (instancetype)init:(CGRect)frame items:(NSArray*)items params:(NSDictionary*)params;
 - (void)setMenu:(NSArray*)items params:(NSDictionary*)params;

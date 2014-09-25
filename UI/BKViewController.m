@@ -39,6 +39,8 @@
     self.items = [@[] mutableCopy];
     self.transition = [@{} mutableCopy];
     self.barStyle = UIStatusBarStyleDefault;
+    self.toolbarHeight = 44;
+    self.barHeight = 20;
     self.tableRows = 0;
     self.tableCell = nil;
     self.tableRestore = NO;
@@ -117,7 +119,7 @@
 - (void)addInfoView:(NSString*)text
 {
     if (!self.infoView) {
-        int y = self.tableView ? self.tableView.y : 64, h = self.tableView ? self.tableView.height : self.view.height - y;
+        int y = self.tableView ? self.tableView.y : self.toolbarHeight + self.barHeight, h = self.tableView ? self.tableView.height : self.view.height - y;
         self.infoView = [[UIView alloc] initWithFrame:CGRectMake(0, y, self.view.width, h)];
         self.infoView.backgroundColor = self.view.backgroundColor;
         self.infoView.hidden = YES;
@@ -161,25 +163,25 @@
 - (void)addToolbar:(NSString*)title params:(NSDictionary*)params
 {
     if (!self.toolbarView) {
-        self.toolbarView = [[UIView alloc] initWithFrame:CGRectMake(0, 0, self.view.width, 64)];
+        self.toolbarView = [[UIView alloc] initWithFrame:CGRectMake(0, 0, self.view.width, self.toolbarHeight + self.barHeight)];
         self.toolbarView.userInteractionEnabled = YES;
         self.toolbarView.backgroundColor = [BKui makeColor:self.view.backgroundColor h:1 s:1 b:0.95 a:1];
         [self.view addSubview:self.toolbarView];
         
         self.toolbarBack = [BKui makeCustomButton:@"Back" image:nil];
         self.toolbarBack.contentHorizontalAlignment = UIControlContentHorizontalAlignmentLeft;
-        self.toolbarBack.frame = CGRectMake(10, 20, self.toolbarView.height, self.toolbarView.height - 20);
+        self.toolbarBack.frame = CGRectMake(10, self.barHeight, self.toolbarView.height, self.toolbarView.height - self.barHeight);
         [self.toolbarBack addTarget:self action:@selector(onBack:) forControlEvents:UIControlEventTouchUpInside];
         [self.toolbarView addSubview:self.toolbarBack];
         
-        self.toolbarTitle = [[UILabel alloc] initWithFrame:CGRectMake(self.toolbarView.height, 20, self.toolbarView.width-self.toolbarView.height*2, self.toolbarView.height - 20)];
+        self.toolbarTitle = [[UILabel alloc] initWithFrame:CGRectMake(self.toolbarView.height, self.barHeight, self.toolbarView.width-self.toolbarView.height*2, self.toolbarView.height - self.barHeight)];
         self.toolbarTitle.textAlignment = NSTextAlignmentCenter;
-        self.toolbarTitle.centerY = self.toolbarView.height/2 + 10;
+        self.toolbarTitle.centerY = self.toolbarView.height/2 + self.barHeight/2;
         [self.toolbarView addSubview:self.toolbarTitle];
         
         self.toolbarNext = [BKui makeCustomButton:@"Next" image:nil];
         self.toolbarNext.contentHorizontalAlignment = UIControlContentHorizontalAlignmentRight;
-        self.toolbarNext.frame = CGRectMake(self.toolbarView.width - self.toolbarView.height - 10, 20, self.toolbarView.height, self.toolbarView.height - 20);
+        self.toolbarNext.frame = CGRectMake(self.toolbarView.width - self.toolbarView.height - self.barHeight/2, self.barHeight, self.toolbarView.height, self.toolbarView.height - self.barHeight);
         self.toolbarNext.hidden = YES;
         [self.toolbarNext addTarget:self action:@selector(onNext:) forControlEvents:UIControlEventTouchUpInside];
         [self.toolbarView addSubview:self.toolbarNext];
@@ -199,7 +201,8 @@
     if (self.menubarView) {
         [self.menubarView setMenu:items params:params];
     } else {
-        self.menubarView = [[BKMenubarView alloc] init:CGRectMake(0, 0, self.view.width, 64) items:items params:params];
+        self.menubarView = [[BKMenubarView alloc] init:CGRectMake(0, 0, self.view.width, self.toolbarHeight + self.barHeight) items:items params:params];
+        self.menubarView.contentInsets = UIEdgeInsetsMake(self.barHeight, 0, 0, 0);
         [self.view addSubview:self.menubarView];
         self.menubarView.backgroundColor = [BKui makeColor:self.view.backgroundColor h:1 s:1 b:0.95 a:1];
         [BKui setStyle:self.menubarView style:BKui.style[@"menubar"]];
@@ -218,7 +221,7 @@
     if (self.tabbarView) {
         [self.tabbarView setMenu:items params:params];
     } else {
-        self.tabbarView = [[BKMenubarView alloc] init:CGRectMake(0, self.view.height - 44, self.view.width, 44) items:items params:params];
+        self.tabbarView = [[BKMenubarView alloc] init:CGRectMake(0, self.view.height - self.toolbarHeight, self.view.width, self.toolbarHeight) items:items params:params];
         self.tabbarView.backgroundColor = [BKui makeColor:self.view.backgroundColor h:1 s:1 b:0.95 a:1];
         [BKui setViewShadow:self.tabbarView color:nil offset:CGSizeMake(0, 0.5) opacity:0.5 radius:-1];
         [self.view addSubview:self.tabbarView];
@@ -230,7 +233,7 @@
 - (void)addTable
 {
     if (self.tableView) return;
-    CGRect frame = CGRectMake(0, 64, self.view.width, self.view.height - 64);
+    CGRect frame = CGRectMake(0, self.toolbarHeight + self.barHeight, self.view.width, self.view.height - self.toolbarHeight - self.barHeight);
     self.tableView = [[UITableView alloc] initWithFrame:frame];
     self.tableView.separatorInset = UIEdgeInsetsZero;
     self.tableView.delegate = (id<UITableViewDelegate>)self;
@@ -253,12 +256,12 @@
     if (!self.tableSearchNames) {
         self.tableSearchNames = @[@"name", @"alias", @"email"];
     }
-    self.tableSearchField = [[UITextField alloc] initWithFrame:CGRectMake(0, 0, frame.size.width, 32)];
+    self.tableSearchField = [[UITextField alloc] initWithFrame:CGRectMake(0, 0, frame.size.width, self.toolbarHeight*0.75)];
     self.tableSearchField.placeholder = @"Search";
     self.tableSearchField.delegate = self;
     [BKui setStyle:self.tableSearchField style:BKui.style[@"search-text"]];
 
-    self.tableSearchBar = [[UISearchBar alloc] initWithFrame:CGRectMake(0, 0, frame.size.width, 44)];
+    self.tableSearchBar = [[UISearchBar alloc] initWithFrame:CGRectMake(0, 0, frame.size.width, self.toolbarHeight)];
     self.tableSearchBar.placeholder = @"Search";
     self.tableSearchBar.delegate = self;
     if (self.tableSearchBarVisible) {

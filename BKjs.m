@@ -76,7 +76,7 @@ static NSString *SysCtlByName(char *typeSpecifier)
 
 @implementation BKjs
 
-+ (instancetype)get
++ (instancetype)instance
 {
     static dispatch_once_t _bkOnce;
     dispatch_once(&_bkOnce, ^{
@@ -88,15 +88,7 @@ static NSString *SysCtlByName(char *typeSpecifier)
         if (!url || !url.length) url = [NSString stringWithFormat:@"http://%@", [self appDomain]];
         
         _bkjs = [[self alloc] initWithBaseURL:[[NSURL alloc] initWithString:url ? url : @"http://google.com"]];
-        _appName = [[[NSBundle mainBundle] infoDictionary] objectForKey:@"CFBundleDisplayName"];
-        _appVersion = [[[NSBundle mainBundle] infoDictionary] objectForKey:@"CFBundleVersion"];
-        _iOSVersion = [[[[UIDevice currentDevice] systemVersion] componentsSeparatedByString:@"."] objectAtIndex:0];
-        _iOSPlatform = @"iPhone";
-        
-        _iOSModel = SysCtlByName("hw.machine");
-        if ([_iOSModel isEqual:@"x86_64"] && BKScreenWidth >= 768) _iOSPlatform = @"iPad";
-        if ([_iOSModel hasPrefix:@"iPad"]) _iOSPlatform = @"iPad";
-        if ([_iOSModel hasPrefix:@"iPod"]) _iOSPlatform = @"iPod";
+        _bkjs.delegate = _bkjs;
 
         [_bkjs setReachabilityStatusChangeBlock:^(AFNetworkReachabilityStatus status) {
             dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(1 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
@@ -161,11 +153,15 @@ static NSString *SysCtlByName(char *typeSpecifier)
 
 + (NSString*)appName
 {
+    static dispatch_once_t _bkOnce;
+    dispatch_once(&_bkOnce, ^{ _appName = [[[NSBundle mainBundle] infoDictionary] objectForKey:@"CFBundleDisplayName"]; });
     return _appName;
 }
 
 + (NSString*)appVersion
 {
+    static dispatch_once_t _bkOnce;
+    dispatch_once(&_bkOnce, ^{ _appVersion = [[[NSBundle mainBundle] infoDictionary] objectForKey:@"CFBundleVersion"]; });
     return _appVersion;
 }
 
@@ -176,16 +172,27 @@ static NSString *SysCtlByName(char *typeSpecifier)
 
 + (NSString*)iOSModel
 {
+    static dispatch_once_t _bkOnce;
+    dispatch_once(&_bkOnce, ^{ _iOSModel = SysCtlByName("hw.machine"); });
     return _iOSModel;
 }
 
 + (NSString*)iOSVersion
 {
+    static dispatch_once_t _bkOnce;
+    dispatch_once(&_bkOnce, ^{ _iOSVersion = [[[[UIDevice currentDevice] systemVersion] componentsSeparatedByString:@"."] objectAtIndex:0]; });
     return _iOSVersion;
 }
 
 + (NSString*)iOSPlatform
 {
+    static dispatch_once_t _bkOnce;
+    dispatch_once(&_bkOnce, ^{
+        _iOSPlatform = @"iPhone";
+        if ([self.iOSModel isEqual:@"x86_64"] && BKScreenWidth >= 768) _iOSPlatform = @"iPad";
+        if ([self.iOSModel hasPrefix:@"iPad"]) _iOSPlatform = @"iPad";
+        if ([self.iOSModel hasPrefix:@"iPod"]) _iOSPlatform = @"iPod";
+    });
     return _iOSPlatform;
 }
 
@@ -347,7 +354,7 @@ static NSString *SysCtlByName(char *typeSpecifier)
 + (void)scheduleBlock:(double)seconds block:(SuccessBlock)block params:(id)params
 {
     if (!block) return;
-    [NSTimer scheduledTimerWithTimeInterval:seconds target:[BKjs get] selector:@selector(onTimer:) userInfo:@{ @"block": [block copy],  @"params": params ? params : @{} } repeats:NO];
+    [NSTimer scheduledTimerWithTimeInterval:seconds target:[self instance] selector:@selector(onTimer:) userInfo:@{ @"block": [block copy],  @"params": params ? params : @{} } repeats:NO];
 }
 
 + (NSData*)getSystemLog:(long)secondsAgo
@@ -582,7 +589,7 @@ static NSString *SysCtlByName(char *typeSpecifier)
 
 + (NSMutableURLRequest *)makeRequest:(NSString *)method path:(NSString *)path params:(NSDictionary *)params type:(NSString*)type
 {
-    NSURL *url = [NSURL URLWithString:path relativeToURL:[BKjs get].baseURL];
+    NSURL *url = [NSURL URLWithString:path relativeToURL:[self instance].baseURL];
 	NSMutableURLRequest *request = [[NSMutableURLRequest alloc] initWithURL:url];
     [request setHTTPMethod:method];
     [request setTimeoutInterval:30];
@@ -637,7 +644,7 @@ static NSString *SysCtlByName(char *typeSpecifier)
     // By default use plain HTTP for image requests
     if ([[self.baseURL scheme] isEqual:@"https"]) {
         if ([path hasPrefix:@"/image/"] ||
-            [path hasPrefix:@"/icon/"] ||
+            [path hasPrefix:@"/icon/get"] ||
             [path hasPrefix:@"/account/get/icon"]) {
             return [NSString stringWithFormat:@"%@%@", [[self.baseURL absoluteString] stringByReplacingOccurrencesOfString:@"https://" withString:@"http://"], path];
         }
@@ -647,7 +654,7 @@ static NSString *SysCtlByName(char *typeSpecifier)
 
 + (NSString*)getAbsoluteURL:(NSString*)path
 {
-    return [[NSURL URLWithString:[[BKjs get] getURL:path] relativeToURL:[BKjs get].baseURL] absoluteString];
+    return [[NSURL URLWithString:[self.instance.delegate getURL:path] relativeToURL:self.instance.baseURL] absoluteString];
 }
 
 + (void)parseServerVersion:(NSHTTPURLResponse*)response
@@ -688,7 +695,7 @@ static NSString *SysCtlByName(char *typeSpecifier)
         NSArray *pairs = [q[1] componentsSeparatedByString:@"&"];
         query = [[pairs sortedArrayUsingComparator:^(NSString *a, NSString *b) { return [a compare:b]; }] componentsJoinedByString:@"&"];
     }
-    NSURL *url = [NSURL URLWithString:req relativeToURL:[BKjs get].baseURL];
+    NSURL *url = [NSURL URLWithString:req relativeToURL:self.instance.baseURL];
     NSString *login = [self passwordForService:@"login" account:BKjs.appName error:nil];
     NSString *secret = [self passwordForService:@"secret" account:BKjs.appName error:nil];
     
@@ -701,14 +708,14 @@ static NSString *SysCtlByName(char *typeSpecifier)
 
 + (void)sendQuery:(NSString *)path method:(NSString*)method params:(NSDictionary*)params success:(SuccessBlock)success failure:(FailureBlock)failure
 {
-    path = [[BKjs get] getURL:path];
+    path = [self.instance.delegate getURL:path];
     NSDictionary *headers = [BKjs sign:path method:method params:params contentType:nil expires:0 checksum:nil];
     [BKjs sendRequest:path method:method params:params headers:headers body:nil success:success failure:failure];
 }
 
 + (void)sendJSON:(NSString*)path method:(NSString*)method params:(NSDictionary*)params success:(SuccessBlock)success failure:(FailureBlock)failure
 {
-    path = [[BKjs get] getURL:path];
+    path = [self.instance.delegate getURL:path];
     NSDictionary *headers = [BKjs sign:path method:method params:nil contentType:@"application/json; charset=UTF-8" expires:0 checksum:nil];
     NSData *body = [self toJSON:params];
     if (!body) {
@@ -730,7 +737,7 @@ static NSString *SysCtlByName(char *typeSpecifier)
 
 + (void)uploadData:(NSString*)path name:(NSString*)name data:(NSData*)data mime:(NSString*)mime params:(NSDictionary*)params headers:(NSDictionary*)headers success:(SuccessBlock)success failure:(FailureBlock)failure
 {
-    NSMutableURLRequest *request = [[self get]
+    NSMutableURLRequest *request = [self.instance
                                     multipartFormRequestWithMethod:@"POST"
                                     path:path
                                     parameters:params
@@ -766,7 +773,7 @@ static NSString *SysCtlByName(char *typeSpecifier)
         [self parseServerVersion:response];
         if (failure) failure(request, response, error, json);
     }];
-    [[BKjs get].operationQueue addOperation:op];
+    [self.instance.operationQueue addOperation:op];
 }
 
 #pragma mark Image requests
@@ -793,7 +800,7 @@ static NSString *SysCtlByName(char *typeSpecifier)
         if (failure) failure(0, @"no url provided");
         return;
     }
-    [self sendImageRequest:[[BKjs get] requestWithMethod:@"GET" path:url parameters:nil] options:options success:success failure:failure];
+    [self sendImageRequest:[self.instance requestWithMethod:@"GET" path:url parameters:nil] options:options success:success failure:failure];
 }
 
 + (void)sendImageRequest:(NSURLRequest*)request options:(BKOptions)options success:(ImageSuccessBlock)success failure:(FailureBlock)failure
@@ -812,10 +819,10 @@ static NSString *SysCtlByName(char *typeSpecifier)
     }
     
     if (options & (BKCacheModeFlush|BKCacheModeFresh)) {
-        [[BKjs get] uncacheImage:url];
+        [self.instance.delegate uncacheImage:url];
     }
     if (options & BKCacheModeCache) {
-        UIImage *cached = [[BKjs get] getCachedImage:url];
+        UIImage *cached = [self.instance.delegate getCachedImage:url];
         if (cached) {
             if (success) success(cached, request.URL.absoluteString);
             return;
@@ -829,7 +836,7 @@ static NSString *SysCtlByName(char *typeSpecifier)
                                    imageProcessingBlock:nil
                                    success:^(NSURLRequest *request, NSHTTPURLResponse *response, UIImage *image) {
                                        if (options & (BKCacheModeCache|BKCacheModeFresh)) {
-                                           [[BKjs get] cacheImage:request.URL.absoluteString image:image];
+                                           [self.instance.delegate cacheImage:request.URL.absoluteString image:image];
                                        }
                                        [self parseServerVersion:response];
                                        if (success) success(image, request.URL.absoluteString);
@@ -839,23 +846,23 @@ static NSString *SysCtlByName(char *typeSpecifier)
                                        Logger(@"%@: error: %ld: %@", request.URL, (long)response.statusCode, error);
                                        if (failure) failure(response.statusCode, error.description);
                                    }];
-    [[BKjs get].operationQueue addOperation:op];
+    [self.instance.operationQueue addOperation:op];
 }
 
 # pragma Icon API
 
 + (void)getIcon:(NSString*)path params:(NSDictionary*)params options:(BKOptions)options success:(ImageSuccessBlock)success failure:(FailureBlock)failure
 {
-    path = [[BKjs get] getURL:path];
+    path = [self.instance.delegate getURL:path];
     NSDictionary *headers = [BKjs sign:path method:@"GET" params:params contentType:nil expires:0 checksum:nil];
-    NSMutableURLRequest *request = [BKjs makeRequest:@"GET" path:[[BKjs get] getURL:path] params:params type:nil];
+    NSMutableURLRequest *request = [BKjs makeRequest:@"GET" path:[self.instance.delegate getURL:path] params:params type:nil];
     for (NSString* key in headers) [request setValue:headers[key] forHTTPHeaderField:key];
     [self sendImageRequest:request options:options success:success failure:failure];
 }
 
 + (void)getIcon:(NSString*)url options:(BKOptions)options success:(ImageSuccessBlock)success failure:(FailureBlock)failure
 {
-	NSMutableURLRequest *request = [[NSMutableURLRequest alloc] initWithURL:[NSURL URLWithString:url relativeToURL:[BKjs get].baseURL]];
+	NSMutableURLRequest *request = [[NSMutableURLRequest alloc] initWithURL:[NSURL URLWithString:url relativeToURL:self.instance.baseURL]];
     [request setTimeoutInterval:30];
     NSDictionary *headers = [BKjs sign:request.URL.absoluteString method:@"GET" params:nil contentType:nil expires:0 checksum:nil];
     for (NSString* key in headers) [request setValue:headers[key] forHTTPHeaderField:key];
@@ -1224,7 +1231,7 @@ static NSString *SysCtlByName(char *typeSpecifier)
     static dispatch_once_t _bkOnce;
     dispatch_once(&_bkOnce, ^{
         _locationManager = [[CLLocationManager alloc] init];
-        _locationManager.delegate = [BKjs get];
+        _locationManager.delegate = self.instance;
     });
     return _locationManager;
 }

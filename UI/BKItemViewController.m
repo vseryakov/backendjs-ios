@@ -256,7 +256,7 @@
 - (void)viewDidLoad
 {
     [super viewDidLoad];
-    self.itemView = [[BKItemView alloc] initWithFrame:CGRectMake(0, 64, self.view.width, self.view.height - 64) params:nil];
+    self.itemView = [[BKItemView alloc] initWithFrame:CGRectMake(0, self.toolbarHeight + self.barHeight, self.view.width, self.view.height - self.toolbarHeight - self.barHeight) params:nil];
     [self.view addSubview:self.itemView];
 }
 

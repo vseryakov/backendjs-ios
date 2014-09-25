@@ -485,7 +485,7 @@ static NSMutableDictionary *_accounts;
     
     NSMutableURLRequest *request = [self getRequestTokenRequest:params];
     [request setHTTPBody:nil];
-    AFHTTPRequestOperation *operation = [[BKjs get] HTTPRequestOperationWithRequest:request success:^(AFHTTPRequestOperation *operation, id responseObject) {
+    AFHTTPRequestOperation *operation = [BKjs.instance HTTPRequestOperationWithRequest:request success:^(AFHTTPRequestOperation *operation, id responseObject) {
         if (success) {
             id token = [BKjs parseQueryString:operation.responseString];
             for (id key in token) self.accessToken[key] = token[key];
@@ -497,7 +497,7 @@ static NSMutableDictionary *_accounts;
         [self.accessToken removeAllObjects];
         if (failure) failure(error);
     }];
-    [[BKjs get] enqueueHTTPRequestOperation:operation];
+    [BKjs.instance enqueueHTTPRequestOperation:operation];
 }
 
 - (void)getAccessToken:(GenericBlock)success failure:(ErrorBlock)failure
@@ -507,7 +507,7 @@ static NSMutableDictionary *_accounts;
         params[@"oauth_token"] = self.accessToken[@"oauth_token"];
         params[@"oauth_verifier"] = self.accessToken[@"oauth_verifier"];
         NSMutableURLRequest *request = [self getAccessTokenRequest:params];
-        AFHTTPRequestOperation *operation = [[BKjs get] HTTPRequestOperationWithRequest:request success:^(AFHTTPRequestOperation *operation, id responseObject) {
+        AFHTTPRequestOperation *operation = [BKjs.instance HTTPRequestOperationWithRequest:request success:^(AFHTTPRequestOperation *operation, id responseObject) {
             if (success) {
                 id token = [BKjs parseQueryString:operation.responseString];
                 for (id key in token) self.accessToken[key] = token[key];
@@ -519,7 +519,7 @@ static NSMutableDictionary *_accounts;
             [self.accessToken removeAllObjects];
             if (failure) failure(error);
         }];
-        [[BKjs get] enqueueHTTPRequestOperation:operation];
+        [BKjs.instance enqueueHTTPRequestOperation:operation];
     } else {
         NSError *error = [[NSError alloc] initWithDomain:AFNetworkingErrorDomain code:NSURLErrorBadServerResponse userInfo:@{ NSLocalizedFailureReasonErrorKey: @"Bad OAuth response received from the server" }];
         [self.accessToken removeAllObjects];

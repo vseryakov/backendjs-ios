@@ -8,16 +8,21 @@
 
 #import "BKjs.h"
 
-@interface BKui: NSObject
-
+// A delegate to implement custom or different way of default functionality
+@protocol BKuiDelegate <NSObject>
+@optional
 // Return a ViewController by name, this method is supposed to be overriden for custom controllers
 - (UIViewController*)getViewController:(NSString*)name;
+@end
+
+// UI global object, singleton
+@interface BKui: NSObject
+
+// Delegate with customized functionality
+@property (nonatomic, weak) id <BKuiDelegate> delegate;
 
 // Return global UI object
-+ (BKui*)get;
-
-// Set new instance of the global BKui object, possibly inherited with customizations
-+ (void)set:(BKui*)obj;
++ (BKui*)instance;
 
 // Styles for UI components
 + (NSMutableDictionary*)style;

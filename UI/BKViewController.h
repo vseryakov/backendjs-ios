@@ -27,6 +27,7 @@
 
 // Return type of the status bar when active
 @property (nonatomic, assign) UIStatusBarStyle barStyle;
+@property (nonatomic, assign) NSInteger barHeight;
 
 // Parameters passed to the controller
 @property (strong, nonatomic) NSMutableDictionary *params;
@@ -47,6 +48,7 @@
 
 
 // Toolbar configuration
+@property (nonatomic, assign) NSInteger toolbarHeight;
 @property (strong, nonatomic) IBOutlet UIView *toolbarView;
 @property (strong, nonatomic) IBOutlet UIButton *toolbarBack;
 @property (strong, nonatomic) IBOutlet UILabel *toolbarTitle;

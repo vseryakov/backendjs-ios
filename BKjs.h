@@ -80,22 +80,31 @@ typedef NS_OPTIONS(NSUInteger, BKOptions) {
 - (void)format:(NSDictionary*)defaults;
 @end;
 
-@interface BKjs: AFHTTPClient <CLLocationManagerDelegate,UIAlertViewDelegate>
-
+// A delegate to implement custom or different way of default functionality
+@protocol BKjsDelegate <NSObject>
+@optional
 // This method should return fully qualified URL to be retrieved, by default path is unchanged and passed as it it but by
-// overriding this method it is possible to use custom url endpoints on the fly. If not used then the base url
-// is used which could be one of the following:
-//  - BKBaseURL property string from the app plist
-//  - CFBundleIdentifier domain, only first 2 parts are used in reverse order: com.app.name will be http://app.com
+// overriding this method it is possible to use custom url endpoints on the fly.
 - (NSString*)getURL:(NSString*)path;
 
-#pragma mark Class methods
+// Image cache implementation, default is using NSCache
+- (UIImage*)getCachedImage:(NSString*)url;
+- (void)cacheImage:(NSString*)url image:(UIImage*)image;
+- (void)uncacheImage:(NSString*)url;
+@end
+
+// Global API object, the singleton, can be extened with delegate only
+// If the base Url is not specified then the base url is constructed from one the following:
+//  - BKBaseURL property string from the app plist
+//  - CFBundleIdentifier domain, only first 2 parts are used in reverse order: com.app.name will be http://app.com
+//
+@interface BKjs: AFHTTPClient <CLLocationManagerDelegate,UIAlertViewDelegate,BKjsDelegate>
+
+// Delegate with customized functionality
+@property (nonatomic, weak) id <BKjsDelegate> delegate;
 
 // Return global instance
-+ (BKjs*)get;
-
-// Set new global instance of possibly customized or inherited BKjs class
-+ (void)set:(BKjs*)obj;
++ (BKjs*)instance;
 
 // Set credentials for API calls, takes effect immediately
 + (void)setCredentials:(NSString*)name secret:(NSString*)secret;
@@ -161,12 +170,6 @@ typedef NS_OPTIONS(NSUInteger, BKOptions) {
 
 + (void)sendImageRequest:(NSURLRequest*)request options:(BKOptions)options success:(ImageSuccessBlock)success failure:(FailureBlock)failure;
 + (void)getImage:(NSString*)url options:(BKOptions)options success:(ImageSuccessBlock)success failure:(FailureBlock)failure;
-
-#pragma mark Image cache
-
-- (UIImage*)getCachedImage:(NSString*)url;
-- (void)cacheImage:(NSString*)url image:(UIImage*)image;
-- (void)uncacheImage:(NSString*)url;
 
 #pragma mark API requests
 

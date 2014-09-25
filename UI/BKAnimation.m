@@ -188,7 +188,7 @@
     self.bounces = 2;
     self.overshoot = YES;
     self.stiffness = @"Medium";
-    self.delegate = [BKui get];
+    self.delegate = BKui.instance;
     [self setValue:start forKey:@"startBlock"];
     [self setValue:stop forKey:@"stopBlock"];
 	return self;
@@ -368,7 +368,7 @@ static CGPathRef createPathFromXYValues(NSArray *xValues, NSArray *yValues)
     self.autoreverses = YES;
     self.color = [UIColor whiteColor];
     self.timingFunction = [CAMediaTimingFunction functionWithName:kCAMediaTimingFunctionEaseInEaseOut];
-    self.delegate = [BKui get];
+    self.delegate = BKui.instance;
     [self setValue:start forKey:@"startBlock"];
     // We have to remove glow view after the animation
     [self setValue:^(id anim) {

@@ -17,15 +17,18 @@ static UIActivityIndicatorView *_activity;
 static UIWindow *_window;
 static UINavigationController *_navigation;
 
-@interface BKui () <UITextViewDelegate,UIActionSheetDelegate,UIAlertViewDelegate>
+@interface BKui () <UITextViewDelegate,UIActionSheetDelegate,UIAlertViewDelegate,BKuiDelegate>
 @end
 
 @implementation BKui
 
-+ (instancetype)get
++ (instancetype)instance
 {
     static dispatch_once_t _bkOnce;
-    dispatch_once(&_bkOnce, ^{ _BKui = [BKui new]; });
+    dispatch_once(&_bkOnce, ^{
+        _BKui = [BKui new];
+        _BKui.delegate = _BKui;
+    });
     return _BKui;
 }
 
@@ -131,7 +134,7 @@ static UINavigationController *_navigation;
     }
     
     UIViewController *controller = self.controllers[title];
-    if (!controller) controller = [[self get] getViewController:title];
+    if (!controller) controller = [self.instance.delegate getViewController:title];
     if (!controller) {
         if ([[NSBundle mainBundle].infoDictionary objectForKey:@"UIMainStoryboardFile"]) {
             UIStoryboard *storyboard = [UIStoryboard storyboardWithName:[NSString stringWithFormat:@"MainStoryboard_%@", BKjs.iOSPlatform] bundle:nil];
@@ -188,7 +191,7 @@ static UINavigationController *_navigation;
         }]];
         [[self rootController] presentViewController:alert animated:YES completion:nil];
     } else {
-        UIAlertView *alertView = [[UIAlertView alloc] initWithTitle:title message:text delegate:[self get] cancelButtonTitle:@"OK" otherButtonTitles:nil];
+        UIAlertView *alertView = [[UIAlertView alloc] initWithTitle:title message:text delegate:self.instance cancelButtonTitle:@"OK" otherButtonTitles:nil];
         if (finish) objc_setAssociatedObject(alertView, @"alertBlock", finish, OBJC_ASSOCIATION_RETAIN);
         [alertView show];
     }
@@ -203,7 +206,7 @@ static UINavigationController *_navigation;
         }]];
         [[self rootController] presentViewController:alert animated:YES completion:nil];
     } else {
-        UIAlertView *alertView = [[UIAlertView alloc] initWithTitle:title message:text delegate:[self get] cancelButtonTitle:nil otherButtonTitles:nil];
+        UIAlertView *alertView = [[UIAlertView alloc] initWithTitle:title message:text delegate:self.instance cancelButtonTitle:nil otherButtonTitles:nil];
         for (NSString *key in buttons) [alertView addButtonWithTitle:key];
         if (finish) objc_setAssociatedObject(alertView, @"alertBlock", finish, OBJC_ASSOCIATION_RETAIN);
         [alertView show];
@@ -222,7 +225,7 @@ static UINavigationController *_navigation;
         }]];
         [[self rootController] presentViewController:alert animated:YES completion:nil];
     }  else {
-        UIAlertView *alertView = [[UIAlertView alloc] initWithTitle:title message:text delegate:[self get] cancelButtonTitle:cancel ? cancel : @"Cancel" otherButtonTitles:ok ? ok : @"OK",nil];
+        UIAlertView *alertView = [[UIAlertView alloc] initWithTitle:title message:text delegate:self.instance cancelButtonTitle:cancel ? cancel : @"Cancel" otherButtonTitles:ok ? ok : @"OK",nil];
         if (finish) objc_setAssociatedObject(alertView, @"alertBlock", finish, OBJC_ASSOCIATION_RETAIN);
         [alertView show];
     }
@@ -237,7 +240,7 @@ static UINavigationController *_navigation;
         }]];
         [owner presentViewController:alert animated:YES completion:nil];
     } else {
-        UIActionSheet *action = [[UIActionSheet alloc] initWithTitle:title delegate:[self get] cancelButtonTitle:@"Cancel" destructiveButtonTitle:nil otherButtonTitles:nil];
+        UIActionSheet *action = [[UIActionSheet alloc] initWithTitle:title delegate:self.instance cancelButtonTitle:@"Cancel" destructiveButtonTitle:nil otherButtonTitles:nil];
         for (NSString *button in actions) [action addButtonWithTitle:button];
         action.actionSheetStyle = UIActionSheetStyleBlackOpaque;
         if (finish) objc_setAssociatedObject(action, @"actionBlock", finish, OBJC_ASSOCIATION_RETAIN);
@@ -256,7 +259,7 @@ static UINavigationController *_navigation;
     UIButton *button = [self makeCustomButton:title image:image];
     if (action) {
         objc_setAssociatedObject(button, @"actionBlock", action, OBJC_ASSOCIATION_RETAIN);
-        [button addTarget:[self get] action:@selector(onButton:) forControlEvents:UIControlEventTouchUpInside];
+        [button addTarget:self.instance action:@selector(onButton:) forControlEvents:UIControlEventTouchUpInside];
     }
     return button;
 }
@@ -316,7 +319,7 @@ static UINavigationController *_navigation;
     
     UIButton* btn = [UIButton buttonWithType:UIButtonTypeCustom];
     [btn setFrame:label.frame];
-    [btn addTarget:[self get] action:@selector(onLabelLink:) forControlEvents:UIControlEventTouchUpInside];
+    [btn addTarget:self.instance action:@selector(onLabelLink:) forControlEvents:UIControlEventTouchUpInside];
     objc_setAssociatedObject(btn, @"labelLink", link, OBJC_ASSOCIATION_RETAIN);
     if (handler) objc_setAssociatedObject(btn, @"labelBlock", handler, OBJC_ASSOCIATION_RETAIN);
     [label addSubview:btn];
@@ -347,7 +350,7 @@ static UINavigationController *_navigation;
     }
     [label setAttributedText:str];
     if (handler) objc_setAssociatedObject(label, @"urlBlock", handler, OBJC_ASSOCIATION_RETAIN);
-    if (!label.delegate) label.delegate = [self get];
+    if (!label.delegate) label.delegate = self.instance;
 }
 
 + (UIImageView*)makeImageAvatar:(UIView*)view frame:(CGRect)frame color:(UIColor*)color border:(float)border eclipse:(UIImage*)eclipse

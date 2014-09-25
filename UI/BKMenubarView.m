@@ -13,7 +13,7 @@
 {
     self = [super initWithFrame:frame];
     self.userInteractionEnabled = YES;
-
+    self.contentInsets = UIEdgeInsetsZero;
     self.items = [@[] mutableCopy];
     self.buttons = [@{} mutableCopy];
     [self setMenu:items params:params];
@@ -29,7 +29,7 @@
     
     // Calculate width of every button, if we have specic width given for any button we
     // give remaining space to the rest of the buttons equally.
-    unsigned long x = 0, count = items.count, width = self.width, len[count + 1];
+    unsigned long x = 0, count = items.count, width = self.width - self.contentInsets.left - self.contentInsets.right, len[count + 1];
     memset(len, 0, sizeof(len));
     for (int i = 0; i < items.count; i++ ) {
         NSDictionary *obj = [items objectAtIndex:i];
@@ -51,7 +51,7 @@
         [self.items addObject:item];
         
         UIButton *button = [UIButton buttonWithType:UIButtonTypeCustom];
-        button.frame = CGRectMake(x, self.height == 64 ? 20 : 0, len[i], 44);
+        button.frame = CGRectMake(self.contentInsets.left + x, self.contentInsets.top, len[i], self.height - self.contentInsets.top - self.contentInsets.bottom);
         button.exclusiveTouch = YES;
         [button addTarget:self action:@selector(onButton:) forControlEvents:UIControlEventTouchUpInside];
         button.imageView.contentMode = UIViewContentModeScaleAspectFit;
