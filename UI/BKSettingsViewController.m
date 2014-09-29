@@ -24,7 +24,9 @@
 - (void)updateAccount:(NSString*)name value:(id)value
 {
     if (!name || !value) return;
-    [BKjs updateAccount:@{ name: value, @"cid": [BKapp.campaign str:@"id"] } success:nil failure:^(NSInteger code, NSString *reason) {
+    [BKjs updateAccount:@{ name: value } success:^(id obj) {
+        [[NSNotificationCenter defaultCenter] postNotificationName:@"profileUpdated" object:nil];
+    } failure:^(NSInteger code, NSString *reason) {
         [BKui showAlert:@"Error" text:reason finish:nil];
     }];
 }

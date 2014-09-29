@@ -68,6 +68,7 @@ typedef NS_OPTIONS(NSUInteger, BKOptions) {
     BKCacheModeCache = 1,
     BKCacheModeFresh = 2,
     BKCacheModeFlush = 4,
+    BKNoSignature = 8,
 };
 
 // Preprocess path and query with defaults, replace all placeholders in the format @name@ with the actual values

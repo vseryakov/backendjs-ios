@@ -144,7 +144,7 @@
         if ([params[@"source"] rangeOfString:@"/"].location == NSNotFound) {
             self.source.image = [UIImage imageNamed:params[@"source"]];
         } else {
-            [BKjs getIcon:params[@"source"] options:BKCacheModeCache success:^(UIImage *image, NSString *url) { self.source.image = image; } failure:nil];
+            [BKjs getImage:params[@"source"] options:BKCacheModeCache success:^(UIImage *image, NSString *url) { self.source.image = image; } failure:nil];
         }
     } else {
         self.source.hidden = YES;
@@ -191,7 +191,7 @@
     if (params[@"icon"]) {
         self.icon.hidden = NO;
         self.icon.frame = CGRectMake(x, y, self.width - x - 5, self.width/2);
-        [BKjs getIcon:params[@"icon"] options:BKCacheModeCache success:^(UIImage *image, NSString *url) {
+        [BKjs getIcon:params[@"icon"] options:BKCacheModeCache|(params[@"icon_auth"] ? 0 : BKNoSignature) success:^(UIImage *image, NSString *url) {
             self.icon.contentMode = image.size.width < self.icon.width && image.size.height < self.icon.height ? UIViewContentModeCenter : UIViewContentModeScaleAspectFit;
             self.icon.image = image;
         } failure:nil];

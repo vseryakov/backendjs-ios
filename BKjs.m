@@ -854,9 +854,11 @@ static NSString *SysCtlByName(char *typeSpecifier)
 + (void)getIcon:(NSString*)path params:(NSDictionary*)params options:(BKOptions)options success:(ImageSuccessBlock)success failure:(FailureBlock)failure
 {
     path = [self.instance.delegate getURL:path];
-    NSDictionary *headers = [BKjs sign:path method:@"GET" params:params contentType:nil expires:0 checksum:nil];
-    NSMutableURLRequest *request = [BKjs makeRequest:@"GET" path:[self.instance.delegate getURL:path] params:params type:nil];
-    for (NSString* key in headers) [request setValue:headers[key] forHTTPHeaderField:key];
+    NSMutableURLRequest *request = [BKjs makeRequest:@"GET" path:path params:params type:nil];
+    if (!(options & BKNoSignature)) {
+        NSDictionary *headers = [BKjs sign:path method:@"GET" params:params contentType:nil expires:0 checksum:nil];
+        for (NSString* key in headers) [request setValue:headers[key] forHTTPHeaderField:key];
+    }
     [self sendImageRequest:request options:options success:success failure:failure];
 }
 
@@ -864,8 +866,10 @@ static NSString *SysCtlByName(char *typeSpecifier)
 {
 	NSMutableURLRequest *request = [[NSMutableURLRequest alloc] initWithURL:[NSURL URLWithString:url relativeToURL:self.instance.baseURL]];
     [request setTimeoutInterval:30];
-    NSDictionary *headers = [BKjs sign:request.URL.absoluteString method:@"GET" params:nil contentType:nil expires:0 checksum:nil];
-    for (NSString* key in headers) [request setValue:headers[key] forHTTPHeaderField:key];
+    if (!(options & BKNoSignature)) {
+        NSDictionary *headers = [BKjs sign:request.URL.absoluteString method:@"GET" params:nil contentType:nil expires:0 checksum:nil];
+        for (NSString* key in headers) [request setValue:headers[key] forHTTPHeaderField:key];
+    }
     [self sendImageRequest:request options:options success:success failure:failure];
 }
 
