@@ -130,7 +130,7 @@
             }
         } else {
             // Default account icon using generic interface in case all icons are public
-            [BKjs getIconByPrefix:@{ @"id": params[@"avatar_id"], @"type": [params str:@[@"avatar_type"] dflt:@"0"] } options:BKCacheModeCache success:^(UIImage *image, NSString *url) { self.avatar.image = image; } failure:nil];
+            [BKjs getIconByPrefix:@{ @"id": [params str:@"avatar_id"], @"type": [params str:@[@"avatar_type"] dflt:@"0"] } options:BKCacheModeCache success:^(UIImage *image, NSString *url) { self.avatar.image = image; } failure:nil];
         }
         x = self.avatar.right + 5;
     } else {

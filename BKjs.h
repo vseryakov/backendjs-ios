@@ -181,16 +181,16 @@ typedef NS_OPTIONS(NSUInteger, BKOptions) {
 #pragma mark Account API
 
 + (void)getAccount:(NSDictionary*)params success:(DictionaryBlock)success failure:(FailureBlock)failure;
-+ (void)delAccount:(NSDictionary*)params success:(GenericBlock)success failure:(GenericBlock)failure;
-+ (void)updateAccount:(NSDictionary*)params success:(GenericBlock)success failure:(FailureBlock)failure;
-+ (void)updateDevice:(NSData*)device success:(GenericBlock)success failure:(FailureBlock)failure;
++ (void)delAccount:(NSDictionary*)params success:(SuccessBlock)success failure:(FailureBlock)failure;
++ (void)updateAccount:(NSDictionary*)params success:(SuccessBlock)success failure:(FailureBlock)failure;
++ (void)updateDevice:(NSData*)device success:(SuccessBlock)success failure:(FailureBlock)failure;
 
 #pragma mark Account icons API
 
 + (void)getAccountIcon:(NSDictionary*)params options:(BKOptions)options success:(ImageSuccessBlock)success failure:(FailureBlock)failure;
-+ (void)putAccountIcon:(UIImage*)image params:(NSDictionary*)params success:(GenericBlock)success failure:(FailureBlock)failure;
-+ (void)delAccountIcon:(NSDictionary*)params success:(GenericBlock)success failure:(FailureBlock)failure;
-+ (void)getAccountIcons:(NSDictionary*)params success:(ListBlock)success failure:(GenericBlock)failure;
++ (void)putAccountIcon:(UIImage*)image params:(NSDictionary*)params success:(SuccessBlock)success failure:(FailureBlock)failure;
++ (void)delAccountIcon:(NSDictionary*)params success:(SuccessBlock)success failure:(FailureBlock)failure;
++ (void)getAccountIcons:(NSDictionary*)params success:(ListBlock)success failure:(FailureBlock)failure;
 
 #pragma mark Icon API
 
@@ -200,7 +200,7 @@ typedef NS_OPTIONS(NSUInteger, BKOptions) {
 
 #pragma mark Location API
 
-+ (void)putLocation:(CLLocation*)location params:(NSDictionary*)params success:(GenericBlock)success failure:(FailureBlock)failure;
++ (void)putLocation:(CLLocation*)location params:(NSDictionary*)params success:(SuccessBlock)success failure:(FailureBlock)failure;
 + (void)getLocation:(NSDictionary*)params success:(ArrayBlock)success failure:(FailureBlock)failure;
 
 #pragma mark Connection API
@@ -210,8 +210,8 @@ typedef NS_OPTIONS(NSUInteger, BKOptions) {
 + (void)getConnection:(NSDictionary*)params success:(SuccessBlock)success failure:(FailureBlock)failure;
 + (void)getReference:(NSDictionary*)params success:(SuccessBlock)success failure:(FailureBlock)failure;
 + (void)addConnection:(NSDictionary*)params success:(SuccessBlock)success failure:(FailureBlock)failure;
-+ (void)updateConnection:(NSDictionary*)params success:(GenericBlock)success failure:(FailureBlock)failure;
-+ (void)incrConnection:(NSDictionary*)params success:(GenericBlock)success failure:(FailureBlock)failure;
++ (void)updateConnection:(NSDictionary*)params success:(SuccessBlock)success failure:(FailureBlock)failure;
++ (void)incrConnection:(NSDictionary*)params success:(SuccessBlock)success failure:(FailureBlock)failure;
 + (void)delConnection:(NSDictionary*)params success:(SuccessBlock)success failure:(FailureBlock)failure;
 
 #pragma mark Message API

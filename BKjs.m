@@ -885,7 +885,7 @@ static NSString *SysCtlByName(char *typeSpecifier)
 
 #pragma mark Account Icon API
 
-+ (void)getAccountIcons:(NSDictionary*)params success:(ListBlock)success failure:(GenericBlock)failure
++ (void)getAccountIcons:(NSDictionary*)params success:(ListBlock)success failure:(FailureBlock)failure
 {
     [BKjs sendQuery:@"/account/select/icon"
              method:@"POST"
@@ -902,7 +902,7 @@ static NSString *SysCtlByName(char *typeSpecifier)
 }
 
 // Sending nil image will delete the icon for the given type
-+ (void)putAccountIcon:(UIImage*)image params:(NSDictionary*)params success:(GenericBlock)success failure:(FailureBlock)failure
++ (void)putAccountIcon:(UIImage*)image params:(NSDictionary*)params success:(SuccessBlock)success failure:(FailureBlock)failure
 {
     if (!image || ![image isKindOfClass:[UIImage class]]) {
         if (failure) failure(-1, @"invalid image");
@@ -928,7 +928,7 @@ static NSString *SysCtlByName(char *typeSpecifier)
           failure:failure];
 }
 
-+ (void)delAccountIcon:(NSDictionary*)params success:(GenericBlock)success failure:(FailureBlock)failure
++ (void)delAccountIcon:(NSDictionary*)params success:(SuccessBlock)success failure:(FailureBlock)failure
 {
     [BKjs sendQuery:@"/account/del/icon"
            method:@"POST"
@@ -951,7 +951,7 @@ static NSString *SysCtlByName(char *typeSpecifier)
                   
                   // Update push notifications device token
                   if (_deviceToken && ![_deviceToken isEqual:[self.account str:@"device_id"]]) {
-                      [self updateAccount:@{ @"device_id": _deviceToken } success:success failure:failure];
+                      [self updateAccount:@{ @"device_id": _deviceToken } success:nil failure:nil];
                   }
                   if (success) success(self.account);
               } else {
@@ -963,7 +963,7 @@ static NSString *SysCtlByName(char *typeSpecifier)
           }];
 }
 
-+ (void)addAccount:(NSDictionary*)params success:(GenericBlock)success failure:(FailureBlock)failure
++ (void)addAccount:(NSDictionary*)params success:(SuccessBlock)success failure:(FailureBlock)failure
 {
     [BKjs sendQuery:@"/account/add"
            method:@"POST"
@@ -975,18 +975,18 @@ static NSString *SysCtlByName(char *typeSpecifier)
           failure:failure];
 }
 
-+ (void)delAccount:(NSDictionary*)params success:(GenericBlock)success failure:(GenericBlock)failure
++ (void)delAccount:(NSDictionary*)params success:(SuccessBlock)success failure:(FailureBlock)failure
 {
     [BKjs sendQuery:@"/account/del"
            method:@"POST"
            params:params
             success:^(id obj) {
                 [self logout];
-                if (success) success();
+                if (success) success(obj);
             } failure:failure];
 }
 
-+ (void)updateAccount:(NSDictionary*)params success:(GenericBlock)success failure:(FailureBlock)failure
++ (void)updateAccount:(NSDictionary*)params success:(SuccessBlock)success failure:(FailureBlock)failure
 {
     [BKjs sendQuery:@"/account/update"
            method:@"POST"
@@ -994,14 +994,17 @@ static NSString *SysCtlByName(char *typeSpecifier)
           success:^(NSDictionary *json) {
               // Update local account record with the same field values
               for (NSString *key in params) BKjs.account[key] = params[key];
-              if (success) success();
+              if (success) success(json);
           }
           failure:failure];
 }
 
-+ (void)updateDevice:(NSData*)device success:(GenericBlock)success failure:(FailureBlock)failure
++ (void)updateDevice:(NSData*)device success:(SuccessBlock)success failure:(FailureBlock)failure
 {
-    if (!device) return;
+    if (!device) {
+        if (success) success(nil);
+        return;
+    }
     const char* data = device.bytes;
     NSMutableString* token = [NSMutableString string];
     for (int i = 0; i < device.length; i++) {
@@ -1082,7 +1085,7 @@ static NSString *SysCtlByName(char *typeSpecifier)
             failure:failure];
 }
 
-+ (void)updateConnection:(NSDictionary*)params success:(GenericBlock)success failure:(FailureBlock)failure
++ (void)updateConnection:(NSDictionary*)params success:(SuccessBlock)success failure:(FailureBlock)failure
 {
     [BKjs sendQuery:@"/connection/update"
            method:@"POST"
@@ -1091,7 +1094,7 @@ static NSString *SysCtlByName(char *typeSpecifier)
           failure:failure];
 }
 
-+ (void)incrConnection:(NSDictionary*)params success:(GenericBlock)success failure:(FailureBlock)failure
++ (void)incrConnection:(NSDictionary*)params success:(SuccessBlock)success failure:(FailureBlock)failure
 {
     [BKjs sendQuery:@"/connection/incr"
              method:@"POST"
@@ -1252,7 +1255,7 @@ static NSString *SysCtlByName(char *typeSpecifier)
     [[NSNotificationCenter defaultCenter] postNotificationName:@"BKLocationChangedNotification" object:self userInfo:@{ @"location": _location }];
 }
 
-+ (void)putLocation:(CLLocation*)location params:(NSDictionary*)params success:(GenericBlock)success failure:(FailureBlock)failure
++ (void)putLocation:(CLLocation*)location params:(NSDictionary*)params success:(SuccessBlock)success failure:(FailureBlock)failure
 {
     Logger(@"putLocation: %g %g", location.coordinate.latitude, location.coordinate.longitude);
     

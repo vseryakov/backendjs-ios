@@ -23,6 +23,7 @@
 
 - (void)updateAccount:(NSString*)name value:(id)value
 {
+    Logger(@"%@: %@", name, value);
     if (!name || !value) return;
     [BKjs updateAccount:@{ name: value } success:^(id obj) {
         [[NSNotificationCenter defaultCenter] postNotificationName:@"profileUpdated" object:nil];
@@ -125,7 +126,7 @@
     NSDictionary *item = objc_getAssociatedObject(imgView, @"item");
     
     [self showActivity];
-    [BKjs putAccountIcon:image params:item[@"params"] success:^{
+    [BKjs putAccountIcon:image params:item[@"params"] success:^(id obj) {
         [self hideActivity];
         imgView.image = image;
         [self doPostprocess:item];
@@ -141,7 +142,7 @@
     [BKui showAction:self title:@"Choose profile picture" actions:@[@"Cancel",@"Social Network Albums",@"Photo Library",@"Camera",@"Delete picture"] finish:^(NSString *action) {
         if ([action isEqual:@"Delete picture"]) {
             NSDictionary *item = objc_getAssociatedObject(imgView, @"item");
-            [BKjs delAccountIcon:item[@"params"] success:^{
+            [BKjs delAccountIcon:item[@"params"] success:^(id obj) {
                 imgView.image = [BKapp profileAvatar];
                 [self doPostprocess:item];
                 [[NSNotificationCenter defaultCenter] postNotificationName:@"profileUpdated" object:nil];
