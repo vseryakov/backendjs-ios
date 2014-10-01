@@ -91,20 +91,21 @@
         if (sender == button) {
             // Find additional parameters for given action
             for (NSDictionary *item in self.items) {
+                id delegate = item[@"delegate"] ? item[@"delegate"] : self.delegate ? self.delegate : [BKui rootController];
                 if ([name isEqual:item[@"name"]] || [name isEqual:item[@"title"]] || [name isEqual:item[@"icon"]]) {
                     if (item[@"block"]) {
                         SuccessBlock block = item[@"block"];
                         block(item[@"params"] ? item[@"params"] : item);
                     } else
                     if (item[@"selector"]) {
-                        [BKjs invoke:item[@"delegate"] ? item[@"delegate"] : [BKui rootController] name:item[@"selector"] arg:item];
+                        [BKjs invoke:delegate name:item[@"selector"] arg:item];
                     } else
                     if (item[@"view"]) {
                         // Replace active button with normal icon to keep tool bar state for drawers
                         if ([BKjs matchString:@"drawer" string:item[@"view"]]) {
                             button.highlighted = NO;
                         }
-                        [BKui showViewController:nil name:item[@"view"] ? item[@"view"] : name params:item];
+                        [BKui showViewController:delegate name:item[@"view"] ? item[@"view"] : name params:item];
                     }
                     break;
                 }

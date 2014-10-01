@@ -43,12 +43,7 @@
     self.barHeight = 20;
     self.tableRows = 0;
     self.tableCell = nil;
-    self.tableRestore = NO;
-    self.tableUnselected = NO;
-    self.tableRounded = NO;
-    self.tableSearchable = NO;
     self.tableSearchHidden = YES;
-    self.tableRefreshable = NO;
     self.drawerPanning = YES;
     return self;
 }
@@ -204,6 +199,7 @@
     } else {
         self.menubarView = [[BKMenubarView alloc] init:CGRectMake(0, 0, self.view.width, self.toolbarHeight + self.barHeight) items:items params:params];
         self.menubarView.contentInsets = UIEdgeInsetsMake(self.barHeight, 0, 0, 0);
+        self.menubarView.delegate = self;
         [self.view addSubview:self.menubarView];
         self.menubarView.backgroundColor = [BKui makeColor:self.view.backgroundColor h:1 s:1 b:0.95 a:1];
         [BKui setStyle:self.menubarView style:BKui.style[@"menubar"]];
@@ -224,6 +220,7 @@
     } else {
         self.tabbarView = [[BKMenubarView alloc] init:CGRectMake(0, self.view.height - self.toolbarHeight, self.view.width, self.toolbarHeight) items:items params:params];
         self.tabbarView.backgroundColor = [BKui makeColor:self.view.backgroundColor h:1 s:1 b:0.95 a:1];
+        self.tabbarView.delegate = self;
         [BKui setViewShadow:self.tabbarView color:nil offset:CGSizeMake(0, 0.5) opacity:0.5 radius:-1];
         [self.view addSubview:self.tabbarView];
     }
@@ -250,7 +247,7 @@
     self.tableView.rowHeight = 44;
     if ([self.tableView respondsToSelector:@selector(setLayoutMargins:)]) [self.tableView setLayoutMargins:UIEdgeInsetsZero];
     
-    if (self.tableRounded || self.tableTransparent) {
+    if (self.tableTransparent) {
         self.tableView.backgroundColor = [UIColor clearColor];
     }
     
@@ -334,6 +331,7 @@
 
 - (id)getItem:(NSIndexPath*)indexPath
 {
+    if (!indexPath) return nil;
     if (self.itemsSection) {
         NSArray *section = indexPath.section < self.itemsSection.count ? self.itemsSection[indexPath.section] : nil;
         return section && indexPath.row < [section count] ? section[indexPath.row] : nil;
@@ -345,6 +343,7 @@
 
 - (void)setItem:(NSIndexPath*)indexPath data:(id)data
 {
+    if (!indexPath || !data) return;
     if (self.itemsSection) {
         NSMutableArray *section = indexPath.section < self.itemsSection.count ? self.itemsSection[indexPath.section] : nil;
         if (section && indexPath.row < [section count]) section[indexPath.row]  = data;
@@ -599,22 +598,28 @@
     for (id key in params) self.params[key] = params[key];
     
     if (params && params[@"bk:transition"]) {
-        self.transition[@"type"] = params[@"bk:transition"];
+        if ([params[@"bk:transition"] isKindOfClass:[NSString class]]) {
+            self.transition[@"type"] = params[@"bk:transition"];
+        } else
+        if ([params[@"bk:transition"] isKindOfClass:[NSDictionary class]]) {
+            [self.transition removeAllObjects];
+            for (id key in params[@"bk:transition"]) {
+                self.transition[key] = params[@"bk:transition"][key];
+            }
+        }
         [self.params removeObjectForKey:@"bk:transition"];
     }
     
     if ([@[@"", @"push"] containsObject:self.navigationMode]) {
+        owner.navigationController.delegate = self;
         self.navigationController.delegate = self;
         self.transitioningDelegate = nil;
     }
     
     if ([@[@"modal"] containsObject:self.navigationMode]) {
         self.navigationController.delegate = nil;
-        self.transitioningDelegate = nil;
-        if (self.transition[@"type"]) {
-            self.transitioningDelegate = self;
-            self.modalPresentationStyle = UIModalPresentationCustom;
-        }
+        self.transitioningDelegate = self;
+        self.modalPresentationStyle = UIModalPresentationCustom;
     }
     
     Logger(@"%@: mode=%@, type=%@", self.name, self.navigationMode, self.transition[@"type"]);
@@ -738,7 +743,7 @@
 
 - (void)navigationController:(UINavigationController *)navigationController didShowViewController:(UIViewController *)viewController animated:(BOOL)animated
 {
-    navigationController.delegate = nil;
+    //navigationController.delegate = nil;
 }
 
 - (id <UIViewControllerInteractiveTransitioning>)navigationController:(UINavigationController*)navigationController interactionControllerForAnimationController:(id <UIViewControllerAnimatedTransitioning>)animationController
@@ -896,7 +901,7 @@
 
 - (CGFloat)tableView:(UITableView *)tableView heightForRowAtIndexPath:(NSIndexPath *)indexPath
 {
-    return tableView.rowHeight;
+    return self.tableView.rowHeight;
 }
 
 - (UITableViewCell *)tableView:(UITableView *)tableView cellForRowAtIndexPath:(NSIndexPath *)indexPath
@@ -910,16 +915,6 @@
     cell.accessoryType = UITableViewCellAccessoryNone;
     cell.selectionStyle = UITableViewCellSelectionStyleNone;
     if ([cell respondsToSelector:@selector(setLayoutMargins:)]) [cell setLayoutMargins:UIEdgeInsetsZero];
-
-    // Rounded table, round corners on the first and last cells
-    if (self.tableRounded) {
-        if (indexPath.row == 0) {
-            [BKui setRoundCorner:cell corner:UIRectCornerTopLeft|UIRectCornerTopRight radius:0];
-        }
-        if (indexPath.row == [self tableView:tableView numberOfRowsInSection:indexPath.section] - 1) {
-            [BKui setRoundCorner:cell corner:UIRectCornerBottomLeft|UIRectCornerBottomRight radius:0];
-        }
-    }
     [self onTableCell:cell indexPath:indexPath];
     return cell;
 }

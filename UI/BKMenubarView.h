@@ -9,6 +9,7 @@
 @property (strong, nonatomic) NSMutableArray *items;
 @property (strong, nonatomic) NSMutableDictionary *buttons;
 @property (nonatomic) UIEdgeInsets contentInsets;
+@property (nonatomic, weak) id delegate;
 
 - (instancetype)init:(CGRect)frame items:(NSArray*)items params:(NSDictionary*)params;
 - (void)setMenu:(NSArray*)items params:(NSDictionary*)params;

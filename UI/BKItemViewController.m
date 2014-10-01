@@ -30,7 +30,7 @@
     self.source.hidden = YES;
     [self.scroll addSubview:self.source];
     
-    self.header = [BKui makeLabel:CGRectMake(0, 0, 0, 0) text:@"" color:[UIColor blackColor] font:[UIFont boldSystemFontOfSize:15]];
+    self.header = [BKui makeLabel:CGRectMake(0, 0, 0, 0) text:@"" color:[UIColor blackColor] font:[UIFont boldSystemFontOfSize:16]];
     self.header.numberOfLines = 0;
     [self.scroll addSubview:self.header];
     
@@ -139,8 +139,8 @@
     
     if (params[@"source"]) {
         self.source.hidden = NO;
-        self.source.frame = CGRectMake(0, 0, 12, 12);
-        self.source.center = CGPointMake(21, self.avatar.bottom + 12);
+        self.source.frame = CGRectMake(0, 0, 13, 13);
+        self.source.center = CGPointMake(21, self.avatar.bottom + 13);
         if ([params[@"source"] rangeOfString:@"/"].location == NSNotFound) {
             self.source.image = [UIImage imageNamed:params[@"source"]];
         } else {
@@ -152,14 +152,14 @@
 
     if (params[@"header"]) {
         self.header.hidden = NO;
-        self.header.frame = CGRectMake(x, y, self.width - x - 5, 0);
+        self.header.frame = CGRectMake(x, y + 5, self.width - x - 5, 0);
         self.header.text = params[@"header"];
         [self.header sizeToFit];
         y = self.header.bottom + 5;
     } else
     if (params[@"alias"]) {
         self.header.hidden = NO;
-        self.header.frame = CGRectMake(x, y, self.width - x - 5, 0);
+        self.header.frame = CGRectMake(x, y + 5, self.width - x - 5, 0);
         NSString *mtime = params[@"mtime"] ? [BKjs strftime:[params num:@"mtime"]/1000 format:nil] : @"";
         NSString *str = [NSString stringWithFormat:@"%@  %@", params[@"alias"], mtime];
         NSMutableAttributedString* astr = [[NSMutableAttributedString alloc] initWithString:str];
@@ -167,7 +167,6 @@
         [astr addAttribute:NSFontAttributeName value:[UIFont systemFontOfSize:12] range:[str rangeOfString:mtime]];
         [self.header setAttributedText:astr];
         [self.header sizeToFit];
-        self.header.bottom += 5;
         y = self.header.bottom + 5;
         
     } else {
@@ -189,6 +188,14 @@
         self.msg.hidden = YES;
     }
     
+    if (params[@"image"] && [params[@"image"] isKindOfClass:[UIImage class]]) {
+        UIImage *image = params[@"image"];
+        self.icon.contentMode = image.size.width < self.icon.width && image.size.height < self.icon.height ? UIViewContentModeCenter : UIViewContentModeScaleAspectFit;
+        self.icon.hidden = NO;
+        self.icon.frame = CGRectMake(x, y, self.width - x - 5, self.width/2);
+        self.icon.image = image;
+        y = self.icon.bottom + 5;
+    } else
     if (params[@"icon"]) {
         self.icon.hidden = NO;
         self.icon.frame = CGRectMake(x, y, self.width - x - 5, self.width/2);
@@ -196,14 +203,6 @@
             self.icon.contentMode = image.size.width < self.icon.width && image.size.height < self.icon.height ? UIViewContentModeCenter : UIViewContentModeScaleAspectFit;
             self.icon.image = image;
         } failure:nil];
-        y = self.icon.bottom + 5;
-    } else
-    if (params[@"image"] && [params[@"image"] isKindOfClass:[UIImage class]]) {
-        UIImage *image = params[@"image"];
-        self.icon.contentMode = image.size.width < self.icon.width && image.size.height < self.icon.height ? UIViewContentModeCenter : UIViewContentModeScaleAspectFit;
-        self.icon.hidden = NO;
-        self.icon.frame = CGRectMake(x, y, self.width - x - 5, self.width/2);
-        self.icon.image = image;
         y = self.icon.bottom + 5;
     } else {
         self.icon.hidden = YES;

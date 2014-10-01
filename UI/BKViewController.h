@@ -60,7 +60,6 @@
 @property (nonatomic, assign) NSInteger tableRows;
 @property (nonatomic, assign) BOOL tableTransparent;
 @property (nonatomic, assign) BOOL tableUnselected;
-@property (nonatomic, assign) BOOL tableRounded;
 @property (nonatomic, assign) BOOL tableRestore;
 
 @property (strong, nonatomic) IBOutlet UISearchBar *tableSearchBar;

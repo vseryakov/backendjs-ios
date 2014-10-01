@@ -811,8 +811,8 @@ static NSInteger styleSort(id a, id b, void *context)
     for (NSString *key in keys) {
         id val = style[key];
         double num = [style num:key];
-        if ([key isEqual:@"hidden"]) view.hidden = YES; else
-        if ([key isEqual:@"visible"]) view.hidden = NO; else
+        if ([key isEqual:@"hidden"]) view.hidden = num; else
+        if ([key isEqual:@"visible"]) view.hidden = num; else
         if ([key isEqual:@"frame"]) view.frame = [self toCGRect:style name:@"frame"]; else
         if ([key isEqual:@"x"]) view.x = num; else
         if ([key isEqual:@"y"]) view.y = num; else
