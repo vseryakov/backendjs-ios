@@ -151,7 +151,7 @@
         }
         
         ItemsBlock block = ^(NSMutableArray *items, id result) {
-            for (NSDictionary *item in result[@"data"]) {
+            for (NSDictionary *item in [BKjs toArray:result name:@"data"]) {
                 [items addObject:@{ @"type": self.name,
                                     @"icon": [item str:@"picture"],
                                     @"image": [item str:@"source"] }];
@@ -164,6 +164,7 @@
                               completionHandler:^(FBRequestConnection *connection, id result, NSError *error) {
                                   if (!error) {
                                       NSMutableArray *items = [@[] mutableCopy];
+                                      Logger(@"%@", result);
                                       block(items, result);
                                       if (result[@"paging"] && result[@"paging"][@"next"]) {
                                           [self getNext:result[@"paging"][@"next"] items:items block:block success:success failure:failure];
@@ -186,7 +187,7 @@
             return;
         }
         ItemsBlock block = ^(NSMutableArray *items, id result) {
-            for (NSDictionary *item in result[@"data"]) {
+            for (NSDictionary *item in [BKjs toArray:result name:@"data"]) {
                 NSMutableDictionary *rec = [item mutableCopy];
                 rec[@"type"] = self.name;
                 rec[@"facebook_id"] = [item str:@"id"];

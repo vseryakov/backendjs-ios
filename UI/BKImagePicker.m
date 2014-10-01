@@ -120,6 +120,7 @@
                          self.toolbarTitle.text = album[@"name"];
                      }];
     
+    Logger(@"%@", album);
     // Photos to be retrieved from the remote accounts
     for (id item in self.params[@"accounts"]) {
         if ([item isKindOfClass:[BKSocialAccount class]]) {

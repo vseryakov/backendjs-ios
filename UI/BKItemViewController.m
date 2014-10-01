@@ -167,6 +167,7 @@
         [astr addAttribute:NSFontAttributeName value:[UIFont systemFontOfSize:12] range:[str rangeOfString:mtime]];
         [self.header setAttributedText:astr];
         [self.header sizeToFit];
+        self.header.bottom += 5;
         y = self.header.bottom + 5;
         
     } else {

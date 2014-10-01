@@ -837,6 +837,7 @@ static NSInteger styleSort(id a, id b, void *context)
         if ([key isEqual:@"borderColor"] && [val isKindOfClass:[UIColor class]]) view.layer.borderColor = [val CGColor]; else
         if ([key isEqual:@"layerBackgroundColor"] && [val isKindOfClass:[UIColor class]]) view.layer.backgroundColor = [(UIColor*)val CGColor]; else
         if ([key isEqual:@"borderWidth"]) view.layer.borderWidth = num; else
+        if ([key isEqual:@"fit"]) [view sizeToFit]; else
         if ([key isEqual:@"background-image-inset"] && [val isKindOfClass:[NSDictionary class]]) {
             UIView *bg = [view viewWithTag:9192930];
             if (bg) bg.frame = CGRectInset(view.bounds, [val num:@"x"], [val num:@"y"]);
@@ -959,10 +960,10 @@ static NSInteger styleSort(id a, id b, void *context)
         
         if ([view isKindOfClass:[UIButton class]]) {
             UIButton *button = (UIButton*)view;
-            if ([key isEqual:@"disabled"]) button.enabled = NO; else
-            if ([key isEqual:@"enabled"]) button.enabled = YES; else
-            if ([key isEqual:@"selected"]) button.selected = YES; else
-            if ([key isEqual:@"highlighted"]) button.highlighted = YES; else
+            if ([key isEqual:@"disabled"]) button.enabled = num; else
+            if ([key isEqual:@"enabled"]) button.enabled = num; else
+            if ([key isEqual:@"selected"]) button.selected = num; else
+            if ([key isEqual:@"highlighted"]) button.highlighted = num; else
             if ([key isEqual:@"normal"]) button.selected = button.highlighted = NO; else
             if ([key isEqual:@"contentHorizontalAlignment"]) button.contentHorizontalAlignment = num; else
             if ([key isEqual:@"contentVerticalAlignment"]) button.contentVerticalAlignment = num; else
@@ -1005,7 +1006,6 @@ static NSInteger styleSort(id a, id b, void *context)
             if ([key isEqual:@"lineBreakMode"]) button.titleLabel.lineBreakMode = [self toLineBreak:style name:key]; else
             if ([key isEqual:@"numberOfLines"]) button.titleLabel.numberOfLines = num; else
             if ([key isEqual:@"imageContentMode"]) button.imageView.contentMode = num; else
-            if ([key isEqual:@"fit"]) [button sizeToFit]; else
             if ([key isEqual:@"vertical"]) {
                 // Align icon and title vertically in the button, vertical defines top/bottom padding
                 CGFloat h = (button.imageView.height + button.titleLabel.height + [style num:key]);

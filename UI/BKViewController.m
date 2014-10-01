@@ -119,7 +119,8 @@
 - (void)addInfoView:(NSString*)text
 {
     if (!self.infoView) {
-        int y = self.tableView ? self.tableView.y : self.toolbarHeight + self.barHeight, h = self.tableView ? self.tableView.height : self.view.height - y;
+        int y = self.tableView ? self.tableView.y : (int)self.toolbarHeight + (int)self.barHeight;
+        int h = self.tableView ? self.tableView.height : self.view.height - y;
         self.infoView = [[UIView alloc] initWithFrame:CGRectMake(0, y, self.view.width, h)];
         self.infoView.backgroundColor = self.view.backgroundColor;
         self.infoView.hidden = YES;
