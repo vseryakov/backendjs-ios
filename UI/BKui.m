@@ -146,11 +146,10 @@ static UINavigationController *_navigation;
 
 + (UIViewController*)showViewController:(UIViewController*)owner controller:(UIViewController*)controller name:(NSString*)name mode:(NSString*)mode params:(NSDictionary*)params
 {
-    if (!controller) {
+    if (!controller || !owner) {
         Logger(@"Error: %@: name: %@, mode: %@, no controller provided", owner, name, mode);
         return nil;
     }
-    if (!owner) owner = [self rootController];
 
     Logger(@"%@: name: %@, mode: %@, params: %@", owner, name, mode ? mode : @"", params ? params : @"");
 
@@ -160,7 +159,7 @@ static UINavigationController *_navigation;
         [view prepareForShow:owner name:name mode:mode params:params];
     }
 
-    UINavigationController *nav = owner && owner.navigationController ? owner.navigationController : self.navigationController;
+    UINavigationController *nav = owner.navigationController ? owner.navigationController : self.navigationController;
     
     if ([mode hasPrefix:@"modal"]) {
         [owner presentViewController:controller animated:YES completion:nil];
@@ -182,14 +181,14 @@ static UINavigationController *_navigation;
     return controller;
 }
 
-+ (void)showAlert:(NSString*)title text:(NSString*)text finish:(AlertBlock)finish
++ (void)showAlert:(UIViewController*)owner title:(NSString*)title text:(NSString*)text finish:(AlertBlock)finish
 {
     if ([UIAlertController class]) {
         UIAlertController* alert = [UIAlertController alertControllerWithTitle:title message:text preferredStyle:UIAlertControllerStyleAlert];
         [alert addAction:[UIAlertAction actionWithTitle:@"OK" style:UIAlertActionStyleDefault handler:^(UIAlertAction *action) {
             if (finish) finish(action.title);
         }]];
-        [[self rootController] presentViewController:alert animated:YES completion:nil];
+        [owner presentViewController:alert animated:YES completion:nil];
     } else {
         UIAlertView *alertView = [[UIAlertView alloc] initWithTitle:title message:text delegate:self.instance cancelButtonTitle:@"OK" otherButtonTitles:nil];
         if (finish) objc_setAssociatedObject(alertView, @"alertBlock", finish, OBJC_ASSOCIATION_RETAIN);
@@ -197,14 +196,14 @@ static UINavigationController *_navigation;
     }
 }
 
-+ (void)showConfirm:(NSString*)title text:(NSString*)text buttons:(NSArray*)buttons finish:(AlertBlock)finish
++ (void)showConfirm:(UIViewController*)owner title:(NSString*)title text:(NSString*)text buttons:(NSArray*)buttons finish:(AlertBlock)finish
 {
     if ([UIAlertController class]) {
         UIAlertController* alert = [UIAlertController alertControllerWithTitle:title message:text preferredStyle:UIAlertControllerStyleAlert];
         for (NSString *key in buttons) [alert addAction:[UIAlertAction actionWithTitle:key style:UIAlertActionStyleDefault handler:^(UIAlertAction *action) {
             if (finish) finish(action.title);
         }]];
-        [[self rootController] presentViewController:alert animated:YES completion:nil];
+        [owner presentViewController:alert animated:YES completion:nil];
     } else {
         UIAlertView *alertView = [[UIAlertView alloc] initWithTitle:title message:text delegate:self.instance cancelButtonTitle:nil otherButtonTitles:nil];
         for (NSString *key in buttons) [alertView addButtonWithTitle:key];
@@ -213,7 +212,7 @@ static UINavigationController *_navigation;
     }
 }
 
-+ (void)showConfirm:(NSString*)title text:(NSString*)text ok:(NSString*)ok cancel:(NSString*)cancel finish:(AlertBlock)finish
++ (void)showConfirm:(UIViewController*)owner title:(NSString*)title text:(NSString*)text ok:(NSString*)ok cancel:(NSString*)cancel finish:(AlertBlock)finish
 {
     if ([UIAlertController class]) {
         UIAlertController* alert = [UIAlertController alertControllerWithTitle:title message:text preferredStyle:UIAlertControllerStyleAlert];
@@ -223,7 +222,7 @@ static UINavigationController *_navigation;
         [alert addAction:[UIAlertAction actionWithTitle:ok ? ok : @"Ok" style:UIAlertActionStyleDefault handler:^(UIAlertAction *action) {
             if (finish) finish(action.title);
         }]];
-        [[self rootController] presentViewController:alert animated:YES completion:nil];
+        [owner presentViewController:alert animated:YES completion:nil];
     }  else {
         UIAlertView *alertView = [[UIAlertView alloc] initWithTitle:title message:text delegate:self.instance cancelButtonTitle:cancel ? cancel : @"Cancel" otherButtonTitles:ok ? ok : @"OK",nil];
         if (finish) objc_setAssociatedObject(alertView, @"alertBlock", finish, OBJC_ASSOCIATION_RETAIN);
@@ -241,7 +240,10 @@ static UINavigationController *_navigation;
         [owner presentViewController:alert animated:YES completion:nil];
     } else {
         UIActionSheet *action = [[UIActionSheet alloc] initWithTitle:title delegate:self.instance cancelButtonTitle:@"Cancel" destructiveButtonTitle:nil otherButtonTitles:nil];
-        for (NSString *button in actions) [action addButtonWithTitle:button];
+        for (NSString *button in actions) {
+            if ([button isEqual:@"Cancel"]) continue;
+            [action addButtonWithTitle:button];
+        }
         action.actionSheetStyle = UIActionSheetStyleBlackOpaque;
         if (finish) objc_setAssociatedObject(action, @"actionBlock", finish, OBJC_ASSOCIATION_RETAIN);
         [action showInView:owner.view];
@@ -262,12 +264,6 @@ static UINavigationController *_navigation;
         [button addTarget:self.instance action:@selector(onButton:) forControlEvents:UIControlEventTouchUpInside];
     }
     return button;
-}
-
-+ (void)showActivity
-{
-    UIViewController *root = [BKui rootController];
-    [self showActivityInView:root.view];
 }
 
 + (void)showActivityInView:(UIView*)view

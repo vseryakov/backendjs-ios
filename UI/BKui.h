@@ -55,13 +55,12 @@
 + (UIViewController*)showViewController:(UIViewController*)owner controller:(UIViewController*)controller name:(NSString*)name mode:(NSString*)mode params:(NSDictionary*)params;
 
 // Popup modal dialogs
-+ (void)showAlert:(NSString*)title text:(NSString*)text finish:(AlertBlock)finish;
-+ (void)showConfirm:(NSString*)title text:(NSString*)text ok:(NSString*)ok cancel:(NSString*)cancel finish:(AlertBlock)finish;
-+ (void)showConfirm:(NSString*)title text:(NSString*)text buttons:(NSArray*)buttons finish:(AlertBlock)finish;
++ (void)showAlert:(UIViewController*)owner title:(NSString*)title text:(NSString*)text finish:(AlertBlock)finish;
++ (void)showConfirm:(UIViewController*)owner title:(NSString*)title text:(NSString*)text ok:(NSString*)ok cancel:(NSString*)cancel finish:(AlertBlock)finish;
++ (void)showConfirm:(UIViewController*)owner title:(NSString*)title text:(NSString*)text buttons:(NSArray*)buttons finish:(AlertBlock)finish;
 + (void)showAction:(UIViewController*)owner title:(NSString *)title actions:(NSArray*)actions finish:(AlertBlock)finish;
 
 // Activity indicator
-+ (void)showActivity;
 + (void)showActivityInView:(UIView*)view;
 + (void)hideActivity;
 

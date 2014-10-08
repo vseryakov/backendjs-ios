@@ -41,6 +41,7 @@
 
 // Table support for sections index
 @property (strong, nonatomic) NSArray *itemsIndex;
+@property (strong, nonatomic) NSArray *itemsIndexTitle;
 @property (strong, nonatomic) NSMutableArray *itemsSection;
 
 // Next token for browsing items
@@ -59,7 +60,8 @@
 @property (strong, nonatomic) NSString *tableCell;
 @property (nonatomic, assign) NSInteger tableRows;
 @property (nonatomic, assign) BOOL tableTransparent;
-@property (nonatomic, assign) BOOL tableUnselected;
+@property (nonatomic, assign) BOOL tableShowUnselected;
+@property (nonatomic, assign) BOOL tableAutoUnselect;
 @property (nonatomic, assign) BOOL tableRestore;
 
 @property (strong, nonatomic) IBOutlet UISearchBar *tableSearchBar;
@@ -159,6 +161,7 @@
 - (void)clearItems;
 - (void)reloadItems:(NSArray*)items;
 - (void)refreshItems;
+- (void)buildIndex:(NSMutableArray*)list;
 
 #pragma mark Drawer
 

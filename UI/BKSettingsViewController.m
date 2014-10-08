@@ -16,7 +16,7 @@
 {
     [super viewDidLoad];
 
-    self.tableUnselected = YES;
+    self.tableShowUnselected = YES;
     [self addTable];
     [self addToolbar:@"Settings" params:nil];
 }
@@ -28,7 +28,7 @@
     [BKjs updateAccount:@{ name: value } success:^(id obj) {
         [[NSNotificationCenter defaultCenter] postNotificationName:@"profileUpdated" object:nil];
     } failure:^(NSInteger code, NSString *reason) {
-        [BKui showAlert:@"Error" text:reason finish:nil];
+        [BKui showAlert:self title:@"Error" text:reason finish:nil];
     }];
 }
 
@@ -61,7 +61,7 @@
     if (!self.view.superview || !self.view.window || !self.parentViewController) return NO;
     NSDictionary *item = objc_getAssociatedObject(sender, @"item");
     if (item[@"required"] && [BKjs isEmpty:[sender text]]) {
-        [BKui showAlert:@"Required" text:[NSString stringWithFormat:@"%@ cannot be empty, please enter some value", item[@"title"]] finish:nil];
+        [BKui showAlert:self title:@"Required" text:[NSString stringWithFormat:@"%@ cannot be empty, please enter some value", item[@"title"]] finish:nil];
         return YES;
     }
     return NO;
@@ -133,7 +133,7 @@
         [[NSNotificationCenter defaultCenter] postNotificationName:@"profileUpdated" object:nil];
     } failure:^(NSInteger code, NSString *reason) {
         [self hideActivity];
-        [BKui showAlert:@"Error" text:reason finish:nil];
+        [BKui showAlert:self title:@"Error" text:reason finish:nil];
     }];
 }
 

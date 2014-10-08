@@ -77,7 +77,7 @@
     self.navigationController.interactivePopGestureRecognizer.delegate = self;
     
     // Do not preserve selection
-    if (self.tableUnselected) [self unselectTable];
+    if (self.tableShowUnselected) [self unselectTable];
     if (self.tableSearchHidden && self.tableSearchable) {
         self.tableView.contentOffset = CGPointMake(0, self.tableView.tableHeaderView.height);
     }
@@ -400,7 +400,12 @@
             }
         }
     }
+    [self buildIndex:list];
     return list;
+}
+
+- (void)buildIndex:(NSMutableArray*)list
+{
 }
 
 - (void)onTableSearch:(id)sender
@@ -410,6 +415,11 @@
     // Clearing the text while the spell suggestion is up may clear but never calls the delegate
     if (![self.searchText isEqual:self.tableSearchBar.text]) self.tableSearchBar.text = self.searchText;
     if (![self.searchText isEqual:self.tableSearchField.text]) self.tableSearchField.text = self.searchText;
+    
+    if(self.itemsSection) {
+        [self reloadTable];
+        return;
+    }
     
     [self.tableView beginUpdates];
     NSMutableArray *paths = [@[] mutableCopy];
@@ -879,6 +889,7 @@
 - (void)tableView:(UITableView *)tableView didSelectRowAtIndexPath:(NSIndexPath *)indexPath
 {
     [self onTableSelect:indexPath selected:YES];
+    if (self.tableAutoUnselect) [self.tableView deselectRowAtIndexPath:indexPath animated:YES];
 }
 
 - (void)tableView:(UITableView *)tableView didDeselectRowAtIndexPath:(NSIndexPath *)indexPath
@@ -928,7 +939,13 @@
 
 - (NSString *)tableView:(UITableView *)tableView titleForHeaderInSection:(NSInteger)section
 {
-    return self.itemsIndex && section >= 0 && section < self.itemsIndex.count ? [self.itemsIndex objectAtIndex:section] : @"";
+    if (self.itemsIndexTitle && section >= 0 && section < self.itemsIndexTitle.count) {
+        return [self.itemsIndexTitle objectAtIndex:section];
+    }
+    if (self.itemsIndex && section >= 0 && section < self.itemsIndex.count) {
+        return [self.itemsIndex objectAtIndex:section];
+    }
+    return @"";
 }
 
 - (NSArray *)sectionIndexTitlesForTableView:(UITableView *)tableView

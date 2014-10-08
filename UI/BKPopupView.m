@@ -37,17 +37,15 @@
     [self hide:nil];
 }
 
-- (void)show:(SuccessBlock)completion
+- (void)showInView:(UIView*)view completion:(SuccessBlock)completion
 {
-    UIWindow *win = [[[UIApplication sharedApplication] delegate] window];
-
     _bg.alpha = 0.0;
     
     self.layer.opacity = 0.1;
     self.layer.transform = CATransform3DMakeScale(0.3, 0.3, 1.0);
 
-    [win addSubview:_bg];
-    [win addSubview:self];
+    [view addSubview:_bg];
+    [view addSubview:self];
 
     [UIView animateWithDuration:0.5
                           delay:0.1

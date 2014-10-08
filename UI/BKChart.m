@@ -365,7 +365,7 @@
     self.endValue = to;
     self.duration = duration;
     self.lastUpdate = [NSDate timeIntervalSinceReferenceDate];
-    if(self.format == nil) self.format = @"%f";
+    if (self.format == nil) self.format = @"%f";
     
     NSTimer* timer = [NSTimer timerWithTimeInterval:(1.0f/30.0f) target:self selector:@selector(update:) userInfo:nil repeats:YES];
     [[NSRunLoop mainRunLoop] addTimer:timer forMode:NSRunLoopCommonModes];
@@ -401,13 +401,13 @@
 
     float value = self.startValue +  (updateVal * (self.endValue - self.startValue));
     // check if counting with ints - cast to int
-    if([self.format rangeOfString:@"%(.*)d" options:NSRegularExpressionSearch].location != NSNotFound ||
-       [self.format rangeOfString:@"%(.*)i"].location != NSNotFound) {
+    if ([self.format rangeOfString:@"%(.*)d" options:NSRegularExpressionSearch].location != NSNotFound ||
+       [self.format rangeOfString:@"%(.*)i" options:NSRegularExpressionSearch].location != NSNotFound) {
         self.text = [NSString stringWithFormat:self.format,(int)value];
     } else {
         self.text = [NSString stringWithFormat:self.format,value];
     }
-	if (self.progress == self.duration && self.completionHandler != nil) {
+	if (self.progress >= self.duration && self.completionHandler != nil) {
 		self.completionHandler(self);
     }
 }

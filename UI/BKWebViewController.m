@@ -106,7 +106,7 @@
 
 - (void)showActivity
 {
-    [BKui showActivity];
+    [BKui showActivityInView:self.view];
 }
 
 - (void)hideActivity

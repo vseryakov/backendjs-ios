@@ -91,7 +91,7 @@
         if (sender == button) {
             // Find additional parameters for given action
             for (NSDictionary *item in self.items) {
-                id delegate = item[@"delegate"] ? item[@"delegate"] : self.delegate ? self.delegate : [BKui rootController];
+                id delegate = item[@"delegate"] ? item[@"delegate"] : self.delegate;
                 if ([name isEqual:item[@"name"]] || [name isEqual:item[@"title"]] || [name isEqual:item[@"icon"]]) {
                     if (item[@"block"]) {
                         SuccessBlock block = item[@"block"];

@@ -10,6 +10,6 @@
 
 - (instancetype)initWithFrame:(CGRect)frame;
 - (void)hide:(SuccessBlock)completion;
-- (void)show:(SuccessBlock)completion;
+- (void)showInView:(UIView*)view completion:(SuccessBlock)completion;
 - (void)onClose:(id)sender;
 @end
