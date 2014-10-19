@@ -42,8 +42,8 @@
 // Create new window and push the controller to the stack
 + (UIWindow*)makeWindow:(UIViewController*)controller;
 
-// Current top view controller
-+ (UIViewController*)rootController;
+// Current top view controller, can be any view controller including popups and alerts
++ (UIViewController*)rootViewController;
 
 // Show a view controller by name, look into the controllers dictionay by name or check if a storyboard exists and has
 // the view controller with the given name.
@@ -79,6 +79,7 @@
 
 // Modify components view and/or look
 + (void)setTextLinks:(UITextView*)label text:(NSString*)text links:(NSArray*)links handler:(SuccessBlock)handler;
++ (void)setTextAttributes:(UITextView*)label color:(UIColor*)color font:(UIFont*)font range:(NSRange)range;
 + (void)setLabelLink:(UILabel*)label text:(NSString*)text link:(NSString*)link handler:(SuccessBlock)handler;
 + (void)setLabelAttributes:(UILabel*)label color:(UIColor*)color font:(UIFont*)font range:(NSRange)range;
 + (void)setViewBorder:(UIView*)view color:(UIColor*)color width:(float)width radius:(float)radius;

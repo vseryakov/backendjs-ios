@@ -94,23 +94,29 @@ static UINavigationController *_navigation;
     return _navigation;
 }
 
-+ (UIViewController*)rootController:(UIViewController*)controller
++(UIViewController*) rootViewController:(UIViewController*)vc
 {
-    UIViewController *root = controller;
-    
-    while (root.presentedViewController) root = root.presentedViewController;
-    if ([root isKindOfClass:[UINavigationController class]]) {
-        UIViewController *visible = ((UINavigationController *)root).visibleViewController;
-        if (visible) root = visible;
+    if (vc.presentedViewController) {
+        return [self rootViewController:vc.presentedViewController];
+    } else
+    if ([vc isKindOfClass:[UISplitViewController class]]) {
+        UISplitViewController* svc = (UISplitViewController*) vc;
+        if (svc.viewControllers.count > 0) return [self rootViewController:svc.viewControllers.lastObject];
+    } else
+    if ([vc isKindOfClass:[UINavigationController class]]) {
+        UINavigationController* nc = (UINavigationController*) vc;
+        if (nc.viewControllers.count > 0) return [self rootViewController:nc.topViewController];
+    } else
+    if ([vc isKindOfClass:[UITabBarController class]]) {
+        UITabBarController* tbc = (UITabBarController*) vc;
+        if (tbc.viewControllers.count > 0) return [self rootViewController:tbc.selectedViewController];
     }
-    return (root != controller ? root : nil);
+    return vc;
 }
 
-+ (UIViewController*)rootController
++ (UIViewController*)rootViewController
 {
-    UIViewController *next, *root = [UIApplication sharedApplication].keyWindow.rootViewController;
-    while ((next = [BKui rootController:root]) != nil) root = next;
-    return root;
+    return [self rootViewController:[UIApplication sharedApplication].keyWindow.rootViewController];
 }
 
 - (UIViewController*)getViewController:(NSString*)name
@@ -146,10 +152,11 @@ static UINavigationController *_navigation;
 
 + (UIViewController*)showViewController:(UIViewController*)owner controller:(UIViewController*)controller name:(NSString*)name mode:(NSString*)mode params:(NSDictionary*)params
 {
-    if (!controller || !owner) {
+    if (!controller) {
         Logger(@"Error: %@: name: %@, mode: %@, no controller provided", owner, name, mode);
         return nil;
     }
+    if (!owner) mode = nil;
 
     Logger(@"%@: name: %@, mode: %@, params: %@", owner, name, mode ? mode : @"", params ? params : @"");
 
@@ -159,8 +166,11 @@ static UINavigationController *_navigation;
         [view prepareForShow:owner name:name mode:mode params:params];
     }
 
-    UINavigationController *nav = owner.navigationController ? owner.navigationController : self.navigationController;
+    UINavigationController *nav = owner && owner.navigationController ? owner.navigationController : self.navigationController;
     
+    if (!mode) {
+        [nav setViewControllers:@[controller] animated:YES];
+    } else
     if ([mode hasPrefix:@"modal"]) {
         [owner presentViewController:controller animated:YES completion:nil];
     } else
@@ -347,6 +357,17 @@ static UINavigationController *_navigation;
     [label setAttributedText:str];
     if (handler) objc_setAssociatedObject(label, @"urlBlock", handler, OBJC_ASSOCIATION_RETAIN);
     if (!label.delegate) label.delegate = self.instance;
+}
+
++ (void)setTextAttributes:(UITextView*)label color:(UIColor*)color font:(UIFont*)font range:(NSRange)range
+{
+    NSMutableAttributedString *attr = label.attributedText ?
+    [[NSMutableAttributedString alloc] initWithAttributedString:label.attributedText] :
+    [[NSMutableAttributedString alloc] initWithString:label.text];
+    
+    if (color) [attr addAttributes:@{NSForegroundColorAttributeName: color} range:range];
+    if (font) [attr addAttributes:@{NSFontAttributeName: font} range:range];
+    label.attributedText = attr;
 }
 
 + (UIImageView*)makeImageAvatar:(UIView*)view frame:(CGRect)frame color:(UIColor*)color border:(float)border eclipse:(UIImage*)eclipse

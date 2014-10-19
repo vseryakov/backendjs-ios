@@ -91,9 +91,7 @@ static NSString *SysCtlByName(char *typeSpecifier)
         _bkjs.delegate = _bkjs;
 
         [_bkjs setReachabilityStatusChangeBlock:^(AFNetworkReachabilityStatus status) {
-            dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(1 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
-                [[NSNotificationCenter defaultCenter] postNotificationName:@"BKNetworkStatusChangedNotification" object:self userInfo:@{ @"status": @(status) }];
-            });
+            [[NSNotificationCenter defaultCenter] postNotificationName:@"BKNetworkStatusChangedNotification" object:self userInfo:@{ @"status": @(status) }];
         }];
     });
     return _bkjs;
@@ -147,7 +145,12 @@ static NSString *SysCtlByName(char *typeSpecifier)
 + (NSCache*)cache
 {
     static dispatch_once_t _bkOnce;
-    dispatch_once(&_bkOnce, ^{ _cache = [[NSCache alloc] init]; });
+    dispatch_once(&_bkOnce, ^{
+        _cache = [[NSCache alloc] init];
+        [[NSNotificationCenter defaultCenter] addObserverForName:UIApplicationDidReceiveMemoryWarningNotification object:nil queue:[NSOperationQueue mainQueue] usingBlock:^(NSNotification *note) {
+            [_cache removeAllObjects];
+        }];
+    });
     return _cache;
 }
 

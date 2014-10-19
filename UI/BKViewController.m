@@ -31,6 +31,13 @@
     UIView *_panView;
 }
 
++ (BKViewController*)activeController
+{
+    UIViewController *root = [BKui rootViewController];
+    if ([root isKindOfClass:[BKViewController class]]) return (BKViewController*)root;
+    return nil;
+}
+
 - (instancetype)init
 {
     self = [super init];

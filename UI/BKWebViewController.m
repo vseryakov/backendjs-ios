@@ -94,7 +94,7 @@
 - (void)show
 {
     if (self.presentingViewController) return;
-    self.root = [BKui rootController];
+    self.root = [BKui rootViewController];
     [self.root presentViewController:self animated:YES completion:nil];
 }
 

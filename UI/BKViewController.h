@@ -102,6 +102,9 @@
 
 #pragma mark Navigation
 
+// Return active bk view controller, if the top controller is not derived from BKViewController returns nil
++ (BKViewController*)activeController;
+
 // Called after the view was created but before the view will be shown
 - (void)prepareForShow:(UIViewController*)owner name:(NSString*)name mode:(NSString*)mode params:(NSDictionary*)params;
 
