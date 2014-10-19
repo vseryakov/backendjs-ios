@@ -773,6 +773,15 @@ static NSString *SysCtlByName(char *typeSpecifier)
         if (success) success(json);
     } failure:^(NSURLRequest *request, NSHTTPURLResponse *response, NSError *error, id json) {
         Logger(@"url=%@, status=%ld, response: %@", request.URL, (long)response.statusCode, json ? json : error);
+        
+        if ([request.URL.host compare:BKjs.instance.baseURL.host options:NSCaseInsensitiveSearch] == NSOrderedSame) {
+            if (error.code == kCFURLErrorDNSLookupFailed || error.code == kCFURLErrorNotConnectedToInternet) {
+                [[NSNotificationCenter defaultCenter] postNotificationName:@"BKNetworkStatusChangedNotification" object:self userInfo:@{ @"status": @(AFNetworkReachabilityStatusNotReachable) }];
+            }
+            if (error.code == kCFURLErrorCannotConnectToHost || error.code == kCFURLErrorCannotFindHost) {
+                [[NSNotificationCenter defaultCenter] postNotificationName:@"BKServerStatusChangedNotification" object:self userInfo:@{ @"status": @(AFNetworkReachabilityStatusNotReachable) }];
+            }
+        }
         [self parseServerVersion:response];
         if (failure) failure(request, response, error, json);
     }];
