@@ -90,6 +90,10 @@
 // View specific activity indicator
 @property (strong, nonatomic) IBOutlet UIActivityIndicatorView *activityView;
 
+// Periodic timer while the controller is visible
+@property (nonatomic, assign) int timerInterval;
+- (void)onTimer:(NSTimer *)timer;
+
 // Drawer panning gesture
 @property (nonatomic, assign) BOOL drawerPanning;
 @property (strong, nonatomic) IBOutlet UIButton *drawerView;

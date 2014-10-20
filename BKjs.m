@@ -25,7 +25,7 @@ static NSString* _iOSVersion;
 static NSString* _iOSPlatform;
 static NSString *_iOSModel;
 static NSString *_deviceToken;
-
+static AFNetworkReachabilityStatus _status = -1;
 static int _log_max = 0;
 static NSMutableArray *_log;
 static pthread_mutex_t _log_lock = PTHREAD_MUTEX_INITIALIZER;
@@ -91,7 +91,7 @@ static NSString *SysCtlByName(char *typeSpecifier)
         _bkjs.delegate = _bkjs;
 
         [_bkjs setReachabilityStatusChangeBlock:^(AFNetworkReachabilityStatus status) {
-            [[NSNotificationCenter defaultCenter] postNotificationName:@"BKNetworkStatusChangedNotification" object:self userInfo:@{ @"status": @(status) }];
+            [[NSNotificationCenter defaultCenter] postNotificationName:@"BKNetworkStatusChangedNotification" object:nil userInfo:@{ @"status": @(status) }];
         }];
     });
     return _bkjs;
@@ -770,22 +770,42 @@ static NSString *SysCtlByName(char *typeSpecifier)
     
     AFJSONRequestOperation *op = [AFJSONRequestOperation JSONRequestOperationWithRequest:request success:^(NSURLRequest *request, NSHTTPURLResponse *response, id json) {
         [self parseServerVersion:response];
+        [self checkErrorCode:request error:nil];
         if (success) success(json);
     } failure:^(NSURLRequest *request, NSHTTPURLResponse *response, NSError *error, id json) {
         Logger(@"url=%@, status=%ld, response: %@", request.URL, (long)response.statusCode, json ? json : error);
-        
-        if ([request.URL.host compare:BKjs.instance.baseURL.host options:NSCaseInsensitiveSearch] == NSOrderedSame) {
-            if (error.code == kCFURLErrorDNSLookupFailed || error.code == kCFURLErrorNotConnectedToInternet) {
-                [[NSNotificationCenter defaultCenter] postNotificationName:@"BKNetworkStatusChangedNotification" object:self userInfo:@{ @"status": @(AFNetworkReachabilityStatusNotReachable) }];
-            }
-            if (error.code == kCFURLErrorCannotConnectToHost || error.code == kCFURLErrorCannotFindHost) {
-                [[NSNotificationCenter defaultCenter] postNotificationName:@"BKServerStatusChangedNotification" object:self userInfo:@{ @"status": @(AFNetworkReachabilityStatusNotReachable) }];
-            }
-        }
+        [self checkErrorCode:request error:error];
         [self parseServerVersion:response];
         if (failure) failure(request, response, error, json);
     }];
     [self.instance.operationQueue addOperation:op];
+}
+
++ (void)checkErrorCode:(NSURLRequest*)request error:(NSError*)error
+{
+    if ([request.URL.host compare:BKjs.instance.baseURL.host options:NSCaseInsensitiveSearch] == NSOrderedSame) {
+        switch (error ? error.code : 0) {
+            case kCFURLErrorDNSLookupFailed:
+            case kCFURLErrorNotConnectedToInternet:
+                if (_status == AFNetworkReachabilityStatusNotReachable) break;
+                _status = AFNetworkReachabilityStatusNotReachable;
+                [[NSNotificationCenter defaultCenter] postNotificationName:@"BKNetworkStatusChangedNotification" object:nil userInfo:@{ @"status": @(_status) }];
+                break;
+                
+            case kCFURLErrorCannotConnectToHost:
+            case kCFURLErrorCannotFindHost:
+                if (_status == AFNetworkReachabilityStatusNotReachable) break;
+                _status = AFNetworkReachabilityStatusNotReachable;
+                [[NSNotificationCenter defaultCenter] postNotificationName:@"BKServerStatusChangedNotification" object:nil userInfo:@{ @"status": @(_status) }];
+                break;
+                
+            case 0:
+                if (_status != AFNetworkReachabilityStatusNotReachable) break;
+                _status = AFNetworkReachabilityStatusUnknown;
+                [[NSNotificationCenter defaultCenter] postNotificationName:@"BKServerStatusChangedNotification" object:nil userInfo:@{ @"status": @(_status) }];
+                break;
+        }
+    }
 }
 
 #pragma mark Image requests
@@ -1264,7 +1284,7 @@ static NSString *SysCtlByName(char *typeSpecifier)
 {
     _location = [locations lastObject];
     if (!_location) return;
-    [[NSNotificationCenter defaultCenter] postNotificationName:@"BKLocationChangedNotification" object:self userInfo:@{ @"location": _location }];
+    [[NSNotificationCenter defaultCenter] postNotificationName:@"BKLocationChangedNotification" object:nil userInfo:@{ @"location": _location }];
 }
 
 + (void)putLocation:(CLLocation*)location params:(NSDictionary*)params success:(SuccessBlock)success failure:(FailureBlock)failure

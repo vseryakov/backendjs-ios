@@ -26,9 +26,10 @@
     CGPoint _center;
     CGRect _drawerFrame;
     BOOL _panStarted;
-    NSTimer *_timer;
+    NSTimer *_searchTimer;
     ImagePicker *_picker;
     UIView *_panView;
+    NSTimer *_timer;
 }
 
 + (BKViewController*)activeController
@@ -96,7 +97,16 @@
     [super viewDidAppear:animated];
     self.activityView.center = self.view.center;
     [self.view bringSubviewToFront:self.activityView];
-    if (!self.subscribeAlways) [self subscribe];
+    if (!self.subscribeAlways) {
+        [self subscribe];
+    }
+    if (self.timerInterval) {
+        _timer = [NSTimer scheduledTimerWithTimeInterval:self.timerInterval
+                                                  target:self
+                                                selector:@selector(onTimer:)
+                                                userInfo:nil
+                                                 repeats:YES];
+    }
 }
 
 - (void)viewWillDisappear:(BOOL)animated
@@ -104,13 +114,19 @@
     [super viewWillDisappear:animated];
     [self saveTablePosition:nil];
     self.navigationController.navigationBarHidden = YES;
+    if (_timer) {
+        [_timer invalidate];
+        _timer = nil;
+    }
+    if (!self.subscribeAlways) {
+        [self unsubscribe];
+    }
 }
 
 - (void)viewDidDisappear:(BOOL)animated
 {
     [super viewDidDisappear:animated];
     self.navigationController.delegate = nil;
-    if (!self.subscribeAlways) [self unsubscribe];
 }
 
 - (void)dealloc
@@ -383,9 +399,9 @@
 
 - (void)queueTableSearch
 {
-    if (_timer) [_timer invalidate];
-    _timer = [NSTimer timerWithTimeInterval:0.4 target:self selector:@selector(onTableSearch:) userInfo:nil repeats:NO];
-    [[NSRunLoop mainRunLoop] addTimer:_timer forMode:NSRunLoopCommonModes];
+    if (_searchTimer) [_searchTimer invalidate];
+    _searchTimer = [NSTimer timerWithTimeInterval:0.4 target:self selector:@selector(onTableSearch:) userInfo:nil repeats:NO];
+    [[NSRunLoop mainRunLoop] addTimer:_searchTimer forMode:NSRunLoopCommonModes];
 }
 
 - (NSMutableArray*)filterItems:(NSArray*)items
@@ -448,6 +464,10 @@
         if (!cell) return;
         [cell endEditing:YES];
     }
+}
+
+- (void)onTimer:(NSTimer *)timer
+{
 }
 
 #pragma mark Activity
