@@ -701,10 +701,11 @@ static NSString *SysCtlByName(char *typeSpecifier)
     NSURL *url = [NSURL URLWithString:req relativeToURL:self.instance.baseURL];
     NSString *login = [self passwordForService:@"login" account:BKjs.appName error:nil];
     NSString *secret = [self passwordForService:@"secret" account:BKjs.appName error:nil];
+    NSString *tag = [self passwordForService:@"tag" account:BKjs.appName error:nil];
     
     NSString *str = [NSString stringWithFormat:@"%@\n%@\n%@\n%@\n%@\n%@\n%@\n",method,url.host,url.path,query,expire,[contentType lowercaseString],checksum];
     NSString *sig = [BKjs toHmacSHA1:[str dataUsingEncoding:NSUTF8StringEncoding] secret:secret];
-    rc[@"bk-signature"] = [NSString stringWithFormat:@"1||%@|%@|%@|%@|", login, sig, [expire stringValue], checksum];
+    rc[@"bk-signature"] = [NSString stringWithFormat:@"1|%@|%@|%@|%@|%@|", tag ? tag : @"", login ? login : @"", sig, [expire stringValue], checksum];
     //Debug(@"%@: %@", str, rc);
     return rc;
 }

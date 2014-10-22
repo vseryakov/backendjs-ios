@@ -19,21 +19,27 @@
 
 @interface BKBarChart : UIView
 @property (nonatomic) float barWidth;
+@property (nonatomic) float duration;
+@property (nonatomic) float shadowOffset;
 @property (strong, nonatomic) NSArray *xLabels;
 @property (strong, nonatomic) NSArray *yValues;
 @property (nonatomic, strong) UIColor *barColor;
 @property (nonatomic, strong) UIColor *axisColor;
+@property (nonatomic, strong) UIColor *fillColor;
+@property (nonatomic, strong) UIFont *axisFont;
 @property (nonatomic, strong) NSDictionary *colors;
+@property (nonatomic, strong) SuccessBlock barHandler;
 @property (nonatomic, strong) SuccessBlock completionHandler;
 - (void)drawChart;
 @end
 
 @interface BKLineChart : UIView
+@property (nonatomic) float lineWidth;
+@property (nonatomic) float duration;
 @property (strong, nonatomic) NSNumber *yMin;
 @property (strong, nonatomic) NSNumber *yMax;
 @property (strong, nonatomic) NSArray *xLabels;
 @property (strong, nonatomic) NSArray *yValues;
-@property (nonatomic) float lineWidth;
 @property (nonatomic, strong) UIColor *lineColor;
 @property (nonatomic, strong) UIColor *axisColor;
 @property (nonatomic, strong) SuccessBlock completionHandler;

@@ -87,6 +87,7 @@
 + (void)addImageWithBorderAndShadow:(UIView*)view image:(UIImageView*)image color:(UIColor*)color radius:(float)radius;
 + (void)setRoundCorner:(UIView*)view corner:(UIRectCorner)corner radius:(float)radius;
 + (void)setViewShadow:(UIView*)view color:(UIColor*)color offset:(CGSize)offset opacity:(float)opacity radius:(float)radius;
++ (void)setLayerShadow:(CALayer*)layer color:(UIColor*)color offset:(CGSize)offset opacity:(float)opacity radius:(float)radius;
 + (void)addImageAtCorner:(UIView*)view image:(UIImageView*)image corner:(UIRectCorner)corner;
 
 // Create placeholder text for the text view

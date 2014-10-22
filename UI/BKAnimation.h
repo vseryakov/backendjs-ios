@@ -29,6 +29,7 @@
 @property (nonatomic, assign) NSString *stiffness;
 
 - (BKBounceAnimation*) initWithKeyPath:(NSString*)keyPath start:(SuccessBlock)start stop:(SuccessBlock)stop;
+- (BKBounceAnimation*) initBouncerWithKeyPath:(NSString*)keyPath start:(SuccessBlock)start stop:(SuccessBlock)stop;
 - (void) configure:(UIView*)view;
 @end
 

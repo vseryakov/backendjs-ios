@@ -9,7 +9,6 @@
 
 #define chartMargin      4
 #define bottomMargin     16
-#define fontSize         7
 #define DEGREES_TO_RADIANS(degrees) ((M_PI * degrees)/180.0)
 
 @interface BKBar : UIView
@@ -17,20 +16,20 @@
 @end
 
 @implementation BKBar {
-    float _grade;
+    UIColor *_fillColor;
     CAShapeLayer *_line;
 }
-- (id)init:(CGRect)frame color:(UIColor*)color grade:(float)grade
+- (id)init:(CGRect)frame color:(UIColor*)color fillColor:(UIColor*)fillColor duration:(float)duration grade:(float)grade
 {
     self = [super initWithFrame:frame];
     self.clipsToBounds = YES;
     self.layer.cornerRadius = 2.0;
-	_grade = grade;
+    _fillColor = fillColor;
     
     _line = [CAShapeLayer layer];
     _line.strokeColor = color.CGColor;
     _line.lineCap = kCALineCapButt;
-    _line.fillColor = [[UIColor whiteColor] CGColor];
+    _line.fillColor = fillColor.CGColor;
     _line.lineWidth = self.frame.size.width;
     _line.strokeEnd = 0.0;
     [self.layer addSublayer:_line];
@@ -43,7 +42,7 @@
 	_line.path = progressline.CGPath;
     
     self.anim = [CABasicAnimation animationWithKeyPath:@"strokeEnd"];
-    self.anim.duration = 1.0;
+    self.anim.duration = duration;
     self.anim.timingFunction = [CAMediaTimingFunction functionWithName:kCAMediaTimingFunctionEaseInEaseOut];
     self.anim.fromValue = [NSNumber numberWithFloat:0.0f];
     self.anim.toValue = [NSNumber numberWithFloat:1.0f];
@@ -57,7 +56,7 @@
 - (void)drawRect:(CGRect)rect
 {
     CGContextRef context = UIGraphicsGetCurrentContext();
-    CGContextSetFillColorWithColor(context, [UIColor colorWithRed:238.0/255.0 green:238.0/255.0 blue:238.0/255.0 alpha:1.0].CGColor);
+    CGContextSetFillColorWithColor(context, _fillColor.CGColor);
 	CGContextFillRect(context, rect);
 }
 @end
@@ -65,6 +64,7 @@
 @implementation BKBarChart {
     float _xLabelWidth;
     float _chartHeight;
+    float _bottomMargin;
     int _nbars;
 }
 
@@ -74,7 +74,9 @@
     self.backgroundColor = [UIColor whiteColor];
     self.axisColor = [UIColor blackColor];
     self.barColor = [UIColor greenColor];
+    self.fillColor = [UIColor whiteColor];
     self.barWidth = 10;
+    self.duration = 1.0;
     self.clipsToBounds = YES;
     return self;
 }
@@ -85,7 +87,8 @@
     for (UIView *view in self.subviews) {
         [view removeFromSuperview];
     }
-    _chartHeight = self.frame.size.height - chartMargin - bottomMargin;
+    _bottomMargin = self.axisFont ? self.axisFont.lineHeight * 2 : bottomMargin;
+    _chartHeight = self.frame.size.height - chartMargin - _bottomMargin;
     int max = 5;
     for (int index = 0; index < _yValues.count; index++) {
         max = MAX(max, [_yValues[index] intValue]);
@@ -93,11 +96,11 @@
     _xLabelWidth = (self.frame.size.width - chartMargin*2)/[_xLabels count];
     
     for (int index = 0; index < _xLabels.count; index++) {
-        UILabel *label = [[UILabel alloc] initWithFrame:CGRectMake(index * _xLabelWidth + chartMargin, self.frame.size.height - bottomMargin + 10, _xLabelWidth, bottomMargin)];
+        UILabel *label = [[UILabel alloc] initWithFrame:CGRectMake(index * _xLabelWidth + chartMargin, self.frame.size.height - _bottomMargin + 10, _xLabelWidth, _bottomMargin)];
         label.lineBreakMode = NSLineBreakByWordWrapping;
-        label.minimumScaleFactor = fontSize*0.5;
         label.numberOfLines = 0;
-        label.font = [UIFont systemFontOfSize:fontSize];
+        label.font = self.axisFont ? self.axisFont : [UIFont systemFontOfSize:bottomMargin/2];
+        label.minimumScaleFactor = label.font.lineHeight*0.5;
         label.textAlignment = NSTextAlignmentCenter;
         label.textColor = self.axisColor;
         label.text = _xLabels[index];
@@ -112,15 +115,26 @@
         if (self.colors && self.colors[[NSNumber numberWithInt:index]]) {
             color = self.colors[[NSNumber numberWithInt:index]];
         }
-		BKBar *bar = [[BKBar alloc] init:CGRectMake(index * _xLabelWidth + chartMargin + _xLabelWidth/2 - self.barWidth/2, self.frame.size.height - _chartHeight - bottomMargin, self.barWidth, _chartHeight) color:color grade:grade];
+        BKBar *bar = [[BKBar alloc] init:CGRectMake(index * _xLabelWidth + chartMargin + _xLabelWidth/2 - self.barWidth/2, self.frame.size.height - _chartHeight - _bottomMargin, self.barWidth, _chartHeight)
+                                   color:color
+                               fillColor:self.fillColor
+                                duration:self.duration
+                                   grade:grade];
         bar.anim.delegate = self;
+        bar.tag = index;
+        if (self.shadowOffset) {
+            [BKui setViewShadow:bar color:[UIColor grayColor] offset:CGSizeMake(-self.shadowOffset, self.shadowOffset) opacity:0.5 radius:self.shadowOffset];
+        }
+        if (self.barHandler) self.barHandler(bar);
 		[self addSubview:bar];
         _nbars++;
     }
 }
 
-- (void)animationDidStop:(CAAnimation *)theAnimation finished:(BOOL)flag
+- (void)animationDidStop:(CAAnimation *)anim finished:(BOOL)flag
 {
+    Logger(@"%d", _nbars);
+    anim.delegate = nil;
     if (--_nbars == 0) return;
     if (self.completionHandler) self.completionHandler(self);
 }
@@ -166,22 +180,22 @@
     if (min == max) max++;
     
     float chartHeight = self.frame.size.height - chartMargin - bottomMargin;
-    float yLabelWidth = [[NSString stringWithFormat:@"%0.f", max] length] * fontSize;
+    float yLabelWidth = [[NSString stringWithFormat:@"%0.f", max] length] * bottomMargin/2;
     float xLabelWidth = (self.frame.size.width - chartMargin*2 - yLabelWidth)/[_xLabels count];
     
     for (int index = 0; index < _xLabels.count; index++) {
-        UILabel *label = [[UILabel alloc] initWithFrame:CGRectMake(chartMargin + yLabelWidth + index * xLabelWidth, self.frame.size.height - bottomMargin - chartMargin + fontSize/2, xLabelWidth, bottomMargin)];
+        UILabel *label = [[UILabel alloc] initWithFrame:CGRectMake(chartMargin + yLabelWidth + index * xLabelWidth, self.frame.size.height - bottomMargin - chartMargin + bottomMargin/4, xLabelWidth, bottomMargin)];
         label.lineBreakMode = NSLineBreakByWordWrapping;
-        label.minimumScaleFactor = fontSize*0.5;
+        label.minimumScaleFactor = bottomMargin/2*0.5;
         label.numberOfLines = 0;
-        label.font = [UIFont systemFontOfSize:fontSize];
+        label.font = [UIFont systemFontOfSize:bottomMargin/2];
         label.textAlignment = NSTextAlignmentCenter;
         label.textColor = self.axisColor;
         label.text = _xLabels[index];
         [self addSubview:label];
     }
     
-    float yLabelStep = fontSize*3;
+    float yLabelStep = bottomMargin/2*3;
     int yCount = chartHeight / yLabelStep;
     float yValueStep = (max - min) / yCount;
 	for (int index = 0; index <= yCount; index++) {
@@ -191,9 +205,9 @@
         if (y > chartHeight) y = chartHeight;
 		UILabel *label = [[UILabel alloc] initWithFrame:CGRectMake(chartMargin, y, yLabelWidth, bottomMargin)];
         label.lineBreakMode = NSLineBreakByWordWrapping;
-        label.minimumScaleFactor = fontSize*0.5;
+        label.minimumScaleFactor = bottomMargin/2*0.5;
         label.numberOfLines = 0;
-        label.font = [UIFont systemFontOfSize:fontSize];
+        label.font = [UIFont systemFontOfSize:bottomMargin/2];
         label.textAlignment = NSTextAlignmentRight;
         label.textColor = self.axisColor;
 		label.text = [NSString stringWithFormat:@"%1.f", yValueStep * index + min];

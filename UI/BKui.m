@@ -400,12 +400,17 @@ static UINavigationController *_navigation;
 
 + (void)setViewShadow:(UIView*)view color:(UIColor*)color offset:(CGSize)offset opacity:(float)opacity radius:(float)radius
 {
-    view.layer.masksToBounds = NO;
-    view.layer.shadowColor = color ? color.CGColor : [UIColor blackColor].CGColor;
-    view.layer.shadowOffset = offset;
-    view.layer.shadowRadius = radius < 0 ? 3 : radius;
-    view.layer.shadowOpacity = opacity < 0 ? 0.5 : opacity;
-    view.layer.shadowPath = [UIBezierPath bezierPathWithRect:view.bounds].CGPath;
+    [self setLayerShadow:view.layer color:color offset:offset opacity:opacity radius:radius];
+}
+
++ (void)setLayerShadow:(CALayer*)layer color:(UIColor*)color offset:(CGSize)offset opacity:(float)opacity radius:(float)radius
+{
+    layer.masksToBounds = NO;
+    layer.shadowColor = color ? color.CGColor : [UIColor blackColor].CGColor;
+    layer.shadowOffset = offset;
+    layer.shadowRadius = radius < 0 ? 3 : radius;
+    layer.shadowOpacity = opacity < 0 ? 0.5 : opacity;
+    layer.shadowPath = [UIBezierPath bezierPathWithRect:layer.bounds].CGPath;
 }
 
 + (void)setViewBorder:(UIView*)view color:(UIColor*)color width:(float)width radius:(float)radius
