@@ -11,44 +11,38 @@
 #define bottomMargin     16
 #define DEGREES_TO_RADIANS(degrees) ((M_PI * degrees)/180.0)
 
-@interface BKBar : UIView
-@property (nonatomic, strong) CABasicAnimation *anim;
-@end
+@implementation BKBar
 
-@implementation BKBar {
-    UIColor *_fillColor;
-    CAShapeLayer *_line;
-}
 - (id)init:(CGRect)frame color:(UIColor*)color fillColor:(UIColor*)fillColor duration:(float)duration grade:(float)grade
 {
     self = [super initWithFrame:frame];
     self.clipsToBounds = YES;
     self.layer.cornerRadius = 2.0;
-    _fillColor = fillColor;
+    self.fillColor = fillColor;
     
-    _line = [CAShapeLayer layer];
-    _line.strokeColor = color.CGColor;
-    _line.lineCap = kCALineCapButt;
-    _line.fillColor = fillColor.CGColor;
-    _line.lineWidth = self.frame.size.width;
-    _line.strokeEnd = 0.0;
-    [self.layer addSublayer:_line];
+    self.line = [CAShapeLayer layer];
+    self.line.strokeColor = color.CGColor;
+    self.line.lineCap = kCALineCapButt;
+    self.line.fillColor = fillColor.CGColor;
+    self.line.lineWidth = self.frame.size.width;
+    self.line.strokeEnd = 0.0;
+    [self.layer addSublayer:self.line];
     
-	UIBezierPath *progressline = [UIBezierPath bezierPath];
-    [progressline moveToPoint:CGPointMake(self.frame.size.width/2.0, self.frame.size.height)];
-	[progressline addLineToPoint:CGPointMake(self.frame.size.width/2.0, (1 - grade) * self.frame.size.height)];
-    [progressline setLineWidth:1.0];
-    [progressline setLineCapStyle:kCGLineCapSquare];
-	_line.path = progressline.CGPath;
+	self.path = [UIBezierPath bezierPath];
+    [self.path moveToPoint:CGPointMake(self.frame.size.width/2.0, self.frame.size.height)];
+	[self.path addLineToPoint:CGPointMake(self.frame.size.width/2.0, (1 - grade) * self.frame.size.height)];
+    [self.path setLineWidth:1.0];
+    [self.path setLineCapStyle:kCGLineCapSquare];
+	self.line.path = self.path.CGPath;
     
-    self.anim = [CABasicAnimation animationWithKeyPath:@"strokeEnd"];
-    self.anim.duration = duration;
-    self.anim.timingFunction = [CAMediaTimingFunction functionWithName:kCAMediaTimingFunctionEaseInEaseOut];
-    self.anim.fromValue = [NSNumber numberWithFloat:0.0f];
-    self.anim.toValue = [NSNumber numberWithFloat:1.0f];
-    self.anim.autoreverses = NO;
-    [_line addAnimation:self.anim forKey:@"strokeEndAnimation"];
-    _line.strokeEnd = 1.0;
+    self.animation = [CABasicAnimation animationWithKeyPath:@"strokeEnd"];
+    self.animation.duration = duration;
+    self.animation.timingFunction = [CAMediaTimingFunction functionWithName:kCAMediaTimingFunctionEaseInEaseOut];
+    self.animation.fromValue = [NSNumber numberWithFloat:0.0f];
+    self.animation.toValue = [NSNumber numberWithFloat:1.0f];
+    self.animation.autoreverses = NO;
+    [self.line addAnimation:self.animation forKey:@"strokeEndAnimation"];
+    self.line.strokeEnd = 1.0;
     
     return self;
 }
@@ -56,7 +50,7 @@
 - (void)drawRect:(CGRect)rect
 {
     CGContextRef context = UIGraphicsGetCurrentContext();
-    CGContextSetFillColorWithColor(context, _fillColor.CGColor);
+    CGContextSetFillColorWithColor(context, self.fillColor.CGColor);
 	CGContextFillRect(context, rect);
 }
 @end
@@ -87,19 +81,19 @@
     for (UIView *view in self.subviews) {
         [view removeFromSuperview];
     }
-    _bottomMargin = self.axisFont ? self.axisFont.lineHeight * 2 : bottomMargin;
-    _chartHeight = self.frame.size.height - chartMargin - _bottomMargin;
+    _bottomMargin = self.axisFont ? self.axisFont.lineHeight * 2 : 16;
+    _chartHeight = self.frame.size.height - _bottomMargin;
     int max = 5;
     for (int index = 0; index < _yValues.count; index++) {
         max = MAX(max, [_yValues[index] intValue]);
     }
-    _xLabelWidth = (self.frame.size.width - chartMargin*2)/[_xLabels count];
+    _xLabelWidth = self.frame.size.width/[_xLabels count];
     
     for (int index = 0; index < _xLabels.count; index++) {
-        UILabel *label = [[UILabel alloc] initWithFrame:CGRectMake(index * _xLabelWidth + chartMargin, self.frame.size.height - _bottomMargin + 10, _xLabelWidth, _bottomMargin)];
+        UILabel *label = [[UILabel alloc] initWithFrame:CGRectMake(index * _xLabelWidth, self.frame.size.height - _bottomMargin + 10, _xLabelWidth, _bottomMargin)];
         label.lineBreakMode = NSLineBreakByWordWrapping;
         label.numberOfLines = 0;
-        label.font = self.axisFont ? self.axisFont : [UIFont systemFontOfSize:bottomMargin/2];
+        label.font = self.axisFont ? self.axisFont : [UIFont systemFontOfSize:8];
         label.minimumScaleFactor = label.font.lineHeight*0.5;
         label.textAlignment = NSTextAlignmentCenter;
         label.textColor = self.axisColor;
@@ -115,12 +109,9 @@
         if (self.colors && self.colors[[NSNumber numberWithInt:index]]) {
             color = self.colors[[NSNumber numberWithInt:index]];
         }
-        BKBar *bar = [[BKBar alloc] init:CGRectMake(index * _xLabelWidth + chartMargin + _xLabelWidth/2 - self.barWidth/2, self.frame.size.height - _chartHeight - _bottomMargin, self.barWidth, _chartHeight)
-                                   color:color
-                               fillColor:self.fillColor
-                                duration:self.duration
-                                   grade:grade];
-        bar.anim.delegate = self;
+        CGRect frame = CGRectMake(index * _xLabelWidth + _xLabelWidth/2 - self.barWidth/2, self.frame.size.height - _chartHeight - _bottomMargin, self.barWidth, _chartHeight);
+        BKBar *bar = [[BKBar alloc] init:frame color:color fillColor:self.fillColor duration:self.duration grade:grade];
+        bar.animation.delegate = self;
         bar.tag = index;
         if (self.shadowOffset) {
             [BKui setViewShadow:bar color:[UIColor grayColor] offset:CGSizeMake(-self.shadowOffset, self.shadowOffset) opacity:0.5 radius:self.shadowOffset];
@@ -131,11 +122,9 @@
     }
 }
 
-- (void)animationDidStop:(CAAnimation *)anim finished:(BOOL)flag
+- (void)animationDidStop:(CAAnimation *)animation finished:(BOOL)flag
 {
-    Logger(@"%d", _nbars);
-    anim.delegate = nil;
-    if (--_nbars == 0) return;
+    if (--_nbars > 0) return;
     if (self.completionHandler) self.completionHandler(self);
 }
 
@@ -265,7 +254,7 @@
     UIGraphicsEndImageContext();
 }
 
-- (void)animationDidStop:(CAAnimation *)theAnimation finished:(BOOL)flag
+- (void)animationDidStop:(CAAnimation *)animation finished:(BOOL)flag
 {
     if (self.completionHandler) self.completionHandler(self);
 }

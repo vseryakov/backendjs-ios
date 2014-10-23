@@ -17,6 +17,14 @@
 -(void)countFrom:(float)from to:(float)to duration:(NSTimeInterval)duration;
 @end
 
+@interface BKBar : UIView
+@property (nonatomic, strong) CABasicAnimation *animation;
+@property (nonatomic, strong) UIColor *fillColor;
+@property (nonatomic, strong) CAShapeLayer *line;
+@property (nonatomic, strong) UIBezierPath *path;
+- (id)init:(CGRect)frame color:(UIColor*)color fillColor:(UIColor*)fillColor duration:(float)duration grade:(float)grade;
+@end
+
 @interface BKBarChart : UIView
 @property (nonatomic) float barWidth;
 @property (nonatomic) float duration;

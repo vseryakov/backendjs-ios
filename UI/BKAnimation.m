@@ -180,7 +180,7 @@
 
 @implementation BKBounceAnimation
 
-- (id)initWithKeyPath:(NSString*)keyPath start:(SuccessBlock)start stop:(SuccessBlock)stop
+- (id)initWithKeyPath:(NSString*)keyPath from:(id)from to:(id)to start:(SuccessBlock)start stop:(SuccessBlock)stop
 {
 	self = [super init];
     super.keyPath = keyPath;
@@ -189,12 +189,14 @@
     self.overshoot = YES;
     self.stiffness = @"Medium";
     self.delegate = BKui.instance;
+    self.fromValue = from;
+    self.toValue = to;
     [self setValue:start forKey:@"startBlock"];
     [self setValue:stop forKey:@"stopBlock"];
 	return self;
 }
 
-- (id)initBouncerWithKeyPath:(NSString*)keyPath start:(SuccessBlock)start stop:(SuccessBlock)stop
+- (id)initBouncerWithKeyPath:(NSString*)keyPath from:(id)from to:(id)to start:(SuccessBlock)start stop:(SuccessBlock)stop
 {
     self = [super init];
     super.keyPath = keyPath;
@@ -204,6 +206,8 @@
     self.overshoot = YES;
     self.stiffness = @"Light";
     self.delegate = BKui.instance;
+    self.fromValue = from;
+    self.toValue = to;
     [self setValue:start forKey:@"startBlock"];
     [self setValue:stop forKey:@"stopBlock"];
     return self;

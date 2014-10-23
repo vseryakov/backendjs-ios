@@ -28,8 +28,8 @@
 @property (nonatomic, assign) NSUInteger bounces;
 @property (nonatomic, assign) NSString *stiffness;
 
-- (BKBounceAnimation*) initWithKeyPath:(NSString*)keyPath start:(SuccessBlock)start stop:(SuccessBlock)stop;
-- (BKBounceAnimation*) initBouncerWithKeyPath:(NSString*)keyPath start:(SuccessBlock)start stop:(SuccessBlock)stop;
+- (BKBounceAnimation*) initWithKeyPath:(NSString*)keyPath from:(id)from to:(id)to start:(SuccessBlock)start stop:(SuccessBlock)stop;
+- (BKBounceAnimation*) initBouncerWithKeyPath:(NSString*)keyPath from:(id)from to:(id)to start:(SuccessBlock)start stop:(SuccessBlock)stop;
 - (void) configure:(UIView*)view;
 @end
 

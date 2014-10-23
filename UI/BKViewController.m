@@ -605,9 +605,7 @@
     
     [owner.navigationController pushViewController:self animated:NO];
     
-    BKBounceAnimation *bounce = [[BKBounceAnimation alloc] initWithKeyPath:@"position.x" start:nil stop:nil];
-    bounce.fromValue = [NSNumber numberWithFloat:self.drawerView.center.x];
-    bounce.toValue = [NSNumber numberWithFloat:_drawerFrame.origin.x + _drawerFrame.size.width/2];
+    BKBounceAnimation *bounce = [[BKBounceAnimation alloc] initWithKeyPath:@"position.x" from:@(self.drawerView.center.x) to:@(_drawerFrame.origin.x + _drawerFrame.size.width/2) start:nil stop:nil];
     [bounce configure:self.drawerView];
 }
 
@@ -615,13 +613,11 @@
 {
     if (![self.drawerView isKindOfClass:[UIView class]]) return;
     
-    BKBounceAnimation *bounce = [[BKBounceAnimation alloc] initWithKeyPath:@"position.x" start:nil stop:^(id anim) {
+    BKBounceAnimation *bounce = [[BKBounceAnimation alloc] initWithKeyPath:@"position.x" from:@(self.drawerView.center.x) to:@(self.view.center.x) start:nil stop:^(id anim) {
         [self.navigationController popViewControllerAnimated:NO];
         [self.drawerView removeFromSuperview];
         self.drawerView = nil;
     }];
-    bounce.fromValue = [NSNumber numberWithFloat:self.drawerView.center.x];
-    bounce.toValue = [NSNumber numberWithFloat:self.view.center.x];
     bounce.overshoot = NO;
     [bounce configure:self.drawerView];
 }
