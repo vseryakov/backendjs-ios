@@ -22,7 +22,7 @@
 - (void)processResponse:(NSHTTPURLResponse*)response error:(NSError*)error json:(id)json failure:(FailureBlock)failure
 {
     NSInteger code = response.statusCode;
-    NSString *reason = error.description;
+    NSString *reason = [BKjs getErrorMessage:error];
     NSArray *errors = [BKjs toArray:json name:@"errors"];
     if (errors.count) {
         code = [errors[0] num:@"code"];
@@ -30,6 +30,12 @@
         if (code == 89 || code == 215) code = 401;
     }
     if (failure) failure(code, reason);
+}
+
+- (NSString*)getURL:(NSString *)method path:(NSString*)path params:(NSDictionary*)params
+{
+    if ([path hasPrefix:@"/media/upload.json"]) return @"https://upload.twitter.com/1.1/media/upload.json";
+    return [super getURL:method path:path params:params];
 }
 
 - (NSMutableURLRequest*)getAuthorizeRequest:(NSDictionary*)params
@@ -75,13 +81,27 @@
                   failure:failure];
     } else
     if (image) {
-        [self setHeaders:@"POST" path:@"/statuses/update_with_media.json" params:query];
-        [BKjs uploadImage:[self getURL:@"POST" path:@"/statuses/update_with_media.json" params:params]
-                     name:@"media[]"
+        [self setHeaders:@"POST" path:@"https://upload.twitter.com/1.1/media/upload.json" params:nil];
+        [BKjs uploadImage:@"https://upload.twitter.com/1.1/media/upload.json"
+                     name:@"media"
                     image:image
-                   params:query
+                   params:nil
                   headers:self.headers
-                  success:success
+                  success:^(id obj) {
+                      if (!obj[@"media_id_string"]) {
+                          if (failure) failure(-1, @"error uploading an image");
+                          return;
+                      }
+                      
+                      query[@"media_ids"] = obj[@"media_id_string"];
+                      [self sendRequest:@"POST"
+                                   path:@"/statuses/update.json"
+                                 params:query
+                                   type:nil
+                                   body:nil
+                                success:success
+                                failure:failure];
+                  }
                   failure:failure];
     } else {
         [self sendRequest:@"POST"

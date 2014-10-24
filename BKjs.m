@@ -590,6 +590,12 @@ static NSString *SysCtlByName(char *typeSpecifier)
     return [[NSData alloc] initWithBase64EncodedString:string options:0];
 }
 
++ (NSString*)getErrorMessage:(NSError*)error
+{
+    if (!error) return @"Unknown Error";
+    return error.localizedFailureReason ? error.localizedFailureReason : error.localizedRecoverySuggestion ? error.localizedRecoverySuggestion : error.description;
+}
+
 + (NSMutableURLRequest *)makeRequest:(NSString *)method path:(NSString *)path params:(NSDictionary *)params type:(NSString*)type
 {
     NSURL *url = [NSURL URLWithString:path relativeToURL:[self instance].baseURL];
@@ -750,7 +756,7 @@ static NSString *SysCtlByName(char *typeSpecifier)
                                     }];
     for (NSString* key in headers) [request setValue:headers[key] forHTTPHeaderField:key];
     [BKjs sendRequest:request success:success failure:^(NSURLRequest *request, NSHTTPURLResponse *response, NSError *error, id json) {
-        if (failure) failure(response.statusCode, error.description);
+        if (failure) failure(response.statusCode, [self getErrorMessage:error]);
     }];
 }
 
@@ -760,7 +766,7 @@ static NSString *SysCtlByName(char *typeSpecifier)
    
     [self sendRequest:request success:success failure:^(NSURLRequest *request, NSHTTPURLResponse *response, NSError *error, id json) {
         NSString *reason = [BKjs toString:json name:@"message"];
-        if (reason.length == 0) reason = error.description;
+        if (reason.length == 0) reason = [self getErrorMessage:error];
         if (failure) failure(response.statusCode, reason);
     }];
 }
@@ -877,7 +883,7 @@ static NSString *SysCtlByName(char *typeSpecifier)
                                    failure:^(NSURLRequest *request, NSHTTPURLResponse *response, NSError *error) {
                                        [self parseServerVersion:response];
                                        Logger(@"%@: error: %ld: %@", request.URL, (long)response.statusCode, error);
-                                       if (failure) failure(response.statusCode, error.description);
+                                       if (failure) failure(response.statusCode, [self getErrorMessage:error]);
                                    }];
     [self.instance.operationQueue addOperation:op];
 }

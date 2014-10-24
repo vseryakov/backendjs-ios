@@ -24,6 +24,11 @@
     [super logout];
 }
 
+- (NSArray*)getItems:(id)result params:(NSDictionary*)params
+{
+    return [BKjs toArray:result name:@"values" dflt:nil];
+}
+
 - (NSString*)getURL:(NSString *)method path:(NSString*)path params:(NSDictionary*)params
 {
     NSString *url = [super getURL:method path:path params:params];
@@ -31,6 +36,11 @@
         return [NSString stringWithFormat:@"%@?oauth2_access_token=%@", url, self.accessToken[@"access_token"]];
     }
     return url;
+}
+
+- (NSString*)getNextURL:(NSURLRequest*)request result:(id)result params:(NSDictionary*)params
+{
+    return nil;
 }
 
 - (NSDictionary*)getQuery:(NSString *)method path:(NSString*)path params:(NSDictionary*)params
@@ -102,7 +112,7 @@
                  body:nil
               success:^(id result) {
                   NSMutableArray *list = [@[] mutableCopy];
-                  for (NSDictionary *item in result[@"values"]) {
+                  for (NSDictionary *item in result) {
                       if (!item[@"id"] || !item[@"formattedName"]) continue;
                       NSMutableDictionary *rec = [item mutableCopy];
                       rec[@"linkedin_id"] = rec[@"id"];

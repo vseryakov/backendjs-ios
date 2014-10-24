@@ -13,11 +13,9 @@
 
 @implementation BKBar
 
-- (id)init:(CGRect)frame color:(UIColor*)color fillColor:(UIColor*)fillColor duration:(float)duration grade:(float)grade
+- (id)init:(CGRect)frame color:(UIColor*)color fillColor:(UIColor*)fillColor duration:(float)duration height:(float)height
 {
     self = [super initWithFrame:frame];
-    self.clipsToBounds = YES;
-    self.layer.cornerRadius = 2.0;
     self.fillColor = fillColor;
     
     self.line = [CAShapeLayer layer];
@@ -30,7 +28,7 @@
     
 	self.path = [UIBezierPath bezierPath];
     [self.path moveToPoint:CGPointMake(self.frame.size.width/2.0, self.frame.size.height)];
-	[self.path addLineToPoint:CGPointMake(self.frame.size.width/2.0, (1 - grade) * self.frame.size.height)];
+	[self.path addLineToPoint:CGPointMake(self.frame.size.width/2.0, height)];
     [self.path setLineWidth:1.0];
     [self.path setLineCapStyle:kCGLineCapSquare];
 	self.line.path = self.path.CGPath;
@@ -82,12 +80,12 @@
         [view removeFromSuperview];
     }
     _bottomMargin = self.axisFont ? self.axisFont.lineHeight * 2 : 16;
-    _chartHeight = self.frame.size.height - _bottomMargin;
+    _chartHeight = self.height - _bottomMargin;
     int max = 5;
     for (int index = 0; index < _yValues.count; index++) {
         max = MAX(max, [_yValues[index] intValue]);
     }
-    _xLabelWidth = self.frame.size.width/[_xLabels count];
+    _xLabelWidth = self.width/_xLabels.count;
     
     for (int index = 0; index < _xLabels.count; index++) {
         UILabel *label = [[UILabel alloc] initWithFrame:CGRectMake(index * _xLabelWidth, self.frame.size.height - _bottomMargin + 10, _xLabelWidth, _bottomMargin)];
@@ -110,13 +108,19 @@
             color = self.colors[[NSNumber numberWithInt:index]];
         }
         CGRect frame = CGRectMake(index * _xLabelWidth + _xLabelWidth/2 - self.barWidth/2, self.frame.size.height - _chartHeight - _bottomMargin, self.barWidth, _chartHeight);
-        BKBar *bar = [[BKBar alloc] init:frame color:color fillColor:self.fillColor duration:self.duration grade:grade];
+        BKBar *bar = [[BKBar alloc] init:frame color:color fillColor:self.fillColor duration:self.duration height:(1 - grade) * frame.size.height];
         bar.animation.delegate = self;
         bar.tag = index;
-        if (self.shadowOffset) {
-            [BKui setViewShadow:bar color:[UIColor grayColor] offset:CGSizeMake(-self.shadowOffset, self.shadowOffset) opacity:0.5 radius:self.shadowOffset];
+        if (self.shadow) {
+            [BKui setViewShadow:bar color:[UIColor grayColor] offset:CGSizeMake(-self.shadow, self.shadow) opacity:0.5 radius:self.shadow];
         }
-        if (self.barHandler) self.barHandler(bar);
+        if (self.radius) {
+            bar.clipsToBounds = YES;
+            bar.layer.cornerRadius = self.radius;
+        }
+        if (self.barHandler) {
+            self.barHandler(bar);
+        }
 		[self addSubview:bar];
         _nbars++;
     }

@@ -155,6 +155,7 @@ typedef NS_OPTIONS(NSUInteger, BKOptions) {
 
 #pragma mark HTTP requests
 
++ (NSString*)getErrorMessage:(NSError*)error;
 + (NSString*)getAbsoluteURL:(NSString*)path;
 + (NSString*)makeQuery:(NSDictionary*)params;
 + (NSMutableURLRequest *)makeRequest:(NSString *)method path:(NSString *)path params:(NSDictionary *)params type:(NSString*)type;

@@ -309,7 +309,7 @@ static NSMutableDictionary *_accounts;
 
 - (void)processResponse:(NSHTTPURLResponse*)response error:(NSError*)error json:(id)json failure:(FailureBlock)failure
 {
-    if (failure) failure(response.statusCode, error.description);
+    if (failure) failure(response.statusCode, [BKjs getErrorMessage:error]);
 }
 
 #pragma mark Web Authentication
@@ -570,6 +570,7 @@ static NSMutableDictionary *_accounts;
             [items addObject:[NSString stringWithFormat:@"%@=\"%@\"", parts[0], parts[1]]];
         }
         self.headers[@"Authorization"] = [NSString stringWithFormat:@"OAuth %@", [items componentsJoinedByString:@", "]];
+        Logger(@"%@", self.headers);
     }
 }
 

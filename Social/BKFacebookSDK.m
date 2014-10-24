@@ -76,7 +76,7 @@
 {
     [self login:^(NSError *error) {
         if (error) {
-            if (failure) failure(error.code, error.description);
+            if (failure) failure(error.code, [BKjs getErrorMessage:error]);
             return;
         }
         BKQueryParams *query = [[BKQueryParams alloc]
@@ -109,7 +109,7 @@
 {
     [self login:^(NSError *error) {
         if (error) {
-            if (failure) failure(error.code, error.description);
+            if (failure) failure(error.code, [BKjs getErrorMessage:error]);
             return;
         }
         BKQueryParams *query = [[BKQueryParams alloc]
@@ -146,7 +146,7 @@
 {
     [self login:^(NSError *error) {
         if (error) {
-            if (failure) failure(error.code, error.description);
+            if (failure) failure(error.code, [BKjs getErrorMessage:error]);
             return;
         }
         
@@ -183,7 +183,7 @@
 {
     [self login:^(NSError *error) {
         if (error) {
-            if (failure) failure(error.code, error.description);
+            if (failure) failure(error.code, [BKjs getErrorMessage:error]);
             return;
         }
         ItemsBlock block = ^(NSMutableArray *items, id result) {
@@ -226,7 +226,7 @@
 {
     [self login:^(NSError *error) {
         if (error) {
-            if (failure) failure(error.code, error.description);
+            if (failure) failure(error.code, [BKjs getErrorMessage:error]);
             return;
         }
         NSMutableDictionary *query = [@{} mutableCopy];

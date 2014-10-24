@@ -22,13 +22,14 @@
 @property (nonatomic, strong) UIColor *fillColor;
 @property (nonatomic, strong) CAShapeLayer *line;
 @property (nonatomic, strong) UIBezierPath *path;
-- (id)init:(CGRect)frame color:(UIColor*)color fillColor:(UIColor*)fillColor duration:(float)duration grade:(float)grade;
+- (id)init:(CGRect)frame color:(UIColor*)color fillColor:(UIColor*)fillColor duration:(float)duration height:(float)height;
 @end
 
 @interface BKBarChart : UIView
 @property (nonatomic) float barWidth;
 @property (nonatomic) float duration;
-@property (nonatomic) float shadowOffset;
+@property (nonatomic) float shadow;
+@property (nonatomic) float radius;
 @property (strong, nonatomic) NSArray *xLabels;
 @property (strong, nonatomic) NSArray *yValues;
 @property (nonatomic, strong) UIColor *barColor;
