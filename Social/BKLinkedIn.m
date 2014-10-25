@@ -40,6 +40,14 @@
 
 - (NSString*)getNextURL:(NSURLRequest*)request result:(id)result params:(NSDictionary*)params
 {
+    NSArray *list = [BKjs toArray:result name:@"values" dflt:nil];
+    if (list && list.count > 0) {
+        NSMutableDictionary *query = [BKjs parseQueryString:request.URL.query];
+        if ([query num:@"count"] == list.count) {
+            query[@"start"] = @([query num:@"start"] + list.count);
+            return [NSString stringWithFormat:@"%@://%@%@?%@", request.URL.scheme, request.URL.host, request.URL.path, [BKjs makeQuery:query]];
+        }
+    }
     return nil;
 }
 
