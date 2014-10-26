@@ -75,14 +75,16 @@
 {
     Logger(@"%@: %@", [request URL], error);
     [self hideActivity];
+    
+    WebViewCompletionBlock handler = self.completionHandler;
+    self.completionHandler = nil;
+    
     if (self.presentingViewController) {
         [self dismissViewControllerAnimated:YES completion:^{
-            if (self.completionHandler) self.completionHandler(request, error);
-            self.completionHandler = nil;
+            if (handler) handler(request, error);
         }];
     } else {
-        if (self.completionHandler) self.completionHandler(request, error);
-        self.completionHandler = nil;
+        if (handler) handler(request, error);
     }
 }
 

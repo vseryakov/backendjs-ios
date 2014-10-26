@@ -216,9 +216,9 @@ static NSMutableDictionary *_accounts;
     GenericBlock relogin = ^() {
         [self login:^(NSError *error) {
             if (![self isValid]) {
-                _running = NO;
                 Logger(@"Relogin: %@: %@", self.name, error ? error : @"login error");
                 if (failure) failure(error ? error.code : -1, error ? error.localizedDescription : @"login error");
+                _running = NO;
             } else {
                 [self getResult:method
                            path:[self getURL:method path:path params:params]
@@ -226,12 +226,12 @@ static NSMutableDictionary *_accounts;
                            type:type
                            body:body
                         success:^(id obj) {
-                            _running = NO;
                             if (success) success(obj);
+                            _running = NO;
                         }
                         failure:^(NSInteger code, NSString *reason) {
-                            _running = NO;
                             if (failure) failure(code, reason);
+                            _running = NO;
                         }];
             }
         }];
@@ -248,15 +248,15 @@ static NSMutableDictionary *_accounts;
                type:type
                body:body
             success:^(id obj) {
-                _running = NO;
                 if (success) success(obj);
+                _running = NO;
             }
             failure:^(NSInteger code, NSString *reason) {
                 if (code == 401) {
                     relogin();
                 } else {
-                    _running = NO;
                     if (failure) failure(code, reason);
+                    _running = NO;
                 }
             }];
 }
@@ -328,14 +328,14 @@ static NSMutableDictionary *_accounts;
     } else
     if ([self.type isEqual:@"oauth2"]) {
         [self authorize2:^(NSError *error) {
-            _authenticating = NO;
             finished(error);
+            _authenticating = NO;
         }];
     } else {
         NSURLRequest *request = [self getAuthorizeRequest:nil];
         [self showWebView:request completionHandler:^(NSURLRequest *req, NSError *error) {
-            _authenticating = NO;
             finished(error);
+            _authenticating = NO;
         }];
     }
 }

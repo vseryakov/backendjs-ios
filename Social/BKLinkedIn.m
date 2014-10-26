@@ -111,7 +111,7 @@
                             params:params
                             defaults:@{ @"id": @"~",
                                         @"fields": @"(id,formatted-name,picture-url,public-profile-url,location,headline,industry)",
-                                        @"count": @(500) }];
+                                        @"count": @(250) }];
 
     [self sendRequest:@"GET"
                  path:query.path
@@ -121,6 +121,7 @@
               success:^(id result) {
                   NSMutableArray *list = [@[] mutableCopy];
                   for (NSDictionary *item in result) {
+                      // Skip private contacts
                       if (!item[@"id"] || !item[@"formattedName"]) continue;
                       NSMutableDictionary *rec = [item mutableCopy];
                       rec[@"linkedin_id"] = rec[@"id"];
@@ -129,7 +130,7 @@
                       rec[@"icon"] = [item str:@"pictureUrl"];
                       [list addObject:rec];
                   }
-                  Logger(@"%d records", (int)list.count);
+                  Logger(@"%d out of %d records", (int)list.count, (int)[result count]);
                   if (success) success(list);
               } failure:failure];
 }
