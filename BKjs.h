@@ -198,6 +198,7 @@ typedef NS_OPTIONS(NSUInteger, BKOptions) {
 + (void)getIcon:(NSString*)path params:(NSDictionary*)params options:(BKOptions)options success:(ImageSuccessBlock)success failure:(FailureBlock)failure;
 + (void)getIcon:(NSString*)url options:(BKOptions)options success:(ImageSuccessBlock)success failure:(FailureBlock)failure;
 + (void)getIconByPrefix:(NSDictionary*)params options:(BKOptions)options success:(ImageSuccessBlock)success failure:(FailureBlock)failure;
++ (void)putIcon:(NSString*)path params:(NSDictionary*)params image:(UIImage*)image success:(SuccessBlock)success failure:(FailureBlock)failure;
 
 #pragma mark Location API
 

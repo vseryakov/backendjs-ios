@@ -593,7 +593,9 @@ static NSString *SysCtlByName(char *typeSpecifier)
 + (NSString*)getErrorMessage:(NSError*)error
 {
     if (!error) return @"Unknown Error";
-    return error.localizedFailureReason ? error.localizedFailureReason : error.localizedRecoverySuggestion ? error.localizedRecoverySuggestion : error.description;
+    return error.localizedFailureReason ? error.localizedFailureReason :
+           error.localizedRecoverySuggestion ? error.localizedRecoverySuggestion :
+           error.localizedDescription ? error.localizedDescription : error.description;
 }
 
 + (NSMutableURLRequest *)makeRequest:(NSString *)method path:(NSString *)path params:(NSDictionary *)params type:(NSString*)type
@@ -683,7 +685,7 @@ static NSString *SysCtlByName(char *typeSpecifier)
     if (!contentType) contentType = @"application/x-www-form-urlencoded";
     
     // Default expiration if not specified
-    if (expires == 0) expires = 30;
+    if (expires == 0) expires = 60;
     NSNumber *expire = [NSNumber numberWithLongLong:([BKjs now] + expires) * 1000];
     
     // Local date for the API to use proper timezone
@@ -922,6 +924,28 @@ static NSString *SysCtlByName(char *typeSpecifier)
     [self getIcon:query.path params:query.params options:options success:success failure:failure];
 }
 
++ (void)putIcon:(NSString*)path params:(NSDictionary*)params image:(UIImage*)image success:(SuccessBlock)success failure:(FailureBlock)failure
+{
+    if (!image || ![image isKindOfClass:[UIImage class]]) {
+        if (failure) failure(-1, @"invalid image");
+        return;
+    }
+    
+    NSMutableDictionary *query = [@{} mutableCopy];
+    for (id key in params) query[key] = params[key];
+    
+    NSData *jpeg = UIImageJPEGRepresentation(image, 1.0);
+    if (!jpeg) {
+        Logger(@"cannot convert to JPEG: %@", image);
+        if (failure) failure(-1, @"bad jpeg");
+        return;
+    }
+    query[@"icon"] = [BKjs toBase64:jpeg];
+    Logger(@"putIcon: %gx%g: size=%d, %@", image.size.width, image.size.height, (int)jpeg.length, params);
+    
+    [BKjs sendJSON:path method:@"POST" params:query success:success failure:failure];
+}
+
 #pragma mark Account Icon API
 
 + (void)getAccountIcons:(NSDictionary*)params success:(ListBlock)success failure:(FailureBlock)failure
@@ -943,28 +967,7 @@ static NSString *SysCtlByName(char *typeSpecifier)
 // Sending nil image will delete the icon for the given type
 + (void)putAccountIcon:(UIImage*)image params:(NSDictionary*)params success:(SuccessBlock)success failure:(FailureBlock)failure
 {
-    if (!image || ![image isKindOfClass:[UIImage class]]) {
-        if (failure) failure(-1, @"invalid image");
-        return;
-    }
-    
-    NSMutableDictionary *query = [@{} mutableCopy];
-    for (id key in params) query[key] = params[key];
-    
-    NSData *jpeg = UIImageJPEGRepresentation(image, 1.0);
-    if (!jpeg) {
-        Logger(@"cannot convert to JPEG: %@", image);
-        if (failure) failure(-1, @"bad jpeg");
-        return;
-    }
-    query[@"icon"] = [BKjs toBase64:jpeg];
-    Logger(@"putAccountIcon: %gx%g: size=%d, %@", image.size.width, image.size.height, (int)jpeg.length, params);
-    
-    [BKjs sendJSON:@"/account/put/icon"
-           method:@"POST"
-           params:query
-          success:success
-          failure:failure];
+    [self putIcon:@"/account/put/icon" params:params image:image success:success failure:failure];
 }
 
 + (void)delAccountIcon:(NSDictionary*)params success:(SuccessBlock)success failure:(FailureBlock)failure

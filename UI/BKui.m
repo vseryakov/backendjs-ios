@@ -1167,7 +1167,7 @@ static NSInteger styleSort(id a, id b, void *context)
     CGContextSetFillColorWithColor(ctx, [UIColor blackColor].CGColor);
     CGContextFillRect(ctx, (CGRect){CGPointZero, size});
     
-    [view.layer renderInContext:UIGraphicsGetCurrentContext()];
+    [view.layer.presentationLayer renderInContext:UIGraphicsGetCurrentContext()];
     UIImage *img = UIGraphicsGetImageFromCurrentImageContext();
     UIGraphicsEndImageContext();
     return img;
@@ -1181,7 +1181,7 @@ static NSInteger styleSort(id a, id b, void *context)
     CGContextSetFillColorWithColor(ctx, [UIColor blackColor].CGColor);
     CGContextFillRect(ctx, (CGRect){CGPointZero, size});
     
-    [view.layer renderInContext:UIGraphicsGetCurrentContext()];
+    [view.layer.presentationLayer renderInContext:UIGraphicsGetCurrentContext()];
     UIImage *img = UIGraphicsGetImageFromCurrentImageContext();
     UIGraphicsEndImageContext();
     return img;
