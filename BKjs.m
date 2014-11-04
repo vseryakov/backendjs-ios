@@ -562,7 +562,7 @@ static NSString *SysCtlByName(char *typeSpecifier)
         NSArray *elements = [pair componentsSeparatedByString:@"="];
         NSString *key = [[elements objectAtIndex:0] stringByReplacingPercentEscapesUsingEncoding:NSUTF8StringEncoding];
         NSString *val = [[elements objectAtIndex:1] stringByReplacingPercentEscapesUsingEncoding:NSUTF8StringEncoding];
-        [dict setObject:val forKey:key];
+        if (key && val) [dict setObject:val forKey:key];
     }
     return dict;
 }
@@ -1155,7 +1155,7 @@ static NSString *SysCtlByName(char *typeSpecifier)
             rc = [rc sortedArrayUsingComparator:^NSComparisonResult(id a, id b) {
                 double m1 = [BKjs toNumber:a name:@"mtime"];
                 double m2 = [BKjs toNumber:b name:@"mtime"];
-                return m1 < m2 ? NSOrderedAscending : m1 > m2 ? NSOrderedDescending : NSOrderedSame;
+                return m1 > m2 ? NSOrderedAscending : m1 < m2 ? NSOrderedDescending : NSOrderedSame;
             }];
             if (success) success((int)rc.count, rc, nil);
         } failure:failure];
@@ -1170,7 +1170,7 @@ static NSString *SysCtlByName(char *typeSpecifier)
             rc = [rc sortedArrayUsingComparator:^NSComparisonResult(id a, id b) {
                 double m1 = [BKjs toNumber:a name:@"mtime"];
                 double m2 = [BKjs toNumber:b name:@"mtime"];
-                return m1 < m2 ? NSOrderedAscending : m1 > m2 ? NSOrderedDescending : NSOrderedSame;
+                return m1 > m2 ? NSOrderedAscending : m1 < m2 ? NSOrderedDescending : NSOrderedSame;
             }];
             if (success) success((int)rc.count, rc, nil);
         } failure:failure];
