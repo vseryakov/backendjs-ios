@@ -21,5 +21,6 @@
 - (void)onButton:(UIButton*)sender;
 - (void)onView:(UIGestureRecognizer*)sender;
 - (void)onPhoto:(UIImageView*)imgView;
-
+- (void)doPostprocess:(NSDictionary*)item;
+- (void)doPreprocess:(NSDictionary*)item cell:(UITableViewCell*)cell;
 @end

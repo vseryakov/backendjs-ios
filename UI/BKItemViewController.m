@@ -119,7 +119,7 @@
         self.avatar.hidden = NO;
         self.avatar.x = x;
         self.avatar.y = y;
-        self.avatar.image = [UIImage imageNamed:[params str:@[@"avatar_none"] dflt:@"avatar_male"]];
+        self.avatar.image = [UIImage imageNamed:[params str:@[@"avatar_none"] dflt:@"avatar"]];
 
         if (params[@"avatar"]) {
             if ([params[@"avatar"] rangeOfString:@"/"].location == NSNotFound) {

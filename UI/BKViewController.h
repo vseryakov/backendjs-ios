@@ -40,8 +40,8 @@
 @property (strong, nonatomic) NSMutableArray *itemsAll;
 
 // Table support for sections index
-@property (strong, nonatomic) NSArray *itemsIndex;
-@property (strong, nonatomic) NSArray *itemsIndexTitle;
+@property (strong, nonatomic) NSMutableArray *itemsIndex;
+@property (strong, nonatomic) NSMutableArray *itemsIndexTitle;
 @property (strong, nonatomic) NSMutableArray *itemsSection;
 
 // Next token for browsing items

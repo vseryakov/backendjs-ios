@@ -61,7 +61,7 @@
     if (!self.view.superview || !self.view.window || !self.parentViewController) return NO;
     NSDictionary *item = objc_getAssociatedObject(sender, @"item");
     if (item[@"required"] && [BKjs isEmpty:[sender text]]) {
-        [BKui showAlert:self title:@"Required" text:[NSString stringWithFormat:@"%@ cannot be empty, please enter some value", item[@"title"]] finish:nil];
+        [BKui showAlert:self title:@"Required" text:[NSString stringWithFormat:@"%@ cannot be empty", item[@"title"]] finish:nil];
         return YES;
     }
     return NO;
@@ -139,18 +139,7 @@
 
 - (void)onPhoto:(UIImageView*)imgView
 {
-    [BKui showAction:self title:@"Choose profile picture" actions:@[@"Cancel",@"Social Network Albums",@"Photo Library",@"Camera",@"Delete picture"] finish:^(NSString *action) {
-        if ([action isEqual:@"Delete picture"]) {
-            NSDictionary *item = objc_getAssociatedObject(imgView, @"item");
-            [BKjs delAccountIcon:item[@"params"] success:^(id obj) {
-                imgView.image = [BKapp profileAvatar];
-                [self doPostprocess:item];
-                [[NSNotificationCenter defaultCenter] postNotificationName:@"profileUpdated" object:nil];
-            } failure:nil];
-        }
-        if ([action isEqual:@"Social Network Albums"]) {
-            [self showImagePickerFromAlbums:@{ @"accounts": [BKapp connectedAccounts:NO], @"_imageView": imgView }];
-        }
+    [BKui showAction:self title:@"Choose profile picture" actions:@[@"Cancel",@"Photo Library",@"Camera"] finish:^(NSString *action) {
         if ([action isEqual:@"Photo Library"]) {
             [self showImagePickerFromLibrary:self params:@{ @"_imageView": imgView }];
         }
@@ -307,7 +296,7 @@
     }
     if ([item[@"type"] isEqual:@"photo"]) {
         UIImageView *img = [BKui makeImageAvatar:cell frame:CGRectMake(cell.width - cell.height, 10, cell.height - 20, cell.height - 20) color:item[@"border-color"] border:[item num:@"border-width"] eclipse:item[@"eclipse-image"]];
-        img.image = item[@"placeholder"] ? [UIImage imageNamed:item[@"placeholder"]] : [(AppDelegate*)BKjs.appDelegate profileAvatar];
+        img.image = item[@"placeholder"] ? [UIImage imageNamed:item[@"placeholder"]] : [UIImage imageNamed:@"avatar"];;
         img.userInteractionEnabled = YES;
         img.tag = 999;
         objc_setAssociatedObject(img, @"item", item, OBJC_ASSOCIATION_RETAIN_NONATOMIC);

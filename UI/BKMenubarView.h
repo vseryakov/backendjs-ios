@@ -15,5 +15,6 @@
 - (void)setMenu:(NSArray*)items params:(NSDictionary*)params;
 - (void)update:(NSString*)name params:(NSDictionary*)params;
 - (void)update:(NSDictionary*)params;
+- (void)select:(NSString*)name;
 
 @end

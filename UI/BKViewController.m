@@ -220,10 +220,11 @@
     if (self.menubarView) {
         [self.menubarView setMenu:items params:params];
     } else {
-        self.menubarView = [[BKMenubarView alloc] init:CGRectMake(0, 0, self.view.width, self.toolbarHeight + self.barHeight) items:items params:params];
+        self.menubarView = [[BKMenubarView alloc] init:CGRectMake(0, 0, self.view.width, self.toolbarHeight + self.barHeight) items:nil params:nil];
         self.menubarView.contentInsets = UIEdgeInsetsMake(self.barHeight, 0, 0, 0);
         self.menubarView.delegate = self;
         [self.view addSubview:self.menubarView];
+        [self.menubarView setMenu:items params:params];
         self.menubarView.backgroundColor = [BKui makeColor:self.view.backgroundColor h:1 s:1 b:0.95 a:1];
         [BKui setStyle:self.menubarView style:BKui.style[@"menubar"]];
     }

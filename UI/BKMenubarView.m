@@ -48,6 +48,7 @@
         NSString *name = [obj str:@[@"name",@"title",@"icon"] dflt:[NSString stringWithFormat:@"%d", i]];
         
         NSMutableDictionary *item = [obj mutableCopy];
+        item[@"_id"] = name;
         [self.items addObject:item];
         
         UIButton *button = [UIButton buttonWithType:UIButtonTypeCustom];
@@ -58,6 +59,7 @@
         button.contentHorizontalAlignment = UIControlContentHorizontalAlignmentCenter;
         [self addSubview:button];
         [BKui setStyle:button style:item];
+        Logger(@"%@: %g %g %g", name, button.y, button.height, self.contentInsets.top);
         self.buttons[name] = button;
     }
     [self update:params];
@@ -84,6 +86,14 @@
     [BKui setStyle:self.buttons[name] style:params];
 }
 
+- (void)select:(NSString*)name
+{
+    for (NSDictionary *item in self.items) {
+        UIButton *button = self.buttons[[item str:@"_id"]];
+        if (button) button.selected = [name isEqual:item[@"name"]] || [name isEqual:item[@"title"]] || [name isEqual:item[@"icon"]];
+    }
+}
+
 - (IBAction)onButton:(id)sender
 {
     for (NSString *name in self.buttons) {
@@ -107,6 +117,8 @@
                         }
                         [BKui showViewController:delegate name:item[@"view"] ? item[@"view"] : name params:item];
                     }
+                    // Keep highlighted
+                    if (item[@"keep-selected"]) [self select:[item str:@[@"name",@"title",@"icon"] dflt:@""]];
                     break;
                 }
             }

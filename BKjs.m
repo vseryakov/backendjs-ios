@@ -157,7 +157,10 @@ static NSString *SysCtlByName(char *typeSpecifier)
 + (NSString*)appName
 {
     static dispatch_once_t _bkOnce;
-    dispatch_once(&_bkOnce, ^{ _appName = [[[NSBundle mainBundle] infoDictionary] objectForKey:@"CFBundleDisplayName"]; });
+    dispatch_once(&_bkOnce, ^{
+        _appName = [[[NSBundle mainBundle] infoDictionary] objectForKey:@"CFBundleDisplayName"];
+        if (!_appName) _appName = [[[NSBundle mainBundle] infoDictionary] objectForKey:@"CFBundleName"];
+    });
     return _appName;
 }
 
